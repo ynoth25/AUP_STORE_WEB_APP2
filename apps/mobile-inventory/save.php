@@ -4,6 +4,7 @@ $barcode = $_GET["barcode"];
 $physical_count = $_GET["phy_count"];
 $counter= $_GET["counted_by"];
 $inventory_tag = $_GET["inventory_tag"];
+$location = $_GET["location"];
 
 
 //echo $barcode;
@@ -16,7 +17,7 @@ $result2 = pg_query($db_connection,"select user_id as user_id from users where u
   		$counter2= (int)$row[0];
   	}
 
-$result = pg_query($db_connection, "INSERT INTO inventory (product_code,physical_count,counted_by,date_counted, inventory_tag) values ('$barcode','$physical_count','$counter2',now()::timestamp,'$inventory_tag')");
+$result = pg_query($db_connection, "INSERT INTO inventory (product_code,physical_count,counted_by,date_counted, inventory_tag,location) values ('$barcode','$physical_count','$counter2',now()::timestamp,'$inventory_tag','$location')");
 
 if (!$result) {
   echo "Product Not Found!";
