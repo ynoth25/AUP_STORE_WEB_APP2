@@ -1,5 +1,6 @@
 <?php
 include('login/session.php');
+ $q = $_POST['date_range'];
 ?>
 <!DOCTYPE html>
 <html>
@@ -372,13 +373,13 @@ function showInventory(str)
                     <i class="fa fa-clock-o"></i>
                   </div>
 
-                  <input type="text" class="form-control pull-right" name="date_range" id="reservation">
+                  <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
                 </div>
                 <!-- /.input group -->
               </div>
 
             <button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
-            <button type="submit" id="export" name="export" class="btn btn-info pull-left" value="Submit">Export to CSV/Excel</button>
+            <button id="export" onclick="exportTableToExcel('example1',reservation.value+' Inventory')" name="export" class="btn btn-success pull-right">Export to CSV/Excel</button>
             </div>
             </form>
             <!-- /.box-header -->
@@ -402,8 +403,9 @@ function showInventory(str)
             <div class="box-body">
 
               <?php
+              $gtotal = 0;
                if(isset($_POST['search'])){
-              $q = $_POST['date_range'];
+             
                 list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
 
 
@@ -413,45 +415,30 @@ function showInventory(str)
                 $from2 = date('Y-m-d',$from);
                 $to2 = date('Y-m-d',$to);
 
-                $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                $query5 = ("select 
-                    inventory_id,
-                    product.description prod_desc,
-                    inventory.on_hand,
-                    inventory.physical_count,
-                    users.username counted_by,
-                    inventory.date_counted
 
-                    from inventory
-                    INNER JOIN product ON product.product_code = inventory.product_code
-                    INNER JOIN users ON users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp and '$to2'::timestamp group by inventory.product_code,inventory.inventory_id,product.description,inventory.on_hand;");
+                $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
+                $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
                 $result1 = pg_query($con,$query5);
-                     
+                
               ?>
-              <table id="example1" class="table table-striped table-bordered" cellspacing="0" width="100%">
+              <table id="example1" class="table table-striped table-bordered" cellspacing="0" width="80%">
 
                     <thead>
                         <tr>
                           
-                            <th>Inventory ID</th>
-                            <th>Product</th> 
-                            <th>On hand</th>
+                            <th>Inventory Tag</th>
+                            <th>Barcode</th> 
+                            <th>Description</th>
+                            <th>Unit Cost</th>
+                            <th>On Hand</th>
                             <th>Physical Count</th>
+                            <th>Variance</th>
+                            <th>Total Cost</th>
                             <th>Counted By</th>
-                            <th>Date Counted</th>
+                            <th>Location</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                          
-                            <th>Inventory ID</th>
-                            <th>Product</th>
-                            <th>On hand</th>
-                            <th>Physical Count</th>
-                            <th>Counted By</th>
-                            <th>Date Counted</th>
-                        </tr>
-                    </tfoot>
+                    
                     <tbody>
 
 
@@ -463,50 +450,35 @@ function showInventory(str)
                      
                     while($row = pg_fetch_assoc($result1)){
 
-                        $id = $row['inventory_id'];
-                        $prod_desc = $row['prod_desc'];
-                        $physical_count = $row['physical_count'];
-                        $counted_by = $row['counted_by'];
-                        $date_counted= $row['date_counted'];
+                        $inventory_tag = $row['inventory_tag'];
+                        $barcode =  $row['product_code'];
+                        $prod_desc = $row['description'];
+                        $unit_cost = $row["unit_cost"];
                         $on_hand= $row['on_hand'];
-
+                        $physical_count = $row['physical_count'];
+                        $variance= $row['variance'];
+                        $total_cost= $row['total_cost'];
+                        $counted_by = $row['counted_by'];
+                        $location = $row['location'];
+                        
+                        $gtotal +=$total_cost;
                     ?> 
                         <tr>
-                            <td><?php echo $id; ?></td>
+                            <td><?php echo $inventory_tag; ?></td>
+                            <td><?php echo $barcode; ?></td>
                             <td><?php echo $prod_desc; ?></td>
+
+                            <td><?php echo  number_format($unit_cost, 2); ?></td>
                             <td><?php echo $on_hand; ?></td>
                             <td><?php echo $physical_count; ?></td>
+                            <td><?php echo $variance; ?></td>
+                           <td><?php echo  number_format($total_cost, 2); ?></td>
                             <td><?php echo $counted_by; ?></td>
-                            <td><?php echo $date_counted; ?></td>
+                            <td><?php echo $location; ?></td>
                         </tr>
                 <?php   }  //End of while loop
+                echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Grand Total</td><td style=color:red>".number_format($gtotal, 2)."</td></tr>";
 
-              }
-
-              if(isset($_POST['export'])){
-                $q = $_POST['date_range'];
-                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
-
-
-                $from= strtotime($from);
-                $to= strtotime($to);
-
-                $from2 = date('Y-m-d',$from);
-                $to2 = date('Y-m-d',$to);
-                $export = "COPY (select 
-                    product.description prod_desc,
-                    inventory.on_hand,
-                    inventory.physical_count,
-                    users.username counted_by,
-                    inventory.date_counted
-
-                    from inventory
-                    INNER JOIN product ON product.product_code = inventory.product_code
-                    INNER JOIN users ON users.user_id = inventory.counted_by where date_counted between '$from2'::Date and '$to2'::Date) TO 'D:/Store/inventory/$from2-$to2.csv' DELIMITER ',' CSV HEADER";
-
-                     $result2 = pg_query($con,$export);
-                        echo '<script>window.location.href="inventory.php"</script>';
-                     
               }
                 ?>     
                     
@@ -848,6 +820,39 @@ function showInventory(str)
       'autoWidth'   : true
     })
   })
+</script>
+
+<script type="text/javascript">
+  function exportTableToExcel(tableID, filename){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    var date_range = document.getElementById(reservation);
+    // Specify file name
+    filename = filename?filename+'.xls':'Labor.xls';
+    
+    // Create download link element
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        // Create a link to the file
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+    
+        // Setting the file name
+        downloadLink.download = filename;
+        
+        //triggering the function
+        downloadLink.click();
+    }
+}
 </script>
 </body>
 </html>

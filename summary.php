@@ -1,4 +1,9 @@
   
+  <?php
+if(isset($_POST['date_range'])){
+   $q = $_POST['date_range'];
+ }
+  ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -160,7 +165,7 @@ function showInventory(str)
                     <i class="fa fa-calendar-o"></i>
                   </div>
 
-                  <input type="text" class="form-control pull-right" name="date_range" id="reservation">
+                  <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
 
                 </div>
 
@@ -205,7 +210,7 @@ function showInventory(str)
                 $to2 = date('Y-m-d',$to);
 
                 $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                $query5 = ("select users.name user_name, sum (round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2)) as total from dtr 
+                $query5 = ("select users.username user_name, sum (round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2)) as total from dtr 
                   INNER JOIN users ON users.rf_id = dtr.rf_id
                   where transact_date between '$from2'::timestamp and '$to2'::timestamp group by dtr.rf_id,user_name order by user_name;");
                 $result1 = pg_query($con,$query5);
@@ -226,10 +231,11 @@ function showInventory(str)
                     </tfoot>
                     <tbody> 
                     <?php
-
+                    $gtotal =0;
                     while($row = pg_fetch_assoc($result1)){
                         $rf_id = $row['user_name'];
                         $total= $row['total'];
+                        $gtotal += $row['total'];
                     ?> 
                         <tr>
                        
@@ -238,7 +244,8 @@ function showInventory(str)
                             
                             
                         </tr>
-                <?php   } 
+                <?php   }
+                        echo "<tr><strong><td>Grand Total: </td></strong><td style=color:red;>".$gtotal."</td></tr>";
 
               }
 

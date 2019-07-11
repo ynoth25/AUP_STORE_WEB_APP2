@@ -1,4 +1,9 @@
-  
+ 
+ <?php
+ if(isset($_POST['date_range'])){
+   $q = $_POST['date_range'];
+ }
+ ?> 
 <!DOCTYPE html>
 <html>
 <head>
@@ -160,7 +165,7 @@ function showInventory(str)
                     <i class="fa fa-calendar-o"></i>
                   </div>
 
-                  <input type="text" class="form-control pull-right" name="date_range" id="reservation">
+                  <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
 
                 </div>
 
@@ -192,9 +197,11 @@ function showInventory(str)
 
               <?php
               $total = 0;
+              $gtotal = 0;
+              $display_flag=1;
               $temp_name = '';
                if(isset($_POST['search'])){
-              $q = $_POST['date_range'];
+              
                 list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
 
 
@@ -204,10 +211,9 @@ function showInventory(str)
                 $from2 = date('Y-m-d',$from);
                 $to2 = date('Y-m-d',$to);
 
+               
                 $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                $query5 = ("select users.user_id user_id,users.username fname, to_char(transact_date,'Day') as day,to_char(timein,'HH:MI AM') as timein,to_char(timeout,'HH:MI AM') as timeout,round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2) as subtotal from dtr
-                INNER JOIN users ON users.rf_id=dtr.rf_id 
-                where transact_date between '$from2'::timestamp::date and '$to2'::timestamp::date group by users.user_id, users.username,dtr.transact_date,dtr.timein,dtr.timeout order by users.username;");
+                $query5 = ("select user_id, rf_id from users order by username;");
                 $result1 = pg_query($con,$query5);
                 
                // echo $query5;
@@ -229,53 +235,66 @@ function showInventory(str)
                     </tfoot>
                     <tbody> 
                     <?php
-
+                     
                     while($row = pg_fetch_assoc($result1)){
                         $user_id = $row['user_id'];
-                        $fname = $row['fname'];
-                        $day = $row['day'];
-                        $timein = $row['timein'];
-                        $timeout = $row['timeout'];
-                        $subtotal= $row['subtotal'];
-                    ?> 
-                        <tr>
-                            <?php 
-                            //condition if same name
-                            if( $temp_name == NULL || $temp_name == $fname)
-                        {
-                          ?>
+                        $rf_id = $row['rf_id'];
+                        ?>
 
+                         
+
+                            <?php
+                        $result2 = pg_query($con, "select users.username fname, to_char(transact_date,'Day') as day,to_char(timein,'HH:MI AM') as timein,to_char(timeout,'HH:MI AM') as timeout,round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2) as subtotal from dtr
+                INNER JOIN users ON users.rf_id=dtr.rf_id 
+                where transact_date between '$from2'::timestamp::date and '$to2'::timestamp::date and  dtr.rf_id='$rf_id';");
+
+                        
+                        while ($row2 = pg_fetch_assoc($result2)) {
+
+
+                          $fname = $row2['fname'];
+                          $day = $row2['day'];
+                          $timein = $row2['timein'];
+                          $timeout = $row2['timeout'];
+                          $subtotal= $row2['subtotal'];
+
+                          ?> 
+                           <tr>
                             <td><?php echo $user_id; ?></td>
                             <td><?php echo $fname; ?></td>
                             <td><?php echo $day; ?></td>
                             <td><?php echo $timein; ?></td>
                             <td><?php echo $timeout; ?></td>
                             <td><?php echo $subtotal; ?></td>
+                          </tr>
                             <?php
-                         
-                          $total += $row['subtotal'];
+                            $total += $subtotal;
+                            $gtotal += $total;
                           
-                          //condition if another name
-                        } else 
-
-                        if( $temp_name != $fname)
-                        {
-                          
-                          echo "<td>"."</td>"."<td></td>"."<td></td>"."<td></td>"."<td><b>Total Hours: </b></td>"."<td><b>".$total."</td>";
-                          
-                          $temp_name = $fname;
-                          $total=0;
-                        } else {
-                          echo "<td>"."</td>"."<td></td>"."<td></td>"."<td></td>"."<td><b>Total Hours: </b></td>"."<td><b>".$total."</td>";//end of while loop
                         }
 
-                        ?>
-                        </tr>
-                <?php   }  ?> 
-                <td></td>
-                <?php
+                        if($total != 0){
+                         
+                       echo "<tr>"."<td>"."</td>"."<td></td>"."<td></td>"."<td></td>"."<td><b>Total Hours: </b></td>"."<td><b>".$total."</td>"."</tr>";
+                       $total=0;
+                     }
 
+                    ?> 
+                       
+                            <?php
+                          
+                        ?>
+                        
+                <?php   }
+                      echo "<tr><td></td><td></td><td></td><td><td>Grand Total: </td><td style=color:red>".$gtotal."</td></tr>";  
+                    
+
+                ?> 
+                      
+                <?php
+                    
               }
+
 
               if(isset($_POST['export'])){
                 $q = $_POST['date_range'];
