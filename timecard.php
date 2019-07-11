@@ -13,8 +13,6 @@
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
-  
-
   <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
@@ -38,108 +36,8 @@
        folder instead of downloading all of them to reduce the load. -->
   <link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
   <link rel="stylesheet" href="../bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
-
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
-  <script>
-function showUser(str) {
-    if (str == "") {
-        document.getElementById("demo").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("demo").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/load.php?q="+str,true);
-        xmlhttp.send();
-    }
-
-    
-}
-
-function showHdd(str)
-{
-  if (str == "") {
-        document.getElementById("hdd").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("hdd").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/hdd.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-
-function showRemarks(str)
-{
-  if (str == "") {
-        document.getElementById("remarks").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("remarks").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/remarks.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-
-function showInventory(str)
-{
- 
-   if (str == "") {
-        document.getElementById("example1").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("example1").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/showInventory.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-</script>
-
-
-
 </head>
 <!-- ADD THE CLASS layout-boxed TO GET A BOXED LAYOUT -->
 <body >
@@ -159,67 +57,50 @@ function showInventory(str)
              <form action="timecard.php" method="POST">
               <div class="form-group">
                 <label>Date Range:</label>
-
                 <div class="input-group">
                   <div class="input-group-addon">
                     <i class="fa fa-calendar-o"></i>
                   </div>
-
                   <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
-
                 </div>
-
                 <!-- /.input group -->
               </div>
               <button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
               </form>
               <button id="export" onclick="exportTableToExcel('tblData',reservation.value+' Labor')" name="export" class="btn btn-success pull-right">Export to CSV/Excel</button>
-            
             <!-- /.box-header -->
             <div class="box-body" id="demo">
-             
-              
             </div>
             <!-- /.box-body -->
           </div>
         </div>
-
       <!-- /.box -->
-     
-  
        <div class="box">
             <div class="box-header">
               <h3 class="box-title">Time Card.</h3>
             </div>
-
             <!-- /.box-header -->
             <div class="box-body">
-
               <?php
-              $total = 0;
-              $gtotal = 0;
-              $display_flag=1;
-              $temp_name = '';
-               if(isset($_POST['search'])){
-              
-                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
 
-
-                $from= strtotime($from);
-                $to= strtotime($to);
-
-                $from2 = date('Y-m-d',$from);
-                $to2 = date('Y-m-d',$to);
-
-               
-                $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                $query5 = ("select user_id, rf_id from users order by username;");
-                $result1 = pg_query($con,$query5);
+                $total = 0;
+                $gtotal = 0;
+                $display_flag=1;
+                $temp_name = '';
+                if(isset($_POST['search'])){
                 
+                  list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
+                  $from= strtotime($from);
+                  $to= strtotime($to);
+                  $from2 = date('Y-m-d',$from);
+                  $to2 = date('Y-m-d',$to);
+                  $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
+                  $query5 = ("select user_id, rf_id from users order by username;");
+                  $result1 = pg_query($con,$query5);
+                  
                // echo $query5;
               ?>
               <table id="tblData" class="table table-hover" cellspacing="0" width="100%">
-
                     <thead>
                         <tr>
                             <th>ID Number</th>
@@ -230,124 +111,57 @@ function showInventory(str)
                             <th>Subtotal</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        
+                    <tfoot> 
                     </tfoot>
                     <tbody> 
                     <?php
-                     
                     while($row = pg_fetch_assoc($result1)){
                         $user_id = $row['user_id'];
                         $rf_id = $row['rf_id'];
-                        ?>
-
-                         
-
-                            <?php
-                        $result2 = pg_query($con, "select users.username fname, to_char(transact_date,'Day') as day,to_char(timein,'HH:MI AM') as timein,to_char(timeout,'HH:MI AM') as timeout,round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2) as subtotal from dtr
-                INNER JOIN users ON users.rf_id=dtr.rf_id 
-                where transact_date between '$from2'::timestamp::date and '$to2'::timestamp::date and  dtr.rf_id='$rf_id';");
-
-                        
+                        $result2 = pg_query($con, "select users.username fname, 
+                          to_char(transact_date,'Day') as day,
+                          to_char(timein,'HH:MI AM') as timein,
+                          to_char(timeout,'HH:MI AM') as timeout,
+                          round(extract (epoch from ((timeout::time - timein::time)/3600))::numeric,2) as subtotal 
+                          from dtr
+                          INNER JOIN users ON users.rf_id=dtr.rf_id 
+                          where transact_date between '$from2'::timestamp::date and '$to2'::timestamp::date and  dtr.rf_id='$rf_id';");
                         while ($row2 = pg_fetch_assoc($result2)) {
-
-
-                          $fname = $row2['fname'];
-                          $day = $row2['day'];
-                          $timein = $row2['timein'];
-                          $timeout = $row2['timeout'];
-                          $subtotal= $row2['subtotal'];
-
-                          ?> 
-                           <tr>
-                            <td><?php echo $user_id; ?></td>
-                            <td><?php echo $fname; ?></td>
-                            <td><?php echo $day; ?></td>
-                            <td><?php echo $timein; ?></td>
-                            <td><?php echo $timeout; ?></td>
-                            <td><?php echo $subtotal; ?></td>
-                          </tr>
+                            $fname = $row2['fname'];
+                            $day = $row2['day'];
+                            $timein = $row2['timein'];
+                            $timeout = $row2['timeout'];
+                            $subtotal= $row2['subtotal'];
+                            ?> 
+                            <tr>
+                              <td><?php echo $user_id; ?></td>
+                              <td><?php echo $fname; ?></td>
+                              <td><?php echo $day; ?></td>
+                              <td><?php echo $timein; ?></td>
+                              <td><?php echo $timeout; ?></td>
+                              <td><?php echo $subtotal; ?></td>
+                            </tr>
                             <?php
                             $total += $subtotal;
-                            $gtotal += $total;
-                          
-                        }
-
+                            $gtotal += $total; 
+                          } //end of while loop
                         if($total != 0){
-                         
-                       echo "<tr>"."<td>"."</td>"."<td></td>"."<td></td>"."<td></td>"."<td><b>Total Hours: </b></td>"."<td><b>".$total."</td>"."</tr>";
-                       $total=0;
-                     }
-
-                    ?> 
-                       
-                            <?php
-                          
-                        ?>
-                        
-                <?php   }
-                      echo "<tr><td></td><td></td><td></td><td><td>Grand Total: </td><td style=color:red>".$gtotal."</td></tr>";  
-                    
-
-                ?> 
-                      
-                <?php
-                    
-              }
-
-
-              if(isset($_POST['export'])){
-                $q = $_POST['date_range'];
-                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
-
-
-                $from= strtotime($from);
-                $to= strtotime($to);
-
-                $from2 = date('Y-m-d',$from);
-                $to2 = date('Y-m-d',$to);
-                $export = "COPY (select 
-                    product.description prod_desc,
-                    inventory.on_hand,
-                    inventory.physical_count,
-                    users.username counted_by,
-                    inventory.date_counted
-
-                    from inventory
-                    INNER JOIN product ON product.product_code = inventory.product_code
-                    INNER JOIN users ON users.user_id = inventory.counted_by where date_counted between '$from2'::Date and '$to2'::Date) TO 'D:/Store/inventory/$from2-$to2.csv' DELIMITER ',' CSV HEADER";
-
-                     $result2 = pg_query($con,$export);
-                        echo '<script>window.location.href="inventory.php"</script>';
-                     
-              }
+                              echo "<tr>"."<td>"."</td>"."<td></td>"."<td></td>"."<td></td>"."<td><b>Total Hours: </b></td>"."<td><b>".$total."</td>"."</tr>";
+                              $total=0;
+                            }
+                    }
+                        echo "<tr><td></td><td></td><td></td><td><td>Grand Total: </td><td style=color:red>".$gtotal."</td></tr>"; 
+                }
                 ?>     
-                    
-                    
-                      </tbody>   
-     
-                </table>
-
+                        </tbody>   
+                    </table>
+                </div>
             </div>
-            <!-- /.box-body -->
-          </div>
-
-
-
-
-
-     
-    
-
-       
           <!-- /.form-group -->
         </form>
       </div>
-
-</div>
+    </div>
 <!-- ./wrapper -->
-
-
 <!-- jQuery 3 -->
 
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
@@ -384,9 +198,6 @@ function showInventory(str)
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 
 <script>
-
-   
-
   $(function () {
     //Initialize Select2 Elements
     $('.select2').select2()

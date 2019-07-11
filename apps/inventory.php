@@ -7,7 +7,7 @@ include('login/session.php');
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title> Preventive Maintenance</title>
+  <title>Store Inventory</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
@@ -39,104 +39,6 @@ include('login/session.php');
 
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
-  <script>
-function showUser(str) {
-    if (str == "") {
-        document.getElementById("demo").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("demo").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/load.php?q="+str,true);
-        xmlhttp.send();
-    }
-
-    
-}
-
-function showHdd(str)
-{
-  if (str == "") {
-        document.getElementById("hdd").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("hdd").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/hdd.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-
-function showRemarks(str)
-{
-  if (str == "") {
-        document.getElementById("remarks").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("remarks").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/remarks.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-
-function showInventory(str)
-{
- 
-   if (str == "") {
-        document.getElementById("example1").innerHTML = "";
-        return;
-    } else { 
-        if (window.XMLHttpRequest) {
-            // code for IE7+, Firefox, Chrome, Opera, Safari
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById("example1").innerHTML = this.responseText;
-            }
-        };
-        xmlhttp.open("GET","manage/showInventory.php?q="+str,true);
-        xmlhttp.send();
-    }
-}
-</script>
-
-
 
 </head>
 <!-- ADD THE CLASS layout-boxed TO GET A BOXED LAYOUT -->
@@ -403,84 +305,68 @@ function showInventory(str)
             <div class="box-body">
 
               <?php
-              $gtotal = 0;
-               if(isset($_POST['search'])){
-             
-                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
+                $gtotal = 0;
+                if(isset($_POST['search'])){
 
+                    list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
+                    $from= strtotime($from);
+                    $to= strtotime($to);
+                    $from2 = date('Y-m-d',$from);
+                    $to2 = date('Y-m-d',$to);
 
-                $from= strtotime($from);
-                $to= strtotime($to);
-
-                $from2 = date('Y-m-d',$from);
-                $to2 = date('Y-m-d',$to);
-
-
-                $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
-                $result1 = pg_query($con,$query5);
-                
-              ?>
-              <table id="example1" class="table table-striped table-bordered" cellspacing="0" width="80%">
-
-                    <thead>
-                        <tr>
-                          
-                            <th>Inventory Tag</th>
-                            <th>Barcode</th> 
-                            <th>Description</th>
-                            <th>Unit Cost</th>
-                            <th>On Hand</th>
-                            <th>Physical Count</th>
-                            <th>Variance</th>
-                            <th>Total Cost</th>
-                            <th>Counted By</th>
-                            <th>Location</th>
-                        </tr>
-                    </thead>
+                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
+                    $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
+                    $result1 = pg_query($con,$query5);
                     
-                    <tbody>
-
-
-      
-                    <?php
-                    
-                     
-                    
-                     
-                    while($row = pg_fetch_assoc($result1)){
-
-                        $inventory_tag = $row['inventory_tag'];
-                        $barcode =  $row['product_code'];
-                        $prod_desc = $row['description'];
-                        $unit_cost = $row["unit_cost"];
-                        $on_hand= $row['on_hand'];
-                        $physical_count = $row['physical_count'];
-                        $variance= $row['variance'];
-                        $total_cost= $row['total_cost'];
-                        $counted_by = $row['counted_by'];
-                        $location = $row['location'];
+                    ?>
+                    <table id="example1" class="table table-striped table-bordered" cellspacing="0" width="80%">
+                        <thead>
+                            <tr>   
+                                <th>Inventory Tag</th>
+                                <th>Barcode</th> 
+                                <th>Description</th>
+                                <th>Unit Cost</th>
+                                <th>On Hand</th>
+                                <th>Physical Count</th>
+                                <th>Variance</th>
+                                <th>Total Cost</th>
+                                <th>Counted By</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
                         
-                        $gtotal +=$total_cost;
-                    ?> 
-                        <tr>
-                            <td><?php echo $inventory_tag; ?></td>
-                            <td><?php echo $barcode; ?></td>
-                            <td><?php echo $prod_desc; ?></td>
+                        <tbody>
+                        <?php  
+                            while($row = pg_fetch_assoc($result1)){
+                                    $inventory_tag = $row['inventory_tag'];
+                                    $barcode =  $row['product_code'];
+                                    $prod_desc = $row['description'];
+                                    $unit_cost = $row["unit_cost"];
+                                    $on_hand= $row['on_hand'];
+                                    $physical_count = $row['physical_count'];
+                                    $variance= $row['variance'];
+                                    $total_cost= $row['total_cost'];
+                                    $counted_by = $row['counted_by'];
+                                    $location = $row['location'];
+                                    $gtotal +=$total_cost;
+                        ?> 
+                            <tr>
+                                <td><?php echo $inventory_tag; ?></td>
+                                <td><?php echo $barcode; ?></td>
+                                <td><?php echo $prod_desc; ?></td>
+                                <td><?php echo  number_format($unit_cost, 2); ?></td>
+                                <td><?php echo $on_hand; ?></td>
+                                <td><?php echo $physical_count; ?></td>
+                                <td><?php echo $variance; ?></td>
+                                <td><?php echo  number_format($total_cost, 2); ?></td>
+                                <td><?php echo $counted_by; ?></td>
+                                <td><?php echo $location; ?></td>
+                            </tr>
+                    <?php   }  //End of while loop
 
-                            <td><?php echo  number_format($unit_cost, 2); ?></td>
-                            <td><?php echo $on_hand; ?></td>
-                            <td><?php echo $physical_count; ?></td>
-                            <td><?php echo $variance; ?></td>
-                           <td><?php echo  number_format($total_cost, 2); ?></td>
-                            <td><?php echo $counted_by; ?></td>
-                            <td><?php echo $location; ?></td>
-                        </tr>
-                <?php   }  //End of while loop
-                echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Grand Total</td><td style=color:red>".number_format($gtotal, 2)."</td></tr>";
-
-              }
-                ?>     
+                             echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Grand Total</td><td style=color:red>".number_format($gtotal, 2)."</td></tr>";
+                }
+                        ?>     
                     
                     
                       </tbody>   
