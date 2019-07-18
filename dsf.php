@@ -1,11 +1,11 @@
-  
-  <?php
+<?php
 if(isset($_POST['date_range'])){
    $q = $_POST['date_range'];
 
    $line ="_________";
  }
-  ?>
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,57 +15,52 @@ if(isset($_POST['date_range'])){
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
-  
-
-  <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
   <!-- Ionicons -->
-  <link rel="stylesheet" href="../bower_components/Ionicons/css/ionicons.min.css">
+  <link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
   <!-- daterange picker -->
-  <link rel="stylesheet" href="../bower_components/bootstrap-daterangepicker/daterangepicker.css">
+  <link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">
   <!-- bootstrap datepicker -->
-  <link rel="stylesheet" href="../bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+  <link rel="stylesheet" href="bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
   <!-- iCheck for checkboxes and radio inputs -->
-  <link rel="stylesheet" href="../plugins/iCheck/all.css">
+  <link rel="stylesheet" href="plugins/iCheck/all.css">
   <!-- Bootstrap Color Picker -->
-  <link rel="stylesheet" href="../bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css">
+  <link rel="stylesheet" href="bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css">
   <!-- Bootstrap time Picker -->
-  <link rel="stylesheet" href="../plugins/timepicker/bootstrap-timepicker.min.css">
+  <link rel="stylesheet" href="plugins/timepicker/bootstrap-timepicker.min.css">
   <!-- Select2 -->
-  <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.min.css">
+  <link rel="stylesheet" href="bower_components/select2/dist/css/select2.min.css">
   <!-- Theme style -->
-  <link rel="stylesheet" href="../dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
   <!-- AdminLTE Skins. Choose a skin from the css/skins
        folder instead of downloading all of them to reduce the load. -->
-  <link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
-  <link rel="stylesheet" href="../bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
   <style type="text/css">
- 
-hr {
-width: 50%;
-height: 20px;
-background-color: red;
-margin-right: auto;
-margin-left: auto;
-margin-top: 5px;
-margin-bottom: 5px;
-border-width: 2px;
-border-color: green;
-}
- 
-</style>
+        hr {
+            width: 50%;
+            height: 20px;
+            background-color: red;
+            margin-right: auto;
+            margin-left: auto;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            border-width: 2px;
+            border-color: green;
+        }
+    </style>
 
 </head>
 <!-- ADD THE CLASS layout-boxed TO GET A BOXED LAYOUT -->
-<body >
+<body class="layout-top-nav">
 <!-- Site wrapper -->
-<div class="wrapper">
+<div class="">
 
-  <div class="content-wrapper">
+  <div class="">
     <!-- Content Header (Page header) -->
     <!-- Main content -->
     <section class="content">
@@ -100,8 +95,7 @@ border-color: green;
               <h3 class="box-title">Labor Report</h3>
             </div>
             <!-- /.box-header -->
-            <div class="
-            body">
+            <div class="">
 
               <?php
                 $week =0;
@@ -165,7 +159,7 @@ border-color: green;
 
 
 
-                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
+                    $con = pg_connect("host=localhost port=5432 dbname=store user=postgres password=postgres");
 
                      $dept_query = "select id, department from department order by department";
                     $result_dept = pg_query($con,$dept_query);
@@ -173,11 +167,11 @@ border-color: green;
                    
                     // echo $query5;
               ?>
-              <table id="tblData" class="table table-bordered table-hover" cellspacing="0" width="100%" >
+              <table id="tblData" class="table table-bordered table-hover" cellspacing="0" width="100%" border="10%">
                     <thead>
                         <tr>
                             <th>ID Number</th>
-                             <th>Course</th>
+                            <th>Course</th>
                             <th>Name</th>
                             <th>Subsidy</th>
                             <th>Rate</th>
@@ -576,36 +570,36 @@ border-color: green;
     </div>
 <!-- ./wrapper -->
 <!-- jQuery 3 -->
-<script src="../bower_components/jquery/dist/jquery.min.js"></script>
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->
-<script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <!-- Select2 -->
-<script src="../bower_components/select2/dist/js/select2.full.min.js"></script>
+<script src="bower_components/select2/dist/js/select2.full.min.js"></script>
 <!-- InputMask -->
-<script src="../plugins/input-mask/jquery.inputmask.js"></script>
-<script src="../plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
-<script src="../plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script src="plugins/input-mask/jquery.inputmask.js"></script>
+<script src="plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="plugins/input-mask/jquery.inputmask.extensions.js"></script>
 <!-- date-range-picker -->
-<script src="../bower_components/moment/min/moment.min.js"></script>
-<script src="../bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+<script src="bower_components/moment/min/moment.min.js"></script>
+<script src="bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
 <!-- bootstrap datepicker -->
-<script src="../bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script src="bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
 <!-- bootstrap color picker -->
-<script src="../bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
+<script src="bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
 <!-- bootstrap time picker -->
-<script src="../plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script src="plugins/timepicker/bootstrap-timepicker.min.js"></script>
 <!-- SlimScroll -->
-<script src="../bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<script src="bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 <!-- iCheck 1.0.1 -->
-<script src="../plugins/iCheck/icheck.min.js"></script>
+<script src="plugins/iCheck/icheck.min.js"></script>
 <!-- FastClick -->
-<script src="../bower_components/fastclick/lib/fastclick.js"></script>
+<script src="bower_components/fastclick/lib/fastclick.js"></script>
 <!-- AdminLTE App -->
-<script src="../dist/js/adminlte.min.js"></script>
+<script src="dist/js/adminlte.min.js"></script>
 <!-- AdminLTE for demo purposes -->
-<script src="../dist/js/demo.js"></script>
-<script src="../bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
-<script src="../bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script src="dist/js/demo.js"></script>
+<script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script>
   $(function () {
@@ -697,12 +691,9 @@ border-color: green;
     var date_range = document.getElementById(reservation);
     // Specify file name
     filename = filename?filename+'.xls':'summary.xls';
-    
     // Create download link element
     downloadLink = document.createElement("a");
-    
     document.body.appendChild(downloadLink);
-    
     if(navigator.msSaveOrOpenBlob){
         var blob = new Blob(['\ufeff', tableHTML], {
             type: dataType
@@ -711,10 +702,8 @@ border-color: green;
     }else{
         // Create a link to the file
         downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-    
         // Setting the file name
         downloadLink.download = filename;
-        
         //triggering the function
         downloadLink.click();
     }
