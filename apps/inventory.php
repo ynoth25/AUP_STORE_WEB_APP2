@@ -703,7 +703,7 @@ include('login/session.php');
       'searching'   : true,
       'ordering'    : true,
       'info'        : true,
-      'autoWidth'   : true
+      'autoWidth'   : true 
     })
   })
 </script>

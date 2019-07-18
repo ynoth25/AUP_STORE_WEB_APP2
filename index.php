@@ -1,4 +1,4 @@
-
+ 
 <?php
 session_start();
 $error=''; // Variable To Store Error Message
@@ -168,6 +168,7 @@ $('#example').donetyping(function(){
      Diligent hands will rule, but laziness ends in forced labor.<br><b>Proverbs 12:24</b>
       
   </div>
+  <a href="192.168.10.231/timecard.php">View </a>
 </div>
 <!-- /.center -->
 
