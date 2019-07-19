@@ -241,16 +241,16 @@ if(isset($_POST['date_range'])){
           <div class="box-header with-border">
             <h3 class="box-title">Labor Report</h3>
             <form method="POST" action="dsf2.php">
-            	<div class="form-group">
-            		<label>Date Range:</label>
-            		<div class="input-group">
-            			<div class="input-group-addon">
-                    		<i class="fa fa-calendar-o"></i>
-                  		</div>
-                  		<input type="text" class="form-control pull-left" name="date_range" id="reservation" value="<?php echo $q; ?>">
-            		</div>
-            	</div>
-            	<button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
+                <div class="form-group">
+                    <label>Date Range:</label>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar-o"></i>
+                        </div>
+                        <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
+                    </div>
+                </div>
+                <button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
             </form>
             <button id="export" onclick="exportTableToExcel('tblData',reservation.value+' Labor')" name="export" class="btn btn-success pull-right">Export to CSV/Excel</button>
           </div>
@@ -259,7 +259,7 @@ if(isset($_POST['date_range'])){
        <div class="box-body">
 
             <?php
-        		$week =0;
+                $week =0;
                 $output = 0;
                 $dormitory = 0;
                 $is_caf = 0;
@@ -316,7 +316,7 @@ if(isset($_POST['date_range'])){
                         return $day === '6';
                     });
 
-                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
+                    $con = pg_connect("host=localhost port=5432 dbname=store user=postgres password=postgres");
                     $dept_query = "select id, department from department order by department";
                     $result_dept = pg_query($con,$dept_query);
             ?>
@@ -609,7 +609,7 @@ if(isset($_POST['date_range'])){
                                              echo "<td></td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td></h1>";
                         } else if($week == 2){
                                 echo "     <td></td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td></h1>
-                                        <tr style=color:red;><td></td><td><strong>Over All Total: </strong></td><td></td><td></td><td style=color:red;><strong>".$oat_totalwe1."</td><td style=color:red;><strong>".$oat_totalwe2."</td><td></td><td></td>
+                                        <tr style=color:red;><td></td><td><strong>Over All Total: </strong></td><td></td><td></td><td></td><td style=color:red;><strong>".$oat_totalwe1."</td><td style=color:red;><strong>".$oat_totalwe2."</td><td></td>
                                             <td style=color:red;><strong>".$oat_total."</td>
                                             <td style=color:red;><strong>".$oat_gross."</td>
                                             <td style=color:red;><strong>".$oat_tithe."</td>
