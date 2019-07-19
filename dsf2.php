@@ -247,7 +247,7 @@ if(isset($_POST['date_range'])){
             			<div class="input-group-addon">
                     		<i class="fa fa-calendar-o"></i>
                   		</div>
-                  		<input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
+                  		<input type="text" class="form-control pull-left" name="date_range" id="reservation" value="<?php echo $q; ?>">
             		</div>
             	</div>
             	<button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
@@ -316,7 +316,7 @@ if(isset($_POST['date_range'])){
                         return $day === '6';
                     });
 
-                    $con = pg_connect("host=localhost port=5432 dbname=store user=postgres password=postgres");
+                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
                     $dept_query = "select id, department from department order by department";
                     $result_dept = pg_query($con,$dept_query);
             ?>
@@ -609,7 +609,7 @@ if(isset($_POST['date_range'])){
                                              echo "<td></td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td></h1>";
                         } else if($week == 2){
                                 echo "     <td></td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td><td>".$line."</td></h1>
-                                        <tr style=color:red;><td></td><td><strong>Over All Total: </strong></td><td></td><td></td><td></td><td style=color:red;><strong>".$oat_totalwe1."</td><td style=color:red;><strong>".$oat_totalwe2."</td><td></td>
+                                        <tr style=color:red;><td></td><td><strong>Over All Total: </strong></td><td></td><td></td><td style=color:red;><strong>".$oat_totalwe1."</td><td style=color:red;><strong>".$oat_totalwe2."</td><td></td><td></td>
                                             <td style=color:red;><strong>".$oat_total."</td>
                                             <td style=color:red;><strong>".$oat_gross."</td>
                                             <td style=color:red;><strong>".$oat_tithe."</td>
