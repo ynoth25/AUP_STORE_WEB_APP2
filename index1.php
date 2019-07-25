@@ -1,29 +1,31 @@
-
+ 
 <?php
 session_start();
 $error=''; // Variable To Store Error Message
 if (isset($_POST['submit'])) {
-if (empty($_POST['username']) || empty($_POST['password'])) {
-$error = "Username or Password is invalid";
+if (empty($_POST['id']) ) {
+$error = "ID not Found! Please look for Sir Elli.";
 }
 else
 {
 // Define $username and $password
-$username=$_POST['username'];
-$password=$_POST['password'];
+$id=$_POST['id'];
 // Establishing Connection with Server by passing server_name, user_id and password as a parameter
 $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-$query = ("select * from users where password='$password' AND user_id='$username'");
+$query = ("select * from users where rf_id='$id'");
 
 $result = pg_query($con,$query);
 
 
 if (pg_affected_rows($result) == 1) {
   session_start(); // Starting Session
-  $_SESSION['login_user']=$username; // Initializing Session
-  header("location: apps/dashboard.php"); // Redirecting To Other Page
+  $myrow = pg_fetch_assoc($result);
+  $name = $myrow['username'];
+  $_SESSION['login_user']=$id; // Initializing Session
+  $_SESSION['name']=$name; // Initializing Session
+  header("location:confirm.php"); // Redirecting To Other Page
 } else {
-  $error = "Username or Password is invalid";
+  $error = "ID not Found! Please look for Sir Elli.";
 }
 pg_close($con);
 }
@@ -46,7 +48,7 @@ pg_close($con);
   <!-- Theme style -->
   <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
 
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- HTML5 Shim and Respond.js sIE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -54,7 +56,7 @@ pg_close($con);
   <![endif]-->
 
   <!-- Google Font -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  
 </head>
 <body class="hold-transition lockscreen">
 <!-- Automatic element centering -->
@@ -63,7 +65,7 @@ pg_close($con);
     <a href="#"><b>University Store</b></a>
   </div>
   <!-- User name -->
-  <div class="lockscreen-name">Login</div>
+  <div class="lockscreen-name">Daily Time Record</div>
 
   <!-- START LOCK SCREEN ITEM -->
   <div class="lockscreen-item">
@@ -75,20 +77,23 @@ pg_close($con);
 
     <!-- lockscreen credentials (contains the form) -->
     <form class="lockscreen-credentials" action="" method="POST">
-      <div class="input-group">
-        <input type="text" name="username" id="username" class="form-control" placeholder="User ID" >
+      <div class="input-group">  
+        <input type="text" name="id" id="id" class="form-control" placeholder="  TAP RFID" >
         
-        <input type="password" name="password" id="password"  class="form-control" placeholder="password" >
-
         <div class="input-group-btn">
 
-          <button type="submit" name="submit" class="btn"><i class="fa fa-arrow-right text-muted"></i></button>
+          <button type="submit" name="submit" class="btn"><i class="fa fa-arrow-right text-muted" ></i></button>
         </div>
 
       </div>
     </form>
 
     <script>
+
+      window.onload = function() {
+  document.getElementById("id").focus();
+};
+
 function show_image(src, width, height, alt) {
     var img = document.createElement("img");
     img.src = src;
@@ -152,15 +157,18 @@ $('#example').donetyping(function(){
 
   </div>
   <div class="text-center">
-    <?php echo $error; ?>
+   <font color="red"> <p  style="color=red;"><?php   echo $error; ?></p></font>
+
   </div>
- 
+
+
   <!-- /.lockscreen-item -->
 
   <div class="lockscreen-footer text-center">
      Diligent hands will rule, but laziness ends in forced labor.<br><b>Proverbs 12:24</b>
       
   </div>
+  <a href="192.168.10.231/timecard.php">View </a>
 </div>
 <!-- /.center -->
 

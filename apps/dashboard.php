@@ -70,7 +70,7 @@ include('login/session.php');
                   <li><!-- start message -->
                     <a href="#">
                       <div class="pull-left">
-                        <?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
+                         <img src=../dist/img/aup.png class='img-circle' alt='User Image'>
                       </div>
                       <h4>
                         Support Team
@@ -141,13 +141,13 @@ include('login/session.php');
           <!-- User Account: style can be found in dropdown.less -->
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              
+              <img src=../dist/img/aup.png class='user-image' alt='User Image'>
               <span class="hidden-xs"><?php  echo $login_session; ?></span>
             </a>
             <ul class="dropdown-menu">
               <!-- User image -->
               <li class="user-header">
-                <?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
+                <img src=../dist/img/aup.png class='img-circle' alt='User Image'>
 
                 <p>
                  <?php  echo $login_session; ?> - Technician
@@ -183,7 +183,7 @@ include('login/session.php');
       <!-- Sidebar user panel -->
       <div class="user-panel">
         <div class="pull-left image">
-<?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
+ <img src=../dist/img/aup.png class='img-circle' alt='User Image'>
         </div>
         <div class="pull-left info">
           <p><?php  echo $login_session; ?></p>

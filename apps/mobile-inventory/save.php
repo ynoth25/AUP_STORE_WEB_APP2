@@ -5,6 +5,11 @@ $physical_count = $_GET["phy_count"];
 $counter= $_GET["counted_by"];
 $inventory_tag = $_GET["inventory_tag"];
 $location = $_GET["location"];
+if($physical_count == '' && $inventory_tag == '')
+{
+	$physical_count=1;
+	$inventory_tag=1;
+}
 
 
 //echo $barcode;

@@ -1,5 +1,5 @@
 <?php
-//include('login/session.php');
+include('login/session.php');
 ?>
 <!DOCTYPE html>
 <html>
@@ -156,7 +156,7 @@
           <!-- User Account: style can be found in dropdown.less -->
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              
+                
               <span class="hidden-xs"><?php  echo $login_session; ?></span>
             </a>
             <ul class="dropdown-menu">
