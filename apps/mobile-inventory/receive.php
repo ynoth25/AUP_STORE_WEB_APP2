@@ -38,5 +38,5 @@ $result = pg_query($db_connection, "INSERT INTO receiving (invoice_number,suppli
 	}
 
 
-
+pg_close($db_connection);
 ?>

@@ -15,5 +15,5 @@ if ($rows2 ==0) {
 while ($row = pg_fetch_row($result)) {
   echo $row[0].",";
 }
-
+pg_close($db_con);
 ?>

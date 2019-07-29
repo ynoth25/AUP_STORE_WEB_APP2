@@ -32,5 +32,5 @@ $result2 = pg_query($db_connection, "SELECT supplier_name as supplier_name from 
 
 
 
-
+pg_close($db_connection);
 ?>

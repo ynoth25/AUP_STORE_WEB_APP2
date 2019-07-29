@@ -159,7 +159,7 @@ if(isset($_POST['date_range'])){
 
 
 
-                    $con = pg_connect("host=localhost port=5432 dbname=store user=postgres password=postgres");
+                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
 
                      $dept_query = "select id, department from department order by department";
                     $result_dept = pg_query($con,$dept_query);

@@ -28,6 +28,6 @@ if ($affected ==0) {
 }
 
 
-
+pg_close($db_connection);
 
 ?>

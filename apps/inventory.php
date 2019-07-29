@@ -150,6 +150,7 @@ include('login/session.php');
             </ul>
           </li>
           <!-- User Account: style can be found in dropdown.less -->
+          
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <img src=../dist/img/aup.png class='user-image' alt='User Image'>
@@ -285,7 +286,7 @@ include('login/session.php');
               </div>
 
             <button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
-            <button id="export" onclick="exportTableToExcel('example1',reservation.value+' Inventory')" name="export" class="btn btn-success pull-right">Export to CSV/Excel</button>
+            <button type="submit" id="export" name="export" class="btn btn-success pull-right" value="Submit">Export to CSV/Excel</button>
             </div>
             </form>
             <!-- /.box-header -->
@@ -317,6 +318,7 @@ include('login/session.php');
                     $to= strtotime($to);
                     $from2 = date('Y-m-d',$from);
                     $to2 = date('Y-m-d',$to);
+                    $total_items = 0;
 
                     $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
                     $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
@@ -353,9 +355,10 @@ include('login/session.php');
                                     $counted_by = $row['counted_by'];
                                     $location = $row['location'];
                                     $gtotal +=$total_cost;
+                                    $total_items++;
                         ?> 
                             <tr>
-                                <td><?php echo $inventory_tag; ?></td>
+                                <td><?php echo $total_items; ?></td>
                                 <td><?php echo $barcode; ?></td>
                                 <td><?php echo $prod_desc; ?></td>
                                 <td><?php echo  number_format($unit_cost, 2); ?></td>
@@ -369,7 +372,25 @@ include('login/session.php');
                     <?php   }  //End of while loop
 
                              echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Grand Total</td><td style=color:red>".number_format($gtotal, 2)."</td></tr>";
+                             echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Total Items</td><td style=color:red>".$total_items."</td></tr>";
                 }
+
+                if(isset($_POST['export'])){
+                $q = $_POST['date_range'];
+                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
+
+
+                $from= strtotime($from);
+                $to= strtotime($to);
+
+                $from2 = date('Y-m-d',$from);
+                $to2 = date('Y-m-d',$to);
+                $export = "COPY (select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date) TO 'D:/Store/inventory/$from2-$to2.csv' DELIMITER ',' CSV HEADER";
+
+                     $result2 = pg_query($con,$export);
+                        echo '<script>window.location.href="inventory.php"</script>';
+                     
+              }              
                         ?>     
                     
                     
@@ -624,7 +645,7 @@ include('login/session.php');
 <script src="../dist/js/demo.js"></script>
 <script src="../bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="../bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>  
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 
 <script>
@@ -743,6 +764,8 @@ include('login/session.php');
         downloadLink.click();
     }
 }
+
+
 </script>
 </body>
 </html>

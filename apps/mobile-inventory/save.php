@@ -32,5 +32,5 @@ if (!$result) {
 	echo "updated successfully";
 }
 
-
+pg_close($db_connection);
 ?>

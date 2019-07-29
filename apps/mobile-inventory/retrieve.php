@@ -18,5 +18,5 @@ if ($rows2 ==0) {
 while ($row = pg_fetch_row($result)) {
   echo "Description: ".$row[0]."\n"."Unit Cost: ".str_replace('$', '₱',$row[1])."\n";
 }
-
+pg_close($db_connection);
 ?>
