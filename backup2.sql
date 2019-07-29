@@ -1,0 +1,10264 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.7
+-- Dumped by pg_dump version 10.7
+
+-- Started on 2019-07-29 12:52:19
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 2936 (class 0 OID 0)
+-- Dependencies: 2935
+-- Name: DATABASE postgres; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON DATABASE postgres IS 'default administrative connection database';
+
+
+--
+-- TOC entry 1 (class 3079 OID 12924)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2938 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- TOC entry 220 (class 1255 OID 41161)
+-- Name: dtrfunc(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.dtrfunc(user_idt bigint) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+if  (select timein from dtr where id=(SELECT max(id) FROM dtr where rf_id=user_idt)) IS NULL then insert into dtr (rf_id,timein,transact_date) values (user_idt,now()::time,now()::timestamp::date);
+elseif (select timeout from dtr where id=(SELECT max(id) FROM dtr where rf_id=user_idt)) IS NULL then update dtr set timeout=now()::time where id=(SELECT max(id) FROM dtr where rf_id=user_idt);
+else insert into dtr (rf_id,timein,transact_date) values (user_idt,now()::time,now()::timestamp::date);  
+end if;
+END
+$$;
+
+
+ALTER FUNCTION public.dtrfunc(user_idt bigint) OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1255 OID 41146)
+-- Name: spcwriteperson(character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.spcwriteperson(fname character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO person (firstName) VALUES (fname);
+END
+$$;
+
+
+ALTER FUNCTION public.spcwriteperson(fname character varying) OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 207 (class 1259 OID 16518)
+-- Name: consignment; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.consignment (
+    consignment_id integer NOT NULL,
+    product_code bigint,
+    uom character varying(20),
+    consignment_qty integer,
+    return_qty integer,
+    ending_inventory integer,
+    items_sold integer,
+    unit_cost money,
+    total_cost money
+);
+
+
+ALTER TABLE public.consignment OWNER TO postgres;
+
+--
+-- TOC entry 206 (class 1259 OID 16516)
+-- Name: consignment_consignment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.consignment_consignment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.consignment_consignment_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2939 (class 0 OID 0)
+-- Dependencies: 206
+-- Name: consignment_consignment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.consignment_consignment_id_seq OWNED BY public.consignment.consignment_id;
+
+
+--
+-- TOC entry 216 (class 1259 OID 41225)
+-- Name: course; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.course (
+    id bigint NOT NULL,
+    course character varying(50)
+);
+
+
+ALTER TABLE public.course OWNER TO postgres;
+
+--
+-- TOC entry 217 (class 1259 OID 41230)
+-- Name: department; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.department (
+    id bigint NOT NULL,
+    department character varying(50)
+);
+
+
+ALTER TABLE public.department OWNER TO postgres;
+
+--
+-- TOC entry 218 (class 1259 OID 41250)
+-- Name: dormitory; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dormitory (
+    id integer NOT NULL,
+    dorm_id character varying(50),
+    dormintory character varying(50)
+);
+
+
+ALTER TABLE public.dormitory OWNER TO postgres;
+
+--
+-- TOC entry 213 (class 1259 OID 41137)
+-- Name: dtr; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dtr (
+    id bigint NOT NULL,
+    rf_id bigint,
+    timein time without time zone,
+    timeout time without time zone,
+    transact_date date,
+    period integer
+);
+
+
+ALTER TABLE public.dtr OWNER TO postgres;
+
+--
+-- TOC entry 212 (class 1259 OID 41135)
+-- Name: dtr_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.dtr_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.dtr_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2940 (class 0 OID 0)
+-- Dependencies: 212
+-- Name: dtr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.dtr_id_seq OWNED BY public.dtr.id;
+
+
+--
+-- TOC entry 202 (class 1259 OID 16462)
+-- Name: inventory; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.inventory (
+    inventory_id integer NOT NULL,
+    product_code bigint,
+    physical_count integer,
+    date_counted date,
+    counted_by bigint,
+    inventory_tag character varying(50),
+    location character varying(50)
+);
+
+
+ALTER TABLE public.inventory OWNER TO postgres;
+
+--
+-- TOC entry 201 (class 1259 OID 16460)
+-- Name: inventory_inventory_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.inventory_inventory_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.inventory_inventory_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2941 (class 0 OID 0)
+-- Dependencies: 201
+-- Name: inventory_inventory_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.inventory_inventory_id_seq OWNED BY public.inventory.inventory_id;
+
+
+--
+-- TOC entry 215 (class 1259 OID 41212)
+-- Name: location; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.location (
+    id integer NOT NULL,
+    area character varying(50)
+);
+
+
+ALTER TABLE public.location OWNER TO postgres;
+
+--
+-- TOC entry 214 (class 1259 OID 41210)
+-- Name: location_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.location_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.location_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2942 (class 0 OID 0)
+-- Dependencies: 214
+-- Name: location_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.location_id_seq OWNED BY public.location.id;
+
+
+--
+-- TOC entry 199 (class 1259 OID 16416)
+-- Name: product; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.product (
+    product_code bigint NOT NULL,
+    description character varying(50),
+    uom character varying(25),
+    unit_cost money,
+    selling_price money,
+    supplier_id bigint,
+    on_hand double precision
+);
+
+
+ALTER TABLE public.product OWNER TO postgres;
+
+--
+-- TOC entry 205 (class 1259 OID 16492)
+-- Name: purchase_order; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.purchase_order (
+    supplier_id bigint,
+    product_code bigint,
+    po_quantity integer,
+    po_by bigint,
+    po_date date
+);
+
+
+ALTER TABLE public.purchase_order OWNER TO postgres;
+
+--
+-- TOC entry 204 (class 1259 OID 16478)
+-- Name: receiving; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.receiving (
+    recieving_id integer NOT NULL,
+    invoice_number integer,
+    supplier_id bigint,
+    product_code bigint,
+    qty_received integer,
+    date_received date,
+    received_by bigint
+);
+
+
+ALTER TABLE public.receiving OWNER TO postgres;
+
+--
+-- TOC entry 203 (class 1259 OID 16476)
+-- Name: receiving_recieving_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.receiving_recieving_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.receiving_recieving_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2943 (class 0 OID 0)
+-- Dependencies: 203
+-- Name: receiving_recieving_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.receiving_recieving_id_seq OWNED BY public.receiving.recieving_id;
+
+
+--
+-- TOC entry 196 (class 1259 OID 16393)
+-- Name: req_prod_encode; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.req_prod_encode (
+    prod_code bigint NOT NULL,
+    prod_desc character varying(50),
+    physical_count bigint,
+    request_by integer
+);
+
+
+ALTER TABLE public.req_prod_encode OWNER TO postgres;
+
+--
+-- TOC entry 210 (class 1259 OID 16537)
+-- Name: return; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.return (
+    return_id integer NOT NULL,
+    product_code bigint,
+    supplier_id bigint,
+    return_qty integer,
+    returned_by bigint,
+    date_returned timestamp without time zone
+);
+
+
+ALTER TABLE public.return OWNER TO postgres;
+
+--
+-- TOC entry 209 (class 1259 OID 16535)
+-- Name: return_return_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.return_return_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.return_return_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2944 (class 0 OID 0)
+-- Dependencies: 209
+-- Name: return_return_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.return_return_id_seq OWNED BY public.return.return_id;
+
+
+--
+-- TOC entry 211 (class 1259 OID 32928)
+-- Name: role; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.role (
+    id integer,
+    role character varying(50)
+);
+
+
+ALTER TABLE public.role OWNER TO postgres;
+
+--
+-- TOC entry 200 (class 1259 OID 16421)
+-- Name: supplier; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.supplier (
+    supplier_id integer NOT NULL,
+    supplier_name character varying(50),
+    contact character varying(25),
+    address character varying(25),
+    email character varying(50)
+);
+
+
+ALTER TABLE public.supplier OWNER TO postgres;
+
+--
+-- TOC entry 208 (class 1259 OID 16527)
+-- Name: supplier_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.supplier_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.supplier_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2945 (class 0 OID 0)
+-- Dependencies: 208
+-- Name: supplier_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.supplier_id_seq OWNED BY public.supplier.supplier_id;
+
+
+--
+-- TOC entry 198 (class 1259 OID 16410)
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    rf_id bigint NOT NULL,
+    username character varying(50),
+    password character varying(25),
+    picture character varying(25),
+    role character varying(25),
+    deleted integer,
+    user_id bigint,
+    course bigint,
+    department bigint,
+    required_hours integer,
+    dormitory bigint,
+    units integer,
+    is_caf integer,
+    rate integer
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- TOC entry 197 (class 1259 OID 16408)
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2946 (class 0 OID 0)
+-- Dependencies: 197
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.rf_id;
+
+
+--
+-- TOC entry 2747 (class 2604 OID 16521)
+-- Name: consignment consignment_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.consignment ALTER COLUMN consignment_id SET DEFAULT nextval('public.consignment_consignment_id_seq'::regclass);
+
+
+--
+-- TOC entry 2749 (class 2604 OID 41270)
+-- Name: dtr id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dtr ALTER COLUMN id SET DEFAULT nextval('public.dtr_id_seq'::regclass);
+
+
+--
+-- TOC entry 2745 (class 2604 OID 16465)
+-- Name: inventory inventory_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.inventory ALTER COLUMN inventory_id SET DEFAULT nextval('public.inventory_inventory_id_seq'::regclass);
+
+
+--
+-- TOC entry 2750 (class 2604 OID 41215)
+-- Name: location id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.location ALTER COLUMN id SET DEFAULT nextval('public.location_id_seq'::regclass);
+
+
+--
+-- TOC entry 2746 (class 2604 OID 16481)
+-- Name: receiving recieving_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.receiving ALTER COLUMN recieving_id SET DEFAULT nextval('public.receiving_recieving_id_seq'::regclass);
+
+
+--
+-- TOC entry 2748 (class 2604 OID 16540)
+-- Name: return return_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.return ALTER COLUMN return_id SET DEFAULT nextval('public.return_return_id_seq'::regclass);
+
+
+--
+-- TOC entry 2744 (class 2604 OID 16556)
+-- Name: supplier supplier_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.supplier ALTER COLUMN supplier_id SET DEFAULT nextval('public.supplier_id_seq'::regclass);
+
+
+--
+-- TOC entry 2743 (class 2604 OID 41171)
+-- Name: users rf_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN rf_id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- TOC entry 2918 (class 0 OID 16518)
+-- Dependencies: 207
+-- Data for Name: consignment; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.consignment (consignment_id, product_code, uom, consignment_qty, return_qty, ending_inventory, items_sold, unit_cost, total_cost) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2927 (class 0 OID 41225)
+-- Dependencies: 216
+-- Data for Name: course; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.course (id, course) FROM stdin;
+1	ABTHEO
+\.
+
+
+--
+-- TOC entry 2928 (class 0 OID 41230)
+-- Dependencies: 217
+-- Data for Name: department; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.department (id, department) FROM stdin;
+1	ACACIA HALL
+2	Store
+\.
+
+
+--
+-- TOC entry 2929 (class 0 OID 41250)
+-- Dependencies: 218
+-- Data for Name: dormitory; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.dormitory (id, dorm_id, dormintory) FROM stdin;
+1	SDDORM01	EASTERN HALL
+16	SDVILDE01	OFF CAMPUS/VILLAGER
+\.
+
+
+--
+-- TOC entry 2924 (class 0 OID 41137)
+-- Dependencies: 213
+-- Data for Name: dtr; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.dtr (id, rf_id, timein, timeout, transact_date, period) FROM stdin;
+92	36	11:19:37.627634	17:44:49.627634	2019-07-16	\N
+93	36	11:20:09.090953	17:45:21.090953	2019-07-15	\N
+94	36	11:20:13.779191	17:45:25.779191	2019-07-14	\N
+95	36	11:20:30.859586	17:45:42.859586	2019-07-17	\N
+96	36	11:20:34.331323	17:45:46.331323	2019-07-19	\N
+97	36	11:20:59.947568	17:46:11.947568	2019-07-18	\N
+98	36	11:21:03.459242	17:46:15.459242	2019-07-20	\N
+99	36	11:21:30.555586	17:46:42.555586	2019-07-21	\N
+100	36	11:21:33.627082	17:46:45.627082	2019-07-22	\N
+101	36	11:21:38.307222	17:46:50.307222	2019-07-23	\N
+102	36	11:21:42.587243	17:46:54.587243	2019-07-24	\N
+103	36	11:21:46.28327	17:46:58.28327	2019-07-25	\N
+104	36	11:21:49.891416	17:47:01.891416	2019-07-26	\N
+106	4127366870	11:23:00.706422	17:48:12.706422	2019-07-14	\N
+107	4127366870	11:23:12.650909	17:48:24.650909	2019-07-15	\N
+108	4127366870	11:23:20.338267	17:48:32.338267	2019-07-16	\N
+109	4127366870	11:23:29.907142	17:48:41.907142	2019-07-17	\N
+110	4127366870	11:23:33.92295	17:48:45.92295	2019-07-18	\N
+111	4127366870	11:23:48.378882	17:49:00.378882	2019-07-19	\N
+112	4127366870	11:24:00.27526	17:49:12.27526	2019-07-20	\N
+113	4127366870	11:24:25.227226	17:49:37.227226	2019-07-21	\N
+114	4127366870	11:24:29.171013	17:49:41.171013	2019-07-22	\N
+115	4127366870	11:24:32.323015	17:49:44.323015	2019-07-23	\N
+116	4127366870	11:24:35.355216	17:49:47.355216	2019-07-24	\N
+117	4127366870	11:24:38.155445	17:49:50.155445	2019-07-25	\N
+118	4127366870	11:24:42.131335	17:49:54.131335	2019-07-26	\N
+119	4127366870	11:24:52.435063	17:50:04.435063	2019-07-27	\N
+120	4127366870	12:01:39.174167	18:26:51.174167	2019-07-28	\N
+121	4127366870	12:01:46.886322	18:26:58.886322	2019-07-29	\N
+122	4127366870	12:01:51.534788	18:27:03.534788	2019-07-30	\N
+123	4127366870	12:01:54.622546	18:27:06.622546	2019-07-31	\N
+124	4127366870	12:01:58.310686	18:27:10.310686	2019-08-01	\N
+125	4127366870	12:02:01.478428	18:27:13.478428	2019-08-02	\N
+127	36	12:03:35.445606	18:28:47.445606	2019-07-28	\N
+128	36	12:03:39.45402	18:28:51.45402	2019-07-29	\N
+129	36	12:03:42.60623	18:28:54.60623	2019-07-30	\N
+130	36	12:03:45.646094	18:28:57.646094	2019-07-31	\N
+131	36	12:03:49.070163	18:29:01.070163	2019-08-01	\N
+132	36	12:03:52.310415	18:29:04.310415	2019-08-02	\N
+134	4127366870	14:25:36.341419	20:50:48.341419	2019-08-01	\N
+135	4127366870	14:25:48.685007	20:51:00.685007	2019-08-01	\N
+142	37	16:04:24.338459	18:04:24.338459	2019-07-16	\N
+143	37	13:29:09.966915	19:29:09.966915	2019-07-23	\N
+143	36	13:43:47.787333	\N	2019-07-21	\N
+144	35	13:44:41.624073	13:44:48.040452	2019-07-21	\N
+\.
+
+
+--
+-- TOC entry 2913 (class 0 OID 16462)
+-- Dependencies: 202
+-- Data for Name: inventory; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.inventory (inventory_id, product_code, physical_count, date_counted, counted_by, inventory_tag, location) FROM stdin;
+122	749921882608	1	2019-07-24	2042408	1	Groceries
+123	749921002211	1	2019-07-24	2042408	1	Groceries
+124	4809014937168	1	2019-07-24	2042408	1	Groceries
+44	4902505089213	1	2019-07-24	2041984	1	Stockroom3
+45	4809011681378	1	2019-07-24	2041984	1	Stockroom3
+46	4801234030728	1	2019-07-24	2050329	1	Stockroom3
+47	4801234141714	1	2019-07-24	2050329	1	Stockroom3
+48	4801234072612	1	2019-07-24	2050329	1	Stockroom3
+49	4800631001867	1	2019-07-24	2041984	1	Stockroom3
+50	8851717040245	1	2019-07-24	2042408	1	Stockroom3
+51	4801234107710	1	2019-07-24	2050329	1	Stockroom3
+52	8851717040016	1	2019-07-24	2042408	1	Stockroom3
+53	4801234107727	1	2019-07-24	2050329	1	Stockroom3
+54	4803925051142	1	2019-07-24	2041984	1	Stockroom3
+55	4801234130848	1	2019-07-24	2050329	1	Stockroom3
+56	4801234145514	1	2019-07-24	2050329	1	Stockroom3
+57	4800194115445	1	2019-07-24	2041984	1	Stockroom3
+58	750515018488	1	2019-07-24	2041984	1	Stockroom3
+125	4809014937342	1	2019-07-24	2042408	1	Groceries
+126	4809014937458	1	2019-07-24	2042408	1	Groceries
+127	4809014937472	1	2019-07-24	2042408	1	Groceries
+128	4809013191646	1	2019-07-24	2042408	1	Groceries
+133	4809013772142	1	2019-07-24	2042408	1	Groceries
+134	4809013191714	1	2019-07-24	2042408	1	Groceries
+135	8996001346365	1	2019-07-24	2041984	1	Groceries
+136	8888077108308	1	2019-07-24	2042408	1	Groceries
+137	8993175542289	1	2019-07-24	2042408	1	Groceries
+138	8996001346297	1	2019-07-24	2041984	1	Groceries
+139	4800092660634	1	2019-07-24	2042408	1	Groceries
+140	8996001346303	1	2019-07-24	2041984	1	Groceries
+141	4800092660788	1	2019-07-24	2042408	1	Groceries
+142	8990800010120	1	2019-07-24	2041984	1	Groceries
+143	4806025963261	1	2019-07-24	2042408	1	Groceries
+144	4800016489020	1	2019-07-24	2041984	1	Groceries
+145	4800166142288	1	2019-07-24	2050329	1	Groceries
+146	4800166142608	1	2019-07-24	2050329	1	Groceries
+147	8935001711063	1	2019-07-24	2041984	1	Groceries
+148	74923405273	1	2019-07-24	2050329	1	Groceries
+149	4800818808906	1	2019-07-24	2041984	1	Groceries
+150	74923405013	1	2019-07-24	2050329	1	Groceries
+151	4809010997371	1	2019-07-24	2050329	1	Groceries
+152	4800588091300	1	2019-07-24	2041984	1	Groceries
+153	4807770120077	1	2019-07-24	2050329	1	Groceries
+154	4807770101717	1	2019-07-24	2050329	1	Groceries
+155	4807770101694	1	2019-07-24	2050329	1	Groceries
+156	4807770100529	1	2019-07-24	2050329	1	Groceries
+157	4800194187053	1	2019-07-24	2050329	1	Groceries
+158	4800588091300	1	2019-07-24	2041984	1	Groceries
+159	4809010639844	1	2019-07-24	2041984	1	Groceries
+160	4800237521523	1	2019-07-24	2041984	1	Groceries
+161	4800194115605	1	2019-07-24	2050329	1	Groceries
+162	4807770122477	1	2019-07-24	2050329	1	Groceries
+163	4809011390065	1	2019-07-24	2041984	1	Groceries
+164	4807770122460	1	2019-07-24	2050329	1	Groceries
+165	8993175537131	1	2019-07-24	2050329	1	Groceries
+166	4800040352314	1	2019-07-24	2050329	1	Groceries
+167	4807770122262	1	2019-07-24	2050329	1	Groceries
+168	4800237168162	1	2019-07-24	2041984	1	Groceries
+169	4807770120213	1	2019-07-24	2050329	1	Groceries
+170	4800237522353	1	2019-07-24	2041984	1	Groceries
+171	4807770120251	1	2019-07-24	2050329	1	Groceries
+172	4807770121715	1	2019-07-24	2050329	1	Groceries
+173	4809010524775	1	2019-07-24	2041984	1	Groceries
+174	4807770100529	1	2019-07-24	2050329	1	Groceries
+175	4809010524034	1	2019-07-24	2041984	1	Groceries
+176	750515021280	1	2019-07-24	2050329	1	Groceries
+177	4809010524201	1	2019-07-24	2041984	1	Groceries
+178	4807770120770	1	2019-07-24	2050329	1	Groceries
+179	750515017641	1	2019-07-24	2050329	1	Groceries
+180	4809010997371	1	2019-07-24	2041984	1	Groceries
+181	4486	1	2019-07-24	2041984	1	Groceries
+182	4800361015400	1	2019-07-24	2042408	1	Groceries
+183	841165135158	1	2019-07-24	2042408	1	Groceries
+184	4800016082962	1	2019-07-24	2041984	1	Groceries
+185	841165135141	1	2019-07-24	2042408	1	Groceries
+186	4800361331500	1	2019-07-24	2042408	1	Groceries
+187	4800049721272	1	2019-07-24	2042408	1	Groceries
+188	748485400068	1	2019-07-24	2042408	1	Groceries
+189	4803925051142	1	2019-07-24	2042408	1	Groceries
+190	4800016073588	1	2019-07-24	2042408	1	Groceries
+191	4804888815086	1	2019-07-24	2041984	1	Groceries
+192	8851028002277	1	2019-07-24	2042408	1	Groceries
+193	8853002302038	1	2019-07-24	2042408	1	Groceries
+194	8851717040245	1	2019-07-24	2042408	1	Groceries
+195	4804888815024	1	2019-07-24	2041984	1	Groceries
+196	5704025031609	1	2019-07-24	2042408	1	Groceries
+197	4804888815918	1	2019-07-24	2041984	1	Groceries
+198	5704025031579	1	2019-07-24	2042408	1	Groceries
+199	4804888815062	1	2019-07-24	2041984	1	Groceries
+200	4804888815062	1	2019-07-24	2041984	1	Groceries
+201	5704025031593	1	2019-07-24	2042408	1	Groceries
+202	4806526380017	1	2019-07-24	2042408	1	Groceries
+203	4808680027159	1	2019-07-24	2042408	1	Groceries
+204	4804888815000	1	2019-07-24	2041984	1	Groceries
+205	4804888815109	1	2019-07-24	2041984	1	Groceries
+206	4806526380024	1	2019-07-24	2042408	1	Groceries
+207	4800888602268	1	2019-07-24	2042408	1	Groceries
+208	4804888815147	1	2019-07-24	2041984	1	Groceries
+209	5730800723025	1	2019-07-24	2042408	1	Groceries
+210	4808680651026	1	2019-07-24	2042408	1	Groceries
+211	14800925173	1	2019-07-24	2042408	1	Groceries
+212	4808680022017	1	2019-07-24	2042408	1	Groceries
+213	750515017252	1	2019-07-24	2050329	1	Groceries
+214	5730800723001	1	2019-07-24	2042408	1	Groceries
+215	750515017450	1	2019-07-24	2050329	1	Groceries
+216	4808680020754	1	2019-07-24	2042408	1	Groceries
+217	750515017528	1	2019-07-24	2050329	1	Groceries
+218	4800024550194	1	2019-07-24	2042408	1	Groceries
+219	4808680021355	1	2019-07-24	2042408	1	Groceries
+220	4800024550088	1	2019-07-24	2042408	1	Groceries
+221	4804888815390	1	2019-07-24	2041984	1	Groceries
+222	4809010997098	1	2019-07-24	2050329	1	Groceries
+223	4800473005078	1	2019-07-24	2042408	1	Groceries
+224	4800024550927	1	2019-07-24	2042408	1	Groceries
+225	750515013100	1	2019-07-24	2050329	1	Groceries
+226	4809010109224	1	2019-07-24	2050329	1	Groceries
+227	4800024574213	1	2019-07-24	2042408	1	Groceries
+229	4809010109774	1	2019-07-24	2050329	1	Groceries
+230	4800024571908	1	2019-07-24	2042408	1	Groceries
+231	4800473001179	1	2019-07-24	2042408	1	Groceries
+232	750515013100	1	2019-07-24	2050329	1	Groceries
+233	4804888815369	1	2019-07-24	2041984	1	Groceries
+234	4808680020877	1	2019-07-24	2042408	1	Groceries
+235	750515018488	1	2019-07-24	2050329	1	Groceries
+236	4808680022277	1	2019-07-24	2042408	1	Groceries
+237	750515018303	1	2019-07-24	2050329	1	Groceries
+238	4808680021430	1	2019-07-24	2042408	1	Groceries
+240	4807770120237	1	2019-07-24	2050329	1	Groceries
+241	4800024570000	1	2019-07-24	2042408	1	Groceries
+242	4807770121203	1	2019-07-24	2050329	1	Groceries
+243	4808680653303	1	2019-07-24	2042408	1	Groceries
+244	4806517040395	1	2019-07-24	2041984	1	Groceries
+245	4807770121227	1	2019-07-24	2050329	1	Groceries
+246	48037433	1	2019-07-24	2042408	1	Groceries
+247	4800024570772	1	2019-07-24	2042408	1	Groceries
+248	4806517040388	1	2019-07-24	2041984	1	Groceries
+249	4806018401619	1	2019-07-24	2050329	1	Groceries
+250	4800024570017	1	2019-07-24	2042408	1	Groceries
+251	4808680653310	1	2019-07-24	2042408	1	Groceries
+252	4800024578419	1	2019-07-24	2042408	1	Groceries
+253	9556121026906	1	2019-07-24	2050329	1	Groceries
+254	4808680653310	1	2019-07-24	2042408	1	Groceries
+255	9556007000365	1	2019-07-24	2042408	1	Groceries
+256	4800473000011	1	2019-07-24	2042408	1	Groceries
+257	9556121026913	1	2019-07-24	2050329	1	Groceries
+258	8851013773496	1	2019-07-24	2042408	1	Groceries
+259	9556121026562	1	2019-07-24	2050329	1	Groceries
+260	4800473001513	1	2019-07-24	2042408	1	Groceries
+261	8804108010037	1	2019-07-24	2041984	1	Groceries
+262	8851013767495	1	2019-07-24	2042408	1	Groceries
+263	9556121026623	1	2019-07-24	2050329	1	Groceries
+264	4800473001131	1	2019-07-24	2042408	1	Groceries
+265	9556121028757	1	2019-07-24	2050329	1	Groceries
+266	3357	1	2019-07-24	2042408	1	Groceries
+267	8804108010082	1	2019-07-24	2041984	1	Groceries
+268	5704025012325	1	2019-07-24	2042408	1	Groceries
+269	4800552888059	1	2019-07-24	2050329	1	Groceries
+270	125546669	1	2019-07-24	2042408	1	Groceries
+271	74305401169	1	2019-07-24	2042408	1	Groceries
+272	4800552888103	1	2019-07-24	2050329	1	Groceries
+273	1234572	1	2019-07-24	2042408	1	Groceries
+274	4800194107655	1	2019-07-24	2042408	1	Groceries
+275	4800194107662	1	2019-07-24	2042408	1	Groceries
+276	8807664000030	1	2019-07-24	2041984	1	Groceries
+277	4801981139743	1	2019-07-24	2042408	1	Groceries
+278	3266555	1	2019-07-24	2041984	1	Groceries
+279	4803925061141	1	2019-07-24	2042408	1	Groceries
+280	74305401329	1	2019-07-24	2042408	1	Groceries
+281	4806514650030	1	2019-07-24	2042408	1	Groceries
+282	4800194184106	1	2019-07-24	2042408	1	Groceries
+283	4807770121593	1	2019-07-24	2050329	1	Groceries
+284	750515017405	1	2019-07-24	2050329	1	Groceries
+285	4806514650030	1	2019-07-24	2042408	1	Groceries
+286	4803925061141	1	2019-07-24	2042408	1	Groceries
+287	4806514650016	1	2019-07-24	2042408	1	Groceries
+288	4803925061103	1	2019-07-24	2042408	1	Groceries
+289	8992760223015	1	2019-07-24	2050329	1	Groceries
+290	4806514650061	1	2019-07-24	2042408	1	Groceries
+291	8992760221028	1	2019-07-24	2050329	1	Groceries
+292	4803925061103	1	2019-07-24	2042408	1	Groceries
+293	4800631681311	1	2019-07-24	2041984	1	Groceries
+294	4806514650023	1	2019-07-24	2042408	1	Groceries
+295	4803925061127	1	2019-07-24	2042408	1	Groceries
+296	4809011681194	1	2019-07-24	2041984	1	Groceries
+297	4806514650054	1	2019-07-24	2042408	1	Groceries
+298	750515031531	1	2019-07-24	2050329	1	Groceries
+299	8851028001614	1	2019-07-24	2042408	1	Groceries
+300	4806514650047	1	2019-07-24	2042408	1	Groceries
+301	750515031517	1	2019-07-24	2050329	1	Groceries
+302	8851028000945	1	2019-07-24	2042408	1	Groceries
+303	4800631000624	1	2019-07-24	2041984	1	Groceries
+304	750515031555	1	2019-07-24	2050329	1	Groceries
+305	4800361292382	1	2019-07-24	2042408	1	Groceries
+306	8851028000808	1	2019-07-24	2042408	1	Groceries
+307	4807770121692	1	2019-07-24	2050329	1	Groceries
+308	4800361002851	1	2019-07-24	2042408	1	Groceries
+309	4809011681439	1	2019-07-24	2041984	1	Groceries
+310	4800361002844	1	2019-07-24	2042408	1	Groceries
+311	4800361381284	1	2019-07-24	2042408	1	Groceries
+312	4807770121296	1	2019-07-24	2050329	1	Groceries
+313	4800575141629	1	2019-07-24	2042408	1	Groceries
+314	4809011681378	1	2019-07-24	2041984	1	Groceries
+315	4800186004160	1	2019-07-24	2042408	1	Groceries
+317	9556007000457	1	2019-07-24	2042408	1	Groceries
+318	4892642101926	1	2019-07-24	2050329	1	Groceries
+316	332	1	2019-07-24	2042408	1	Groceries
+319	4809011681446	1	2019-07-24	2041984	1	Groceries
+320	4806501594651	1	2019-07-24	2042408	1	Groceries
+321	748485401515	1	2019-07-24	2042408	1	Groceries
+322	4800552888004	1	2019-07-24	2050329	1	Groceries
+324	4800186001251	1	2019-07-24	2042408	1	Groceries
+325	9556007000518	1	2019-07-24	2042408	1	Groceries
+326	6902482001008	1	2019-07-24	2042408	1	Groceries
+327	4800552888158	1	2019-07-24	2050329	1	Groceries
+328	6902482001015	1	2019-07-24	2042408	1	Groceries
+329	9556121024025	1	2019-07-24	2050329	1	Groceries
+330	4800631000488	1	2019-07-24	2041984	1	Groceries
+331	8935217412211	1	2019-07-24	2042408	1	Groceries
+332	6902482003439	1	2019-07-24	2042408	1	Groceries
+333	8935217412112	1	2019-07-24	2042408	1	Groceries
+334	4800631000419	1	2019-07-24	2041984	1	Groceries
+335	4806014099223	1	2019-07-24	2042408	1	Groceries
+336	8801382135166	1	2019-07-24	2042408	1	Groceries
+337	8801382137917	1	2019-07-24	2042408	1	Groceries
+338	6902482003453	1	2019-07-24	2042408	1	Groceries
+339	8801382132240	1	2019-07-24	2042408	1	Groceries
+340	4800631001867	1	2019-07-24	2041984	1	Groceries
+341	8801382127789	1	2019-07-24	2042408	1	Groceries
+342	4806514654038	1	2019-07-24	2042408	1	Groceries
+343	8801382127963	1	2019-07-24	2042408	1	Groceries
+344	4806011813044	1	2019-07-24	2042408	1	Groceries
+345	4809011681507	1	2019-07-24	2041984	1	Groceries
+346	4806011812047	1	2019-07-24	2042408	1	Groceries
+347	8801382127796	1	2019-07-24	2042408	1	Groceries
+348	4800528456282	1	2019-07-24	2042408	1	Groceries
+349	4809010639820	1	2019-07-24	2041984	1	Groceries
+350	4809010639110	1	2019-07-24	2041984	1	Groceries
+351	4800361381246	1	2019-07-24	2042408	1	Groceries
+353	4800361393928	1	2019-07-24	2042408	1	Groceries
+354	4800361394345	1	2019-07-24	2042408	1	Groceries
+355	9556001027252	1	2019-07-24	2042408	1	Groceries
+356	4809010639325	1	2019-07-24	2041984	1	Groceries
+357	8996001440049	1	2019-07-24	2042408	1	Groceries
+358	4809010639318	1	2019-07-24	2041984	1	Groceries
+359	8996001440124	1	2019-07-24	2042408	1	Groceries
+360	8801043028127	1	2019-07-24	2042408	1	Groceries
+361	8888056813131	1	2019-07-24	2042408	1	Groceries
+363	9556121002344	1	2019-07-24	2050329	1	Groceries
+365	9556121027040	1	2019-07-24	2050329	1	Groceries
+366	9556121001859	1	2019-07-24	2050329	1	Groceries
+367	4809010109286	1	2019-07-24	2041984	1	Groceries
+368	9556121028771	1	2019-07-24	2050329	1	Groceries
+369	9917080200194	1	2019-07-24	2042408	1	Groceries
+370	4809010639752	1	2019-07-24	2041984	1	Groceries
+371	4809011631021	1	2019-07-24	2042408	1	Groceries
+372	4809010639745	1	2019-07-24	2041984	1	Groceries
+373	8801043022705	1	2019-07-24	2042408	1	Groceries
+374	7622300638078	1	2019-07-24	2042408	1	Groceries
+375	7622300808365	1	2019-07-24	2042408	1	Groceries
+376	9556121028795	1	2019-07-24	2050329	1	Groceries
+377	4809010639417	1	2019-07-24	2041984	1	Groceries
+378	9556121026111	1	2019-07-24	2050329	1	Groceries
+379	4809010639424	1	2019-07-24	2041984	1	Groceries
+380	9556121026982	1	2019-07-24	2050329	1	Groceries
+381	4809010639158	1	2019-07-24	2041984	1	Groceries
+382	4809010639721	1	2019-07-24	2041984	1	Groceries
+384	9556121026968	1	2019-07-24	2050329	1	Groceries
+385	4809010639851	1	2019-07-24	2041984	1	Groceries
+386	4806018405815	1	2019-07-24	2050329	1	Groceries
+387	4800602060251	1	2019-07-24	2042408	1	Groceries
+388	4809010354112	1	2019-07-24	2042408	1	Groceries
+389	4809010626332	1	2019-07-24	2050329	1	Groceries
+390	7622300601768	1	2019-07-24	2042408	1	Groceries
+391	4800552888080	1	2019-07-24	2050329	1	Groceries
+392	7622300637996	1	2019-07-24	2042408	1	Groceries
+393	4809010639837	1	2019-07-24	2041984	1	Groceries
+394	7622300601782	1	2019-07-24	2042408	1	Groceries
+395	4809010354068	1	2019-07-24	2042408	1	Groceries
+396	4800024575500	1	2019-07-24	2042408	1	Groceries
+397	4809010639127	1	2019-07-24	2041984	1	Groceries
+398	4800024573544	1	2019-07-24	2042408	1	Groceries
+399	325	1	2019-07-24	2042408	1	Groceries
+400	4800024573520	1	2019-07-24	2042408	1	Groceries
+401	4809010639219	1	2019-07-24	2041984	1	Groceries
+402	1001142	1	2019-07-24	2042408	1	Groceries
+403	326	1	2019-07-24	2042408	1	Groceries
+404	4800110068893	1	2019-07-24	2042408	1	Groceries
+405	4809010639332	1	2019-07-24	2041984	1	Groceries
+406	4800016783579	1	2019-07-24	2042408	1	Groceries
+407	1187	1	2019-07-24	2042408	1	Groceries
+408	1719	1	2019-07-24	2042408	1	Groceries
+409	3266555	1	2019-07-24	2041984	1	Groceries
+410	23667	1	2019-07-24	2042408	1	Groceries
+411	4800030001482	1	2019-07-24	2042408	1	Groceries
+412	4800024577740	1	2019-07-24	2042408	1	Groceries
+413	4806014001240	1	2019-07-24	2042408	1	Groceries
+414	3499	1	2019-07-24	2042408	1	Groceries
+415	4809011631038	1	2019-07-24	2042408	1	Groceries
+364	480901512707	1	2019-07-24	2042408	1	Groceries
+416	4800300990218	1	2019-07-24	2042408	1	Groceries
+417	8005391190431	1	2019-07-24	2042408	1	Groceries
+418	4800017934505	1	2019-07-24	2042408	1	Groceries
+419	4800110060637	1	2019-07-24	2042408	1	Groceries
+420	4800888600219	1	2019-07-24	2042408	1	Groceries
+421	1473	1	2019-07-24	2042408	1	Groceries
+422	4808680221007	1	2019-07-24	2042408	1	Groceries
+423	4800110006727	1	2019-07-24	2042408	1	Groceries
+424	4808647010026	1	2019-07-24	2042408	1	Groceries
+425	4809010354020	1	2019-07-24	2042408	1	Groceries
+426	4808647010057	1	2019-07-24	2042408	1	Groceries
+427	4809010354099	1	2019-07-24	2042408	1	Groceries
+428	4806514650054	1	2019-07-24	2042408	1	Groceries
+429	4808647020094	1	2019-07-24	2042408	1	Groceries
+430	254	1	2019-07-24	2042408	1	Groceries
+431	4801668606933	1	2019-07-24	2042408	1	Groceries
+432	2064	1	2019-07-24	2042408	1	Groceries
+433	352	1	2019-07-24	2042408	1	Groceries
+434	351	1	2019-07-24	2042408	1	Groceries
+435	4710254020186	1	2019-07-24	2042408	1	Groceries
+436	333	1	2019-07-24	2042408	1	Groceries
+437	6922130114072	1	2019-07-24	2042408	1	Groceries
+438	91037434227	1	2019-07-24	2042408	1	Groceries
+439	301	1	2019-07-24	2042408	1	Groceries
+440	356	1	2019-07-24	2042408	1	Groceries
+441	4801668200018	1	2019-07-24	2042408	1	Groceries
+442	5050	1	2019-07-24	2042408	1	Groceries
+443	4801668300039	1	2019-07-24	2042408	1	Groceries
+444	6096	1	2019-07-24	2042408	1	Groceries
+445	1140	1	2019-07-24	2042408	1	Groceries
+446	4800024555052	1	2019-07-24	2042408	1	Groceries
+447	4852	1	2019-07-24	2042408	1	Groceries
+448	303	1	2019-07-24	2042408	1	Groceries
+449	4800024555052	1	2019-07-24	2042408	1	Groceries
+450	4800024013392	1	2019-07-24	2042408	1	Groceries
+451	337	1	2019-07-24	2042408	1	Groceries
+452	4800024128096	1	2019-07-24	2042408	1	Groceries
+453	4800017994806	1	2019-07-24	2042408	1	Groceries
+454	4800024013477	1	2019-07-24	2042408	1	Groceries
+455	78895128789	1	2019-07-24	2042408	1	Groceries
+456	4800017908506	1	2019-07-24	2042408	1	Groceries
+457	4800405123559	1	2019-07-24	2042408	1	Groceries
+458	4808647210099	1	2019-07-24	2042408	1	Groceries
+459	4800344001628	1	2019-07-24	2042408	1	Groceries
+460	4808647210105	1	2019-07-24	2042408	1	Groceries
+461	4800405123757	1	2019-07-24	2042408	1	Groceries
+462	423	1	2019-07-24	2042408	1	Groceries
+463	4800344004629	1	2019-07-24	2042408	1	Groceries
+464	48954	1	2019-07-24	2042408	1	Groceries
+465	4801668100141	1	2019-07-24	2042408	1	Groceries
+466	24401	1	2019-07-24	2042408	1	Groceries
+467	4800344004940	1	2019-07-24	2042408	1	Groceries
+468	4800344001949	1	2019-07-24	2042408	1	Groceries
+469	48954	1	2019-07-24	2042408	1	Groceries
+470	4801668602027	1	2019-07-24	2042408	1	Groceries
+471	48956	1	2019-07-24	2041984	1	Groceries
+472	24401	1	2019-07-24	2042408	1	Groceries
+473	4800405126239	1	2019-07-24	2042408	1	Groceries
+474	4856	1	2019-07-24	2041984	1	Groceries
+475	11223	1	2019-07-24	2042408	1	Groceries
+476	4800405134517	1	2019-07-24	2042408	1	Groceries
+477	1001142	1	2019-07-24	2042408	1	Groceries
+478	643	1	2019-07-24	2041984	1	Groceries
+479	636	1	2019-07-24	2041984	1	Groceries
+480	4800405123672	1	2019-07-24	2042408	1	Groceries
+481	335	1	2019-07-24	2050329	1	Groceries
+482	4800344004414	1	2019-07-24	2042408	1	Groceries
+483	321534	1	2019-07-24	2041984	1	Groceries
+484	4806506150234	1	2019-07-24	2042408	1	Groceries
+485	1021044	1	2019-07-24	2041984	1	Groceries
+486	4806506150234	1	2019-07-24	2042408	1	Groceries
+487	4801668100103	1	2019-07-24	2042408	1	Groceries
+488	1509	1	2019-07-24	2050329	1	Groceries
+489	4801668500293	1	2019-07-24	2042408	1	Groceries
+490	4800060202408	1	2019-07-24	2042408	1	Groceries
+491	4856	1	2019-07-24	2041984	1	Groceries
+492	4800060202101	1	2019-07-24	2042408	1	Groceries
+493	4801668100240	1	2019-07-24	2042408	1	Groceries
+494	4800060202408	1	2019-07-24	2042408	1	Groceries
+495	4800344001413	1	2019-07-24	2042408	1	Groceries
+496	4800060202101	1	2019-07-24	2042408	1	Groceries
+497	4800060202408	1	2019-07-24	2042408	1	Groceries
+498	4800060202309	1	2019-07-24	2042408	1	Groceries
+499	4800060202309	1	2019-07-24	2042408	1	Groceries
+500	4805358501089	1	2019-07-24	2042408	1	Groceries
+501	4710032501791	1	2019-07-24	2042408	1	Groceries
+502	4800024575425	1	2019-07-24	2042408	1	Groceries
+503	4800024575425	1	2019-07-24	2042408	1	Groceries
+504	4710032504297	1	2019-07-24	2042408	1	Groceries
+505	20122	1	2019-07-24	2050329	1	Groceries
+506	4809014485362	1	2019-07-24	2042408	1	Groceries
+507	20121	1	2019-07-24	2050329	1	Groceries
+508	4800575130302	1	2019-07-24	2042408	1	Groceries
+509	4809014485362	1	2019-07-24	2042408	1	Groceries
+510	4800575120303	1	2019-07-24	2042408	1	Groceries
+511	5960	1	2019-07-24	2050329	1	Groceries
+512	4809014485362	1	2019-07-24	2042408	1	Groceries
+513	9556040030060	1	2019-07-24	2042408	1	Groceries
+514	4806030202454	1	2019-07-24	2042408	1	Groceries
+515	4806506318788	1	2019-07-24	2042408	1	Groceries
+516	4800017927408	1	2019-07-24	2042408	1	Groceries
+517	335	1	2019-07-24	2050329	1	Groceries
+518	4806506318887	1	2019-07-24	2042408	1	Groceries
+519	4800017900203	1	2019-07-24	2042408	1	Groceries
+520	4809010639127	1	2019-07-24	2050329	1	Groceries
+521	4806030200764	1	2019-07-24	2042408	1	Groceries
+522	4806506318795	1	2019-07-24	2042408	1	Groceries
+523	4809010639219	1	2019-07-24	2050329	1	Groceries
+524	4806506318931	1	2019-07-24	2042408	1	Groceries
+525	4806014096017	1	2019-07-24	2042408	1	Groceries
+526	4809010639110	1	2019-07-24	2050329	1	Groceries
+527	4806014000137	1	2019-07-24	2042408	1	Groceries
+528	4806506318870	1	2019-07-24	2042408	1	Groceries
+529	4809010109071	1	2019-07-24	2050329	1	Groceries
+530	4806014000021	1	2019-07-24	2042408	1	Groceries
+531	4806014000014	1	2019-07-24	2042408	1	Groceries
+532	4806506318924	1	2019-07-24	2042408	1	Groceries
+533	4806014000144	1	2019-07-24	2042408	1	Groceries
+534	4800488100065	1	2019-07-24	2042408	1	Groceries
+535	4806522942943	1	2019-07-24	2041984	1	Groceries
+536	4809010109828	1	2019-07-24	2050329	1	Groceries
+537	4806014000397	1	2019-07-24	2042408	1	Groceries
+538	4800488200116	1	2019-07-24	2042408	1	Groceries
+539	4809010109088	1	2019-07-24	2050329	1	Groceries
+540	4806014092811	1	2019-07-24	2042408	1	Groceries
+541	4800488114772	1	2019-07-24	2042408	1	Groceries
+542	4809010109750	1	2019-07-24	2050329	1	Groceries
+543	4806014099230	1	2019-07-24	2042408	1	Groceries
+544	4806014099278	1	2019-07-24	2042408	1	Groceries
+545	4800575141100	1	2019-07-24	2042408	1	Groceries
+546	4809010109965	1	2019-07-24	2050329	1	Groceries
+547	4902430089616	1	2019-07-24	2042408	1	Groceries
+548	4800575884007	1	2019-07-24	2042408	1	Groceries
+549	4800017480606	1	2019-07-24	2042408	1	Groceries
+550	4806014096024	1	2019-07-24	2042408	1	Groceries
+551	4806030202560	1	2019-07-24	2042408	1	Groceries
+552	4800017480507	1	2019-07-24	2042408	1	Groceries
+553	4800282000110	1	2019-07-24	2042408	1	Groceries
+554	4800575480254	1	2019-07-24	2042408	1	Groceries
+555	4809010109286	1	2019-07-24	2050329	1	Groceries
+556	4800361061322	1	2019-07-24	2042408	1	Groceries
+557	4800575120167	1	2019-07-24	2042408	1	Groceries
+558	4800575130166	1	2019-07-24	2042408	1	Groceries
+559	4800575140158	1	2019-07-24	2042408	1	Groceries
+560	4809010109347	1	2019-07-24	2050329	1	Groceries
+561	4806526770139	1	2019-07-24	2042408	1	Groceries
+562	4800575110151	1	2019-07-24	2042408	1	Groceries
+563	4809010109668	1	2019-07-24	2050329	1	Groceries
+564	4902430089616	1	2019-07-24	2042408	1	Groceries
+565	748485401386	1	2019-07-24	2042408	1	Groceries
+566	4800015401007	1	2019-07-24	2041984	1	Groceries
+567	4800575140370	1	2019-07-24	2042408	1	Groceries
+568	4809010109767	1	2019-07-24	2050329	1	Groceries
+569	4800575110373	1	2019-07-24	2042408	1	Groceries
+570	4800488114772	1	2019-07-24	2042408	1	Groceries
+571	4809012516532	1	2019-07-24	2041984	1	Groceries
+572	4800488200116	1	2019-07-24	2042408	1	Groceries
+573	4800024012326	1	2019-07-24	2042408	1	Groceries
+574	4800282000578	1	2019-07-24	2042408	1	Groceries
+575	4800488100065	1	2019-07-24	2042408	1	Groceries
+576	4800282001346	1	2019-07-24	2042408	1	Groceries
+577	4806522942202	1	2019-07-24	2041984	1	Groceries
+578	4806506318924	1	2019-07-24	2042408	1	Groceries
+579	4809010109903	1	2019-07-24	2050329	1	Groceries
+580	4800282000288	1	2019-07-24	2042408	1	Groceries
+581	4809010657435	1	2019-07-24	2041984	1	Groceries
+582	4800024015976	1	2019-07-24	2042408	1	Groceries
+583	4806506318870	1	2019-07-24	2042408	1	Groceries
+584	4800024015969	1	2019-07-24	2042408	1	Groceries
+585	4806506318931	1	2019-07-24	2042408	1	Groceries
+586	4800024012326	1	2019-07-24	2042408	1	Groceries
+587	4800024003652	1	2019-07-24	2042408	1	Groceries
+588	4806506318795	1	2019-07-24	2042408	1	Groceries
+589	4800024012418	1	2019-07-24	2042408	1	Groceries
+590	4806506318887	1	2019-07-24	2042408	1	Groceries
+591	4806030202560	1	2019-07-24	2042408	1	Groceries
+592	4800060075408	1	2019-07-24	2050329	1	Groceries
+593	4806014096338	1	2019-07-24	2042408	1	Groceries
+594	4800060075507	1	2019-07-24	2050329	1	Groceries
+595	4806506318788	1	2019-07-24	2042408	1	Groceries
+596	4800314007926	1	2019-07-24	2041984	1	Groceries
+597	4800024550958	1	2019-07-24	2042408	1	Groceries
+598	4800024558282	1	2019-07-24	2042408	1	Groceries
+599	4800488011484	1	2019-07-24	2042408	1	Groceries
+600	4806014096048	1	2019-07-24	2042408	1	Groceries
+601	4800488101314	1	2019-07-24	2042408	1	Groceries
+602	4800314000019	1	2019-07-24	2041984	1	Groceries
+603	4800094099876	1	2019-07-24	2042408	1	Groceries
+604	4806506318955	1	2019-07-24	2042408	1	Groceries
+605	4800060075200	1	2019-07-24	2050329	1	Groceries
+606	4804880551333	1	2019-07-24	2042408	1	Groceries
+607	4806506318894	1	2019-07-24	2042408	1	Groceries
+608	4804880551449	1	2019-07-24	2042408	1	Groceries
+609	4804880214122	1	2019-07-24	2042408	1	Groceries
+610	4804880332147	1	2019-07-24	2042408	1	Groceries
+611	4806506318849	1	2019-07-24	2042408	1	Groceries
+612	4804880553436	1	2019-07-24	2042408	1	Groceries
+613	4800314007346	1	2019-07-24	2041984	1	Groceries
+614	4800060230609	1	2019-07-24	2050329	1	Groceries
+615	4800094097315	1	2019-07-24	2042408	1	Groceries
+616	4800060252601	1	2019-07-24	2050329	1	Groceries
+617	14285003885	1	2019-07-24	2042408	1	Groceries
+618	4800060252601	1	2019-07-24	2050329	1	Groceries
+619	4806030202201	1	2019-07-24	2042408	1	Groceries
+620	4806506318832	1	2019-07-24	2042408	1	Groceries
+621	4800060254605	1	2019-07-24	2050329	1	Groceries
+622	4806014099629	1	2019-07-24	2042408	1	Groceries
+623	4800060255107	1	2019-07-24	2050329	1	Groceries
+624	8992959107560	1	2019-07-24	2042408	1	Groceries
+625	4806014099926	1	2019-07-24	2042408	1	Groceries
+626	4806014000731	1	2019-07-24	2042408	1	Groceries
+627	4800060031503	1	2019-07-24	2050329	1	Groceries
+628	4800282006013	1	2019-07-24	2042408	1	Groceries
+629	8992959107515	1	2019-07-24	2042408	1	Groceries
+630	4806506150388	1	2019-07-24	2050329	1	Groceries
+631	4800094037144	1	2019-07-24	2042408	1	Groceries
+632	4806014099612	1	2019-07-24	2042408	1	Groceries
+633	4806506150371	1	2019-07-24	2050329	1	Groceries
+634	4806506150357	1	2019-07-24	2050329	1	Groceries
+635	14285000914	1	2019-07-24	2042408	1	Groceries
+636	4806506150364	1	2019-07-24	2050329	1	Groceries
+637	4804880221519	1	2019-07-24	2042408	1	Groceries
+638	4800060804756	1	2019-07-24	2042408	1	Groceries
+639	4809013293432	1	2019-07-24	2041984	1	Groceries
+640	4800060201807	1	2019-07-24	2050329	1	Groceries
+641	4902430688437	1	2019-07-24	2042408	1	Groceries
+642	4805358501065	1	2019-07-24	2042408	1	Groceries
+643	4809013293418	1	2019-07-24	2041984	1	Groceries
+644	4804880553122	1	2019-07-24	2042408	1	Groceries
+645	4902430293433	1	2019-07-24	2042408	1	Groceries
+646	4800060202705	1	2019-07-24	2050329	1	Groceries
+647	4809013293586	1	2019-07-24	2041984	1	Groceries
+648	4804880552354	1	2019-07-24	2042408	1	Groceries
+649	4800060201609	1	2019-07-24	2050329	1	Groceries
+650	4902430293426	1	2019-07-24	2042408	1	Groceries
+651	4806524580037	1	2019-07-24	2050329	1	Groceries
+652	4804880551319	1	2019-07-24	2042408	1	Groceries
+653	4809010508898	1	2019-07-24	2041984	1	Groceries
+654	4806014099162	1	2019-07-24	2042408	1	Groceries
+655	4902430293402	1	2019-07-24	2042408	1	Groceries
+656	4806789445607	1	2019-07-24	2041984	1	Groceries
+657	4800060084806	1	2019-07-24	2050329	1	Groceries
+658	4800282000851	1	2019-07-24	2042408	1	Groceries
+659	4806789010102	1	2019-07-24	2041984	1	Groceries
+660	4800282006631	1	2019-07-24	2042408	1	Groceries
+661	4806014093344	1	2019-07-24	2042408	1	Groceries
+662	4804880322131	1	2019-07-24	2042408	1	Groceries
+663	4800060084707	1	2019-07-24	2050329	1	Groceries
+664	4806789010744	1	2019-07-24	2041984	1	Groceries
+665	4806014000533	1	2019-07-24	2042408	1	Groceries
+666	4800060080600	1	2019-07-24	2050329	1	Groceries
+667	4806014000557	1	2019-07-24	2042408	1	Groceries
+668	4806520410307	1	2019-07-24	2041984	1	Groceries
+669	4800888197870	1	2019-07-24	2041984	1	Groceries
+670	4800060080709	1	2019-07-24	2050329	1	Groceries
+671	4804880553412	1	2019-07-24	2042408	1	Groceries
+672	8993417322235	1	2019-07-24	2041984	1	Groceries
+673	4804880553115	1	2019-07-24	2042408	1	Groceries
+674	4800060906184	1	2019-07-24	2050329	1	Groceries
+675	4804880555232	1	2019-07-24	2042408	1	Groceries
+676	8993417322242	1	2019-07-24	2041984	1	Groceries
+677	4800060080808	1	2019-07-24	2050329	1	Groceries
+678	4800282006624	1	2019-07-24	2042408	1	Groceries
+679	4806789445546	1	2019-07-24	2041984	1	Groceries
+680	4806014000540	1	2019-07-24	2042408	1	Groceries
+681	4804888302807	1	2019-07-24	2042408	1	Groceries
+682	4806789519193	1	2019-07-24	2041984	1	Groceries
+683	4800011010038	1	2019-07-24	2050329	1	Groceries
+684	1202	1	2019-07-24	2042408	1	Groceries
+685	4806506150517	1	2019-07-24	2050329	1	Groceries
+686	4809014665191	1	2019-07-24	2042408	1	Groceries
+687	4800095001380	1	2019-07-24	2041984	1	Groceries
+688	4800011000053	1	2019-07-24	2050329	1	Groceries
+689	1052	1	2019-07-24	2042408	1	Groceries
+690	4487	1	2019-07-24	2042408	1	Groceries
+691	4806506150449	1	2019-07-24	2050329	1	Groceries
+692	1718	1	2019-07-24	2042408	1	Groceries
+693	4806506150456	1	2019-07-24	2050329	1	Groceries
+694	4806506150500	1	2019-07-24	2050329	1	Groceries
+695	1717	1	2019-07-24	2042408	1	Groceries
+696	4800310134398	1	2019-07-24	2041984	1	Groceries
+697	4485	1	2019-07-24	2042408	1	Groceries
+698	4803746151670	1	2019-07-24	2041984	1	Groceries
+699	4806506152399	1	2019-07-24	2050329	1	Groceries
+700	213401	1	2019-07-24	2042408	1	Groceries
+701	4800060254506	1	2019-07-24	2050329	1	Groceries
+702	4803746880464	1	2019-07-24	2041984	1	Groceries
+703	4806502359754	1	2019-07-24	2050329	1	Groceries
+704	4806513690990	1	2019-07-24	2042408	1	Groceries
+705	4809010109330	1	2019-07-24	2042408	1	Groceries
+706	4806513691027	1	2019-07-24	2042408	1	Groceries
+707	4800194115445	1	2019-07-24	2041984	1	Groceries
+708	4806513690716	1	2019-07-24	2042408	1	Groceries
+709	3213543	1	2019-07-24	2050329	1	Groceries
+710	4800523441955	1	2019-07-24	2041984	1	Groceries
+711	4806513690532	1	2019-07-24	2042408	1	Groceries
+712	4806513690549	1	2019-07-24	2042408	1	Groceries
+713	1055	1	2019-07-24	2050329	1	Groceries
+714	4800523443188	1	2019-07-24	2041984	1	Groceries
+715	4806513690518	1	2019-07-24	2042408	1	Groceries
+716	4800216127791	1	2019-07-24	2041984	1	Groceries
+717	4806513690600	1	2019-07-24	2042408	1	Groceries
+718	4800631001867	1	2019-07-24	2041984	1	Groceries
+719	4806513690709	1	2019-07-24	2042408	1	Groceries
+720	4806513690716	1	2019-07-24	2042408	1	Groceries
+721	1990	1	2019-07-24	2041984	1	Groceries
+722	4800014700028	1	2019-07-24	2042408	1	Groceries
+723	4806513690501	1	2019-07-24	2042408	1	Groceries
+724	4800014700004	1	2019-07-24	2042408	1	Groceries
+725	4806502359754	1	2019-07-24	2050329	1	Groceries
+726	4800310153726	1	2019-07-24	2041984	1	Groceries
+727	4800049715608	1	2019-07-24	2042408	1	Groceries
+728	6924180200347	1	2019-07-24	2050329	1	Groceries
+729	4806513690327	1	2019-07-24	2042408	1	Groceries
+730	4804888322270	1	2019-07-24	2050329	1	Groceries
+731	4806513690044	1	2019-07-24	2042408	1	Groceries
+732	4804888322263	1	2019-07-24	2050329	1	Groceries
+733	4804888322089	1	2019-07-24	2050329	1	Groceries
+734	4806513690679	1	2019-07-24	2042408	1	Groceries
+735	4804888322249	1	2019-07-24	2050329	1	Groceries
+736	4804888322126	1	2019-07-24	2050329	1	Groceries
+737	4804888322041	1	2019-07-24	2050329	1	Groceries
+738	4804888322201	1	2019-07-24	2050329	1	Groceries
+739	4804888322164	1	2019-07-24	2050329	1	Groceries
+741	4902430093729	1	2019-07-24	2050329	1	Groceries
+742	8934868058168	1	2019-07-24	2050329	1	Groceries
+743	4806531670035	1	2019-07-24	2050329	1	Groceries
+744	4806500070774	1	2019-07-24	2041984	1	Groceries
+745	4801234108021	1	2019-07-24	2042408	1	Groceries
+746	4902430093767	1	2019-07-24	2050329	1	Groceries
+747	4902430688109	1	2019-07-24	2050329	1	Groceries
+748	4801234106027	1	2019-07-24	2042408	1	Groceries
+749	4806500070767	1	2019-07-24	2041984	1	Groceries
+750	4801234106010	1	2019-07-24	2042408	1	Groceries
+751	4809014799124	1	2019-07-24	2050329	1	Groceries
+752	4801234107314	1	2019-07-24	2042408	1	Groceries
+753	4987176009678	1	2019-07-24	2041984	1	Groceries
+754	4800888168405	1	2019-07-24	2050329	1	Groceries
+755	4800888151070	1	2019-07-24	2050329	1	Groceries
+756	4902430335058	1	2019-07-24	2042408	1	Groceries
+757	4968306479653	1	2019-07-24	2041984	1	Groceries
+758	792	1	2019-07-24	2050329	1	Groceries
+759	8998899940557	1	2019-07-24	2041984	1	Groceries
+760	4902430335065	1	2019-07-24	2042408	1	Groceries
+761	8851932336659	1	2019-07-24	2041984	1	Groceries
+762	4800888183262	1	2019-07-24	2050329	1	Groceries
+763	4806789519186	1	2019-07-24	2041984	1	Groceries
+764	4800011186610	1	2019-07-24	2050329	1	Groceries
+765	4806789445553	1	2019-07-24	2041984	1	Groceries
+766	4800011186719	1	2019-07-24	2050329	1	Groceries
+767	4800011186917	1	2019-07-24	2050329	1	Groceries
+768	4800011186900	1	2019-07-24	2050329	1	Groceries
+769	4808888822327	1	2019-07-24	2050329	1	Groceries
+771	4808888821221	1	2019-07-24	2050329	1	Groceries
+773	4800888183279	1	2019-07-24	2050329	1	Groceries
+774	4809015059012	1	2019-07-24	2050329	1	Groceries
+775	4809015059142	1	2019-07-24	2050329	1	Groceries
+777	4805623713780	1	2019-07-24	2050329	1	Groceries
+778	4805622713781	1	2019-07-24	2050329	1	Groceries
+780	1038	1	2019-07-24	2050329	1	Groceries
+781	8993417322129	1	2019-07-24	2041984	1	Groceries
+782	8993417322143	1	2019-07-24	2041984	1	Groceries
+783	8993417322136	1	2019-07-24	2041984	1	Groceries
+784	20800712712	1	2019-07-24	2041984	1	Groceries
+785	154682468754	1	2019-07-24	2050329	1	Groceries
+786	4987176013491	1	2019-07-24	2041984	1	Groceries
+787	4800047840050	1	2019-07-24	2050329	1	Groceries
+788	4800047840012	1	2019-07-24	2050329	1	Groceries
+789	4800047840265	1	2019-07-24	2050329	1	Groceries
+790	20800306348	1	2019-07-24	2041984	1	Groceries
+791	4800047841705	1	2019-07-24	2050329	1	Groceries
+792	20800309363	1	2019-07-24	2041984	1	Groceries
+793	4800047840579	1	2019-07-24	2050329	1	Groceries
+794	20800306379	1	2019-07-24	2041984	1	Groceries
+795	4800888161222	1	2019-07-24	2041984	1	Groceries
+796	4800888208927	1	2019-07-24	2041984	1	Groceries
+797	4800888142672	1	2019-07-24	2041984	1	Groceries
+798	4800888158925	1	2019-07-24	2041984	1	Groceries
+799	4800888166234	1	2019-07-24	2041984	1	Groceries
+800	4800888150622	1	2019-07-24	2041984	1	Groceries
+801	4800888154873	1	2019-07-24	2041984	1	Groceries
+802	4800888150608	1	2019-07-24	2041984	1	Groceries
+803	4800888151117	1	2019-07-24	2041984	1	Groceries
+776	4800310153733	1	2019-07-24	2042408	1	Groceries
+779	8031	1	2019-07-24	2042408	1	Groceries
+804	4800888160027	1	2019-07-24	2041984	1	Groceries
+805	4801234014414	1	2019-07-24	2041984	1	Groceries
+806	4800888150202	1	2019-07-24	2041984	1	Groceries
+807	4902430296847	1	2019-07-24	2041984	1	Groceries
+808	4800888152732	1	2019-07-24	2041984	1	Groceries
+809	4801234014414	1	2019-07-24	2041984	1	Groceries
+810	4800135001134	1	2019-07-24	2041984	1	Groceries
+811	4800135001462	1	2019-07-24	2041984	1	Groceries
+812	4806507831071	1	2019-07-24	2041984	1	Groceries
+813	4806507834904	1	2019-07-24	2041984	1	Groceries
+814	4806507834881	1	2019-07-24	2041984	1	Groceries
+815	4806507834959	1	2019-07-24	2041984	1	Groceries
+816	4800888154200	1	2019-07-24	2041984	1	Groceries
+817	4800888154224	1	2019-07-24	2041984	1	Groceries
+818	4800888204431	1	2019-07-24	2041984	1	Groceries
+819	4800888127273	1	2019-07-24	2041984	1	Groceries
+820	4800888154637	1	2019-07-24	2041984	1	Groceries
+821	4800888127259	1	2019-07-24	2041984	1	Groceries
+822	4800888127242	1	2019-07-24	2041984	1	Groceries
+823	4800888127204	1	2019-07-24	2041984	1	Groceries
+824	4800888143495	1	2019-07-24	2041984	1	Groceries
+825	9300830022557	1	2019-07-24	2041984	1	Groceries
+826	9300830019380	1	2019-07-24	2041984	1	Groceries
+829	4806526770054	1	2019-07-24	2042408	1	Groceries
+830	4809013293593	1	2019-07-24	2041984	1	Groceries
+831	4806526770146	1	2019-07-24	2042408	1	Groceries
+832	4801288880089	1	2019-07-24	2042408	1	Groceries
+833	4806507831842	1	2019-07-24	2041984	1	Groceries
+834	4806507835215	1	2019-07-24	2041984	1	Groceries
+835	4801288830084	1	2019-07-24	2042408	1	Groceries
+836	4806507831804	1	2019-07-24	2041984	1	Groceries
+837	4806507831781	1	2019-07-24	2041984	1	Groceries
+838	4801010105206	1	2019-07-24	2042408	1	Groceries
+839	4806507835178	1	2019-07-24	2041984	1	Groceries
+840	48040693	1	2019-07-24	2042408	1	Groceries
+841	4806512881696	1	2019-07-24	2041984	1	Groceries
+842	8850007011132	1	2019-07-24	2042408	1	Groceries
+843	4806512880101	1	2019-07-24	2041984	1	Groceries
+844	4801010109105	1	2019-07-24	2042408	1	Groceries
+845	4806512880101	1	2019-07-24	2041984	1	Groceries
+846	4801010104001	1	2019-07-24	2042408	1	Groceries
+847	4806512880064	1	2019-07-24	2041984	1	Groceries
+848	48032742	1	2019-07-24	2042408	1	Groceries
+849	4806512880880	1	2019-07-24	2041984	1	Groceries
+850	4801010120117	1	2019-07-24	2042408	1	Groceries
+851	4806512880095	1	2019-07-24	2041984	1	Groceries
+852	4801010105107	1	2019-07-24	2042408	1	Groceries
+853	4806512881696	1	2019-07-24	2041984	1	Groceries
+854	4800417005225	1	2019-07-24	2041984	1	Groceries
+855	4800417005201	1	2019-07-24	2041984	1	Groceries
+856	4801010105107	1	2019-07-24	2042408	1	Groceries
+857	48033459	1	2019-07-24	2042408	1	Groceries
+858	4800417005218	1	2019-07-24	2041984	1	Groceries
+859	4803746880518	1	2019-07-24	2041984	1	Groceries
+860	8850007010890	1	2019-07-24	2042408	1	Groceries
+861	4801010105206	1	2019-07-24	2041984	1	Groceries
+862	8850007011132	1	2019-07-24	2041984	1	Groceries
+863	48033459	1	2019-07-24	2042408	1	Groceries
+864	8850007011187	1	2019-07-24	2041984	1	Groceries
+865	8850007010869	1	2019-07-24	2041984	1	Groceries
+866	8850007011149	1	2019-07-24	2041984	1	Groceries
+867	4801234108212	1	2019-07-24	2042408	1	Groceries
+868	4801234108014	1	2019-07-24	2042408	1	Groceries
+869	4801234107826	1	2019-07-24	2042408	1	Groceries
+870	4801234108021	1	2019-07-24	2042408	1	Groceries
+871	4801234108229	1	2019-07-24	2042408	1	Groceries
+872	4801234108236	1	2019-07-24	2042408	1	Groceries
+873	4809014799117	1	2019-07-24	2042408	1	Groceries
+874	4806513691003	1	2019-07-24	2042408	1	Groceries
+875	4806513690051	1	2019-07-24	2042408	1	Groceries
+876	4806513691034	1	2019-07-24	2042408	1	Groceries
+877	4801234057626	1	2019-07-24	2042408	1	Groceries
+878	4801234105211	1	2019-07-24	2042408	1	Groceries
+879	6925419077969	1	2019-07-24	2042408	1	Groceries
+880	1959	1	2019-07-24	2042408	1	Groceries
+881	4800147200655	1	2019-07-24	2042408	1	Groceries
+882	4800147200709	1	2019-07-24	2042408	1	Groceries
+883	4800147200648	1	2019-07-24	2042408	1	Groceries
+884	4809014247205	1	2019-07-24	2042408	1	Groceries
+885	6152	1	2019-07-24	2042408	1	Groceries
+886	5187	1	2019-07-24	2042408	1	Groceries
+887	2777	1	2019-07-24	2042408	1	Groceries
+888	1343468800	1	2019-07-24	2042408	1	Groceries
+889	6173	1	2019-07-24	2042408	1	Groceries
+890	6153	1	2019-07-24	2042408	1	Groceries
+891	6172	1	2019-07-24	2042408	1	Groceries
+892	6349	1	2019-07-24	2042408	1	Groceries
+893	3289	1	2019-07-24	2042408	1	Groceries
+894	3289	1	2019-07-24	2042408	1	Groceries
+895	4803746332833	1	2019-07-24	2042408	1	Groceries
+896	4806513840722	1	2019-07-24	2042408	1	Groceries
+897	4801234165512	1	2019-07-24	2042408	1	Groceries
+898	4801234076115	1	2019-07-24	2042408	1	Groceries
+899	4801234014629	1	2019-07-24	2042408	1	Groceries
+900	4801234141714	1	2019-07-24	2042408	1	Groceries
+901	9555222601463	1	2019-07-24	2042408	1	Groceries
+902	4801234145514	1	2019-07-24	2042408	1	Groceries
+903	9555222605904	1	2019-07-24	2042408	1	Groceries
+904	4801234061517	1	2019-07-24	2042408	1	Groceries
+905	4801234061418	1	2019-07-24	2042408	1	Groceries
+906	8934868053408	1	2019-07-24	2042408	1	Groceries
+907	8934868074533	1	2019-07-24	2042408	1	Groceries
+908	8934868115717	1	2019-07-24	2042408	1	Groceries
+909	8934868115724	1	2019-07-24	2042408	1	Groceries
+910	4800888112958	1	2019-07-24	2042408	1	Groceries
+911	4809012721134	1	2019-07-24	2042408	1	Groceries
+912	4801234010126	1	2019-07-24	2042408	1	Groceries
+913	4801234010225	1	2019-07-24	2042408	1	Groceries
+914	4801234010133	1	2019-07-24	2042408	1	Groceries
+915	4801234010218	1	2019-07-24	2042408	1	Groceries
+916	4800888112972	1	2019-07-24	2042408	1	Groceries
+917	4800888113009	1	2019-07-24	2042408	1	Groceries
+918	4801234031060	1	2019-07-24	2042408	1	Groceries
+919	4801234030063	1	2019-07-24	2042408	1	Groceries
+920	4801234100018	1	2019-07-24	2042408	1	Groceries
+921	4801234031015	1	2019-07-24	2042408	1	Groceries
+922	4801234030728	1	2019-07-24	2042408	1	Groceries
+923	4806531670066	1	2019-07-24	2050329	1	Groceries
+924	4806531670097	1	2019-07-24	2050329	1	Groceries
+925	4800888136770	1	2019-07-24	2042408	1	Groceries
+926	8934868137931	1	2019-07-24	2050329	1	Groceries
+927	4800888151841	1	2019-07-24	2042408	1	Groceries
+928	4800888183804	1	2019-07-24	2042408	1	Groceries
+929	4800888151834	1	2019-07-24	2042408	1	Groceries
+930	4800888151827	1	2019-07-24	2042408	1	Groceries
+931	4800888199133	1	2019-07-24	2042408	1	Groceries
+932	4800888177124	1	2019-07-24	2042408	1	Groceries
+933	4800888181572	1	2019-07-24	2042408	1	Groceries
+934	4800888189813	1	2019-07-24	2042408	1	Groceries
+935	4800888181596	1	2019-07-24	2042408	1	Groceries
+936	4800888181725	1	2019-07-24	2042408	1	Groceries
+937	4800888189820	1	2019-07-24	2042408	1	Groceries
+938	4800888199157	1	2019-07-24	2042408	1	Groceries
+939	4805358715776	1	2019-07-24	2050329	1	Groceries
+940	4800888187840	1	2019-07-24	2042408	1	Groceries
+941	4800888181640	1	2019-07-24	2042408	1	Groceries
+942	4805358702516	1	2019-07-24	2050329	1	Groceries
+943	4800888181671	1	2019-07-24	2042408	1	Groceries
+944	4800888181657	1	2019-07-24	2042408	1	Groceries
+945	4805358703513	1	2019-07-24	2050329	1	Groceries
+946	4800888180407	1	2019-07-24	2042408	1	Groceries
+947	4805358703513	1	2019-07-24	2050329	1	Groceries
+948	4800888202772	1	2019-07-24	2042408	1	Groceries
+949	4902430764858	1	2019-07-24	2042408	1	Groceries
+950	4902430768917	1	2019-07-24	2042408	1	Groceries
+951	4902430463706	1	2019-07-24	2042408	1	Groceries
+952	4902430583183	1	2019-07-24	2042408	1	Groceries
+953	4805358704442	1	2019-07-24	2050329	1	Groceries
+954	8934868137955	1	2019-07-24	2042408	1	Groceries
+955	8934868113034	1	2019-07-24	2042408	1	Groceries
+956	4805358702509	1	2019-07-24	2050329	1	Groceries
+957	4902430640077	1	2019-07-24	2042408	1	Groceries
+958	4902430781398	1	2019-07-24	2042408	1	Groceries
+959	4805358703506	1	2019-07-24	2050329	1	Groceries
+960	4805358736504	1	2019-07-24	2050329	1	Groceries
+961	4806507831606	1	2019-07-24	2041984	1	Groceries
+962	4800888180414	1	2019-07-24	2042408	1	Groceries
+963	4800888202789	1	2019-07-24	2042408	1	Groceries
+964	4805358796768	1	2019-07-24	2050329	1	Groceries
+965	4806507831453	1	2019-07-24	2041984	1	Groceries
+966	4805358777835	1	2019-07-24	2050329	1	Groceries
+967	4806507831460	1	2019-07-24	2041984	1	Groceries
+970	4806507833112	1	2019-07-24	2041984	1	Groceries
+971	4805358775770	1	2019-07-24	2050329	1	Groceries
+972	4805358774773	1	2019-07-24	2050329	1	Groceries
+973	4806507833327	1	2019-07-24	2041984	1	Groceries
+974	4806507831477	1	2019-07-24	2041984	1	Groceries
+975	4902430473521	1	2019-07-24	2042408	1	Groceries
+976	48038614	1	2019-07-24	2041984	1	Groceries
+977	48038621	1	2019-07-24	2041984	1	Groceries
+978	4902430473514	1	2019-07-24	2042408	1	Groceries
+979	48038621	1	2019-07-24	2041984	1	Groceries
+980	4902430473569	1	2019-07-24	2042408	1	Groceries
+981	4800888176882	1	2019-07-24	2041984	1	Groceries
+982	4806789446826	1	2019-07-24	2041984	1	Groceries
+983	4902430412674	1	2019-07-24	2042408	1	Groceries
+984	4800888172761	1	2019-07-24	2041984	1	Groceries
+985	4805358799080	1	2019-07-24	2050329	1	Groceries
+986	4902430412551	1	2019-07-24	2042408	1	Groceries
+987	8851932305297	1	2019-07-24	2041984	1	Groceries
+988	4902430532440	1	2019-07-24	2042408	1	Groceries
+989	4805358798083	1	2019-07-24	2050329	1	Groceries
+990	4902430640060	1	2019-07-24	2042408	1	Groceries
+991	4800888135568	1	2019-07-24	2041984	1	Groceries
+992	4902430640084	1	2019-07-24	2042408	1	Groceries
+993	8851932323901	1	2019-07-24	2041984	1	Groceries
+994	4806501705330	1	2019-07-24	2042408	1	Groceries
+995	4800888141101	1	2019-07-24	2041984	1	Groceries
+996	8851932371551	1	2019-07-24	2041984	1	Groceries
+997	4806527020509	1	2019-07-24	2042408	1	Groceries
+998	4806507831927	1	2019-07-24	2041984	1	Groceries
+999	4800312466206	1	2019-07-24	2042408	1	Groceries
+1000	6904542616283	1	2019-07-24	2042408	1	Groceries
+1001	4902430623209	1	2019-07-24	2042408	1	Groceries
+1002	4806507835185	1	2019-07-24	2041984	1	Groceries
+1003	4805358710771	1	2019-07-24	2050329	1	Groceries
+1004	4806020497525	1	2019-07-24	2042408	1	Groceries
+1005	4902430178259	1	2019-07-24	2042408	1	Groceries
+1006	4902430178273	1	2019-07-24	2042408	1	Groceries
+1007	4806501706115	1	2019-07-24	2042408	1	Groceries
+1008	4902430431149	1	2019-07-24	2042408	1	Groceries
+1009	4806507831934	1	2019-07-24	2041984	1	Groceries
+1010	4902430431149	1	2019-07-24	2042408	1	Groceries
+1011	4902430191821	1	2019-07-24	2042408	1	Groceries
+1012	4902430431156	1	2019-07-24	2042408	1	Groceries
+1013	4902430431163	1	2019-07-24	2042408	1	Groceries
+1014	4902430800846	1	2019-07-24	2042408	1	Groceries
+1015	4902430623216	1	2019-07-24	2042408	1	Groceries
+1016	4902430523240	1	2019-07-24	2042408	1	Groceries
+1017	4902430278119	1	2019-07-24	2042408	1	Groceries
+1018	4902430278096	1	2019-07-24	2042408	1	Groceries
+1019	4806507831989	1	2019-07-24	2041984	1	Groceries
+1020	4805358701847	1	2019-07-24	2050329	1	Groceries
+1021	4806507831910	1	2019-07-24	2041984	1	Groceries
+1022	8993417302176	1	2019-07-24	2041984	1	Groceries
+1023	4806507831965	1	2019-07-24	2041984	1	Groceries
+1024	4806507831897	1	2019-07-24	2041984	1	Groceries
+1025	4806507831903	1	2019-07-24	2041984	1	Groceries
+1026	4805358702844	1	2019-07-24	2050329	1	Groceries
+1027	4806507831873	1	2019-07-24	2041984	1	Groceries
+1028	4806507831866	1	2019-07-24	2041984	1	Groceries
+1029	8993417302190	1	2019-07-24	2041984	1	Groceries
+1030	4805358785816	1	2019-07-24	2050329	1	Groceries
+1031	8993417302138	1	2019-07-24	2041984	1	Groceries
+228	4800473000080	1	2019-07-24	2042408	1	Groceries
+239	4800024570000	1	2019-07-24	2042408	1	Groceries
+323	9556007000518	1	2019-07-24	2042408	1	Groceries
+352	9556001027252	1	2019-07-24	2042408	1	Groceries
+362	4809010639509	1	2019-07-24	2041984	1	Groceries
+383	4806018403729	1	2019-07-24	2050329	1	Groceries
+740	4806500070774	1	2019-07-24	2041984	1	Groceries
+827	8850007372561	1	2019-07-24	2042408	1	Groceries
+828	4806526770047	1	2019-07-24	2042408	1	Groceries
+968	4809015059081	1	2019-07-24	2042408	1	Groceries
+969	4902430473545	1	2019-07-24	2042408	1	Groceries
+1032	8993417302183	1	2019-07-24	2041984	1	Groceries
+1033	8993417302114	1	2019-07-24	2041984	1	Groceries
+1034	4800147201881	1	2019-07-24	2042408	1	Groceries
+1035	4800147210944	1	2019-07-24	2042408	1	Groceries
+1036	8993417302169	1	2019-07-24	2041984	1	Groceries
+1037	4800147201843	1	2019-07-24	2042408	1	Groceries
+1038	4800147201003	1	2019-07-24	2042408	1	Groceries
+1039	4800147200471	1	2019-07-24	2042408	1	Groceries
+1040	4800314000019	1	2019-07-24	2042408	1	Groceries
+1041	4800314009692	1	2019-07-24	2042408	1	Groceries
+1042	8993417302152	1	2019-07-24	2041984	1	Groceries
+1044	4902430349062	1	2019-07-24	2042408	1	Groceries
+1045	8993417302169	1	2019-07-24	2041984	1	Groceries
+1046	4800037111047	1	2019-07-24	2042408	1	Groceries
+1047	8993417302145	1	2019-07-24	2041984	1	Groceries
+1048	48040693	1	2019-07-24	2041984	1	Groceries
+1049	4801010104001	1	2019-07-24	2041984	1	Groceries
+1050	8888826019589	1	2019-07-24	2042408	1	Groceries
+1051	4805358784819	1	2019-07-24	2050329	1	Groceries
+1052	8801038566207	1	2019-07-24	2042408	1	Groceries
+1053	4800037144069	1	2019-07-24	2042408	1	Groceries
+1054	4805358785090	1	2019-07-24	2050329	1	Groceries
+1055	4891228607029	1	2019-07-24	2042408	1	Groceries
+1056	4800147200693	1	2019-07-24	2042408	1	Groceries
+1057	4805358711846	1	2019-07-24	2050329	1	Groceries
+1058	936	1	2019-07-24	2042408	1	Groceries
+1059	4800888147240	1	2019-07-24	2042408	1	Groceries
+1060	4805358707849	1	2019-07-24	2050329	1	Groceries
+1061	4800888147288	1	2019-07-24	2042408	1	Groceries
+1062	4800034601664	1	2019-07-24	2042408	1	Groceries
+1063	8850006325223	1	2019-07-24	2042408	1	Groceries
+1064	4800034601657	1	2019-07-24	2042408	1	Groceries
+1066	4808888892177	1	2019-07-24	2042408	1	Groceries
+1067	4805358706842	1	2019-07-24	2050329	1	Groceries
+1068	4805358708426	1	2019-07-24	2050329	1	Groceries
+1069	4808888892566	1	2019-07-24	2042408	1	Groceries
+1070	4801010105107	1	2019-07-24	2041984	1	Groceries
+1071	9310059050071	1	2019-07-24	2042408	1	Groceries
+1072	4805358707429	1	2019-07-24	2050329	1	Groceries
+1073	48033459	1	2019-07-24	2041984	1	Groceries
+1074	9319871000264	1	2019-07-24	2042408	1	Groceries
+1075	9319871000134	1	2019-07-24	2042408	1	Groceries
+1076	4805358704428	1	2019-07-24	2050329	1	Groceries
+1077	9319871000042	1	2019-07-24	2042408	1	Groceries
+1078	48032742	1	2019-07-24	2041984	1	Groceries
+1079	9319871000325	1	2019-07-24	2042408	1	Groceries
+1080	4805358711846	1	2019-07-24	2050329	1	Groceries
+1081	4801010120117	1	2019-07-24	2041984	1	Groceries
+1082	8850007010890	1	2019-07-24	2041984	1	Groceries
+1083	4800888152916	1	2019-07-24	2042408	1	Groceries
+1084	4800888152978	1	2019-07-24	2042408	1	Groceries
+1085	4902430822909	1	2019-07-24	2041984	1	Groceries
+1086	4902430698078	1	2019-07-24	2041984	1	Groceries
+1087	4800888158017	1	2019-07-24	2042408	1	Groceries
+1088	4800034011562	1	2019-07-24	2042408	1	Groceries
+1089	8993417390111	1	2019-07-24	2041984	1	Groceries
+1090	4800888158024	1	2019-07-24	2042408	1	Groceries
+1091	8993417390128	1	2019-07-24	2041984	1	Groceries
+1092	8850006320495	1	2019-07-24	2042408	1	Groceries
+1093	4800034011555	1	2019-07-24	2042408	1	Groceries
+1094	8934839121471	1	2019-07-24	2042408	1	Groceries
+1095	8993417390135	1	2019-07-24	2041984	1	Groceries
+1096	4902430429405	1	2019-07-24	2041984	1	Groceries
+1097	4803746900094	1	2019-07-24	2042408	1	Groceries
+1098	4902430624572	1	2019-07-24	2041984	1	Groceries
+1099	4803746900056	1	2019-07-24	2042408	1	Groceries
+1100	4902430399425	1	2019-07-24	2041984	1	Groceries
+1101	4800034011364	1	2019-07-24	2042408	1	Groceries
+1102	4902430401142	1	2019-07-24	2041984	1	Groceries
+1103	8850006320518	1	2019-07-24	2042408	1	Groceries
+1104	4800888133519	1	2019-07-24	2041984	1	Groceries
+1105	8850006321133	1	2019-07-24	2042408	1	Groceries
+1106	4902430430975	1	2019-07-24	2041984	1	Groceries
+1107	4800888113573	1	2019-07-24	2042408	1	Groceries
+1108	4800888139399	1	2019-07-24	2041984	1	Groceries
+1109	4800888139429	1	2019-07-24	2041984	1	Groceries
+1110	4800888113481	1	2019-07-24	2042408	1	Groceries
+1111	4800888139467	1	2019-07-24	2041984	1	Groceries
+1112	4800888113573	1	2019-07-24	2042408	1	Groceries
+1114	4800888113672	1	2019-07-24	2042408	1	Groceries
+1116	4800888113474	1	2019-07-24	2042408	1	Groceries
+1117	4800888113498	1	2019-07-24	2042408	1	Groceries
+1118	4800888156365	1	2019-07-24	2041984	1	Groceries
+1119	4800888113573	1	2019-07-24	2042408	1	Groceries
+1120	4800888156372	1	2019-07-24	2041984	1	Groceries
+1121	4803746900063	1	2019-07-24	2042408	1	Groceries
+1122	4800888201157	1	2019-07-24	2041984	1	Groceries
+1123	4800888190338	1	2019-07-24	2041984	1	Groceries
+1124	4800888190307	1	2019-07-24	2041984	1	Groceries
+1125	4800034013252	1	2019-07-24	2042408	1	Groceries
+1126	4902430575805	1	2019-07-24	2042408	1	Groceries
+1127	4800888190208	1	2019-07-24	2041984	1	Groceries
+1128	4800888154347	1	2019-07-24	2041984	1	Groceries
+1129	4800888154354	1	2019-07-24	2041984	1	Groceries
+1130	4902430495042	1	2019-07-24	2042408	1	Groceries
+1131	4806507831613	1	2019-07-24	2041984	1	Groceries
+1132	4806507833129	1	2019-07-24	2041984	1	Groceries
+1133	4806507833334	1	2019-07-24	2041984	1	Groceries
+1134	4806507831491	1	2019-07-24	2041984	1	Groceries
+1135	4902430945554	1	2019-07-24	2042408	1	Groceries
+1136	4902430316774	1	2019-07-24	2042408	1	Groceries
+1137	4902430951371	1	2019-07-24	2042408	1	Groceries
+1138	4902430970525	1	2019-07-24	2042408	1	Groceries
+1139	4800095004183	1	2019-07-24	2041984	1	Groceries
+1140	4902430381772	1	2019-07-24	2042408	1	Groceries
+1141	4902430249812	1	2019-07-24	2042408	1	Groceries
+1142	4902430522076	1	2019-07-24	2042408	1	Groceries
+1143	4902430932417	1	2019-07-24	2042408	1	Groceries
+1144	4902430951357	1	2019-07-24	2042408	1	Groceries
+1145	4800095001137	1	2019-07-24	2041984	1	Groceries
+1146	4902430803694	1	2019-07-24	2042408	1	Groceries
+1147	4800011121543	1	2019-07-24	2041984	1	Groceries
+1148	4800011111148	1	2019-07-24	2042408	1	Groceries
+1149	4800011115245	1	2019-07-24	2042408	1	Groceries
+1150	4800011120614	1	2019-07-24	2041984	1	Groceries
+1151	4800011114941	1	2019-07-24	2042408	1	Groceries
+1152	4800011795331	1	2019-07-24	2042408	1	Groceries
+1153	4800011122205	1	2019-07-24	2041984	1	Groceries
+1154	4800011146300	1	2019-07-24	2041984	1	Groceries
+1155	4800011114941	1	2019-07-24	2042408	1	Groceries
+1156	4800011783031	1	2019-07-24	2042408	1	Groceries
+1157	4800011782805	1	2019-07-24	2042408	1	Groceries
+1158	4800011783031	1	2019-07-24	2042408	1	Groceries
+1159	4800243900732	1	2019-07-24	2042408	1	Groceries
+1160	4800011122212	1	2019-07-24	2041984	1	Groceries
+1163	4800011122212	1	2019-07-24	2041984	1	Groceries
+1164	4800011120621	1	2019-07-24	2041984	1	Groceries
+1165	4800131592247	1	2019-07-24	2041984	1	Groceries
+1166	4800131592230	1	2019-07-24	2041984	1	Groceries
+1167	4800131591233	1	2019-07-24	2041984	1	Groceries
+1168	4800131291690	1	2019-07-24	2041984	1	Groceries
+1169	4800047820250	1	2019-07-24	2041984	1	Groceries
+1170	4800047820243	1	2019-07-24	2041984	1	Groceries
+1171	4800047820182	1	2019-07-24	2041984	1	Groceries
+1172	4902430694612	1	2019-07-24	2041984	1	Groceries
+1173	4800888169693	1	2019-07-24	2041984	1	Groceries
+1174	4800888169716	1	2019-07-24	2041984	1	Groceries
+1175	4800888169709	1	2019-07-24	2041984	1	Groceries
+1176	8995200703573	1	2019-07-24	2041984	1	Groceries
+1177	4800888154262	1	2019-07-24	2041984	1	Groceries
+1178	4800888179593	1	2019-07-24	2041984	1	Groceries
+1179	8995200703580	1	2019-07-24	2041984	1	Groceries
+1180	4902430752657	1	2019-07-24	2041984	1	Groceries
+1181	4800888154279	1	2019-07-24	2041984	1	Groceries
+1182	4800888158826	1	2019-07-24	2041984	1	Groceries
+1183	4902430736510	1	2019-07-24	2041984	1	Groceries
+1184	4902430698658	1	2019-07-24	2041984	1	Groceries
+1185	4902430522809	1	2019-07-24	2041984	1	Groceries
+1186	4902430333597	1	2019-07-24	2041984	1	Groceries
+1187	4800888141194	1	2019-07-24	2041984	1	Groceries
+1188	4806525943572	1	2019-07-24	2041984	1	Groceries
+1189	4902430698146	1	2019-07-24	2041984	1	Groceries
+1190	4902430759960	1	2019-07-24	2041984	1	Groceries
+1191	4902430698085	1	2019-07-24	2041984	1	Groceries
+1192	4902430727006	1	2019-07-24	2041984	1	Groceries
+1193	3900	1	2019-07-24	2041984	1	Groceries
+1194	4902430837408	1	2019-07-24	2041984	1	Groceries
+1195	48038379	1	2019-07-24	2041984	1	Groceries
+1196	4801234133634	1	2019-07-24	2041984	1	Groceries
+1197	48031813	1	2019-07-24	2041984	1	Groceries
+1198	4801234130848	1	2019-07-24	2041984	1	Groceries
+1199	4902430694612	1	2019-07-24	2041984	1	Groceries
+1200	8934868137931	1	2019-07-24	2041984	1	Groceries
+1201	8934868113041	1	2019-07-24	2041984	1	Groceries
+1202	4806531670066	1	2019-07-24	2041984	1	Groceries
+1203	8934868110644	1	2019-07-24	2041984	1	Groceries
+1204	4800888157690	1	2019-07-24	2041984	1	Groceries
+1206	4902430452793	1	2019-07-24	2041984	1	Groceries
+1207	4902430679602	1	2019-07-24	2041984	1	Groceries
+1208	4902430424264	1	2019-07-24	2041984	1	Groceries
+1209	4902430452694	1	2019-07-24	2041984	1	Groceries
+1210	4902430346177	1	2019-07-24	2041984	1	Groceries
+1211	4902430732475	1	2019-07-24	2041984	1	Groceries
+1212	4902430344876	1	2019-07-24	2041984	1	Groceries
+1213	4902430346184	1	2019-07-24	2041984	1	Groceries
+1214	4902430819022	1	2019-07-24	2041984	1	Groceries
+1215	4902430819053	1	2019-07-24	2041984	1	Groceries
+1216	4902430731454	1	2019-07-24	2041984	1	Groceries
+1217	4902430727143	1	2019-07-24	2041984	1	Groceries
+1218	4902430344883	1	2019-07-24	2041984	1	Groceries
+1219	4800312283360	1	2019-07-24	2041984	1	Groceries
+1220	8934868094982	1	2019-07-24	2041984	1	Groceries
+1221	8934868110170	1	2019-07-24	2041984	1	Groceries
+1222	4800888160157	1	2019-07-24	2041984	1	Groceries
+1223	4902430389570	1	2019-07-24	2041984	1	Groceries
+1224	4902430389563	1	2019-07-24	2041984	1	Groceries
+1225	4902430434393	1	2019-07-24	2041984	1	Groceries
+1226	4902430389549	1	2019-07-24	2041984	1	Groceries
+1227	4902430688062	1	2019-07-24	2041984	1	Groceries
+1228	4806525943589	1	2019-07-24	2041984	1	Groceries
+1229	4902430750530	1	2019-07-24	2042408	1	Groceries
+1231	4902430934800	1	2019-07-24	2042408	1	Groceries
+1233	4902430935999	1	2019-07-24	2042408	1	Groceries
+1234	4902430935654	1	2019-07-24	2042408	1	Groceries
+1235	729	1	2019-07-24	2041984	1	Groceries
+1236	4902430935647	1	2019-07-24	2042408	1	Groceries
+1237	4809014412009	1	2019-07-24	2041984	1	Groceries
+1238	4902430935616	1	2019-07-24	2042408	1	Groceries
+1239	8717644190494	1	2019-07-24	2041984	1	Groceries
+1240	4902430522090	1	2019-07-24	2042408	1	Groceries
+1241	4806502761533	1	2019-07-24	2041984	1	Groceries
+1242	4902430935593	1	2019-07-24	2042408	1	Groceries
+1243	4902430575850	1	2019-07-24	2042408	1	Groceries
+1244	4902430575829	1	2019-07-24	2042408	1	Groceries
+1245	4806502760444	1	2019-07-24	2041984	1	Groceries
+1246	4902430381765	1	2019-07-24	2042408	1	Groceries
+1247	4902430093057	1	2019-07-24	2042408	1	Groceries
+1248	4800011178745	1	2019-07-24	2041984	1	Groceries
+1249	4902430803700	1	2019-07-24	2042408	1	Groceries
+1250	4800888201638	1	2019-07-24	2041984	1	Groceries
+1251	4902430495103	1	2019-07-24	2042408	1	Groceries
+1252	8717644190524	1	2019-07-24	2041984	1	Groceries
+1253	4902430073899	1	2019-07-24	2042408	1	Groceries
+1254	8717163616468	1	2019-07-24	2041984	1	Groceries
+1255	4902430495042	1	2019-07-24	2042408	1	Groceries
+1256	4902430522083	1	2019-07-24	2042408	1	Groceries
+1257	8712561277372	1	2019-07-24	2041984	1	Groceries
+1258	4902430381789	1	2019-07-24	2042408	1	Groceries
+1259	8717163616444	1	2019-07-24	2041984	1	Groceries
+1260	8999999019174	1	2019-07-24	2041984	1	Groceries
+1261	8999999015947	1	2019-07-24	2041984	1	Groceries
+1262	4806527242864	1	2019-07-24	2042408	1	Groceries
+1263	4902430244923	1	2019-07-24	2042408	1	Groceries
+1264	4800011115061	1	2019-07-24	2041984	1	Groceries
+1265	4800011114262	1	2019-07-24	2041984	1	Groceries
+1266	4902430184298	1	2019-07-24	2042408	1	Groceries
+1267	4902430244909	1	2019-07-24	2042408	1	Groceries
+1268	4806507835970	1	2019-07-24	2041984	1	Groceries
+1269	4806507835758	1	2019-07-24	2041984	1	Groceries
+1270	4902430244961	1	2019-07-24	2042408	1	Groceries
+1271	4902430381802	1	2019-07-24	2042408	1	Groceries
+1272	4806507831538	1	2019-07-24	2041984	1	Groceries
+1273	4902430803717	1	2019-07-24	2042408	1	Groceries
+1274	4902430803731	1	2019-07-24	2042408	1	Groceries
+1275	4902430495073	1	2019-07-24	2042408	1	Groceries
+1276	4806507831088	1	2019-07-24	2041984	1	Groceries
+1277	4902430495141	1	2019-07-24	2042408	1	Groceries
+1278	4806527242574	1	2019-07-24	2042408	1	Groceries
+1279	4806527242888	1	2019-07-24	2042408	1	Groceries
+1281	2242720760	1	2019-07-24	2041984	1	Groceries
+1282	4800011114965	1	2019-07-24	2042408	1	Groceries
+1283	4800011115269	1	2019-07-24	2042408	1	Groceries
+1284	4806507831170	1	2019-07-24	2041984	1	Groceries
+1285	4806507831521	1	2019-07-24	2041984	1	Groceries
+1286	4800011111162	1	2019-07-24	2042408	1	Groceries
+1287	4809013300093	1	2019-07-24	2042408	1	Groceries
+1288	4809014128009	1	2019-07-24	2042408	1	Groceries
+1289	4809013293975	1	2019-07-24	2041984	1	Groceries
+1290	4809014128337	1	2019-07-24	2042408	1	Groceries
+1291	4809013293982	1	2019-07-24	2041984	1	Groceries
+1292	4809013300215	1	2019-07-24	2042408	1	Groceries
+1293	4809013293999	1	2019-07-24	2041984	1	Groceries
+1294	4809013300086	1	2019-07-24	2042408	1	Groceries
+1295	4809013293968	1	2019-07-24	2041984	1	Groceries
+1296	4809014412023	1	2019-07-24	2041984	1	Groceries
+1297	4809013300437	1	2019-07-24	2041984	1	Groceries
+1298	4809014128443	1	2019-07-24	2041984	1	Groceries
+1299	4800310153047	1	2019-07-24	2041984	1	Groceries
+1300	4809014128672	1	2019-07-24	2041984	1	Groceries
+1301	4809013300086	1	2019-07-24	2041984	1	Groceries
+1302	4809014128009	1	2019-07-24	2041984	1	Groceries
+1303	4809013300215	1	2019-07-24	2041984	1	Groceries
+1304	4809013300215	1	2019-07-24	2041984	1	Groceries
+1305	4809014128337	1	2019-07-24	2041984	1	Groceries
+1306	4809013300093	1	2019-07-24	2041984	1	Groceries
+1307	4800011111162	1	2019-07-24	2041984	1	Groceries
+1308	4800011114965	1	2019-07-24	2041984	1	Groceries
+1309	4800011114965	1	2019-07-24	2041984	1	Groceries
+1310	4800011115269	1	2019-07-24	2041984	1	Groceries
+1043	4800374032005	1	2019-07-24	2042408	1	Groceries
+1065	4801010109105	1	2019-07-24	2041984	1	Groceries
+1113	4800888139481	1	2019-07-24	2041984	1	Groceries
+1115	4800888200518	1	2019-07-24	2041984	1	Groceries
+1161	4800243900749	1	2019-07-24	2042408	1	Groceries
+1162	4806507836069	1	2019-07-24	2042408	1	Groceries
+1205	4800888157683	1	2019-07-24	2041984	1	Groceries
+1230	4800231007306	1	2019-07-24	2041984	1	Groceries
+1232	4800243004294	1	2019-07-24	2041984	1	Groceries
+1280	4800011179049	1	2019-07-24	2041984	1	Groceries
+59	4800166142400	1	2019-07-24	2042408	1	Stockroom3
+60	4801234199449	1	2019-07-24	2050329	1	Stockroom3
+61	4809010657435	1	2019-07-24	2041984	1	Stockroom3
+62	9555222601463	1	2019-07-24	2050329	1	Stockroom3
+63	4809010639318	1	2019-07-24	2041984	1	Stockroom3
+64	4809010997012	1	2019-07-24	2042408	1	Stockroom3
+65	4809010639219	1	2019-07-24	2041984	1	Stockroom3
+66	4801234214432	1	2019-07-24	2050329	1	Stockroom3
+67	4809010639059	1	2019-07-24	2041984	1	Stockroom3
+68	4809010639509	1	2019-07-24	2041984	1	Stockroom3
+69	4809010997098	1	2019-07-24	2042408	1	Stockroom3
+70	4801234030711	1	2019-07-24	2050329	1	Stockroom3
+71	4809010639417	1	2019-07-24	2041984	1	Stockroom3
+72	4809010997098	1	2019-07-24	2042408	1	Stockroom3
+73	4809010639332	1	2019-07-24	2041984	1	Stockroom3
+74	4902430093835	1	2019-07-24	2041984	1	Stockroom3
+75	8850007371434	1	2019-07-24	2050329	1	Stockroom3
+76	8850007372561	1	2019-07-24	2050329	1	Stockroom3
+77	4800166142325	1	2019-07-24	2042408	1	Stockroom3
+78	4902430453295	1	2019-07-24	2041984	1	Stockroom3
+79	8850007371397	1	2019-07-24	2050329	1	Stockroom3
+80	4800166142608	1	2019-07-24	2042408	1	Stockroom3
+81	8850007371403	1	2019-07-24	2050329	1	Stockroom3
+82	4800166142288	1	2019-07-24	2042408	1	Stockroom3
+83	4800300990225	1	2019-07-24	2050329	1	Stockroom3
+84	4902430441896	1	2019-07-24	2050329	1	Stockroom3
+85	4800314000019	1	2019-07-24	2042408	1	Stockroom3
+86	4902430732475	1	2019-07-24	2041984	1	Stockroom3
+87	4902430731461	1	2019-07-24	2041984	1	Stockroom3
+88	4800314009692	1	2019-07-24	2042408	1	Stockroom3
+89	4902430727150	1	2019-07-24	2041984	1	Stockroom3
+90	4902430729932	1	2019-07-24	2041984	1	Stockroom3
+91	4800314007926	1	2019-07-24	2042408	1	Stockroom3
+92	4902430440080	1	2019-07-24	2050329	1	Stockroom3
+93	4902430587914	1	2019-07-24	2050329	1	Stockroom3
+94	4902430729901	1	2019-07-24	2041984	1	Stockroom3
+95	4902430759250	1	2019-07-24	2050329	1	Stockroom3
+96	4809010657480	1	2019-07-24	2042408	1	Stockroom3
+97	4902430640053	1	2019-07-24	2050329	1	Stockroom3
+98	4800523441955	1	2019-07-24	2042408	1	Stockroom3
+99	4806506152399	1	2019-07-24	2042408	1	Stockroom3
+100	4902430428316	1	2019-07-24	2041984	1	Stockroom3
+101	4902430611312	1	2019-07-24	2050329	1	Stockroom3
+102	4902430400886	1	2019-07-24	2041984	1	Stockroom3
+103	4902430623179	1	2019-07-24	2050329	1	Stockroom3
+104	8886001038011	1	2019-07-24	2042408	1	Stockroom3
+105	4902430583169	1	2019-07-24	2050329	1	Stockroom3
+106	4902430587907	1	2019-07-24	2050329	1	Stockroom3
+107	4800523443188	1	2019-07-24	2042408	1	Stockroom3
+108	4800060254506	1	2019-07-24	2050329	1	Stockroom3
+109	1992	1	2019-07-24	2042408	1	Stockroom3
+110	4902430506960	1	2019-07-24	2041984	1	Stockroom3
+111	5052	1	2019-07-24	2042408	1	Stockroom3
+112	4800216127791	1	2019-07-24	2042408	1	Stockroom3
+113	4902430430883	1	2019-07-24	2041984	1	Stockroom3
+114	4902430407984	1	2019-07-24	2041984	1	Stockroom3
+115	4902430507516	1	2019-07-24	2041984	1	Stockroom3
+116	4902430414432	1	2019-07-24	2041984	1	Stockroom3
+117	4902430346191	1	2019-07-24	2041984	1	Stockroom3
+118	4902430401845	1	2019-07-24	2041984	1	Stockroom3
+119	4902430627528	1	2019-07-24	2041984	1	Stockroom3
+120	4808680020877	1	2019-07-24	2050329	1	Stockroom3
+121	4808680022277	1	2019-07-24	2050329	1	Stockroom3
+129	4902430862578	1	2019-07-24	2042408	1	Stockroom3
+130	4902430850223	1	2019-07-24	2042408	1	Stockroom3
+131	4902430429375	1	2019-07-24	2042408	1	Stockroom3
+132	4902430862721	1	2019-07-24	2042408	1	Stockroom3
+1311	4806531764048	1	2019-07-25	2042408	1	Stockroom1
+1312	4806531764017	1	2019-07-25	2042408	1	Stockroom1
+1313	4806531764130	1	2019-07-25	2042408	1	Stockroom1
+1314	4806531764079	1	2019-07-25	2042408	1	Stockroom1
+1315	4806531764086	1	2019-07-25	2042408	1	Stockroom1
+1316	4806531764185	1	2019-07-25	2042408	1	Stockroom1
+1317	4806531764055	1	2019-07-25	2042408	1	Stockroom1
+1318	4806531764031	1	2019-07-25	2042408	1	Stockroom1
+1319	4800060255008	1	2019-07-25	2042408	1	Stockroom1
+1320	8801043022705	1	2019-07-25	2042408	1	Stockroom1
+1321	8801043028127	1	2019-07-25	2042408	1	Stockroom1
+1322	6922130114072	1	2019-07-25	2042408	1	Stockroom1
+1323	4800888113573	1	2019-07-25	2042408	1	Stockroom1
+1324	4800888113498	1	2019-07-25	2042408	1	Stockroom1
+1325	9556007000518	1	2019-07-25	2042408	1	Stockroom1
+1326	9556007000457	1	2019-07-25	2042408	1	Stockroom1
+1327	4800194107655	1	2019-07-25	2042408	1	Stockroom1
+1328	5701215046832	1	2019-07-25	2042408	1	Stockroom1
+1329	8851013788490	1	2019-07-25	2042408	1	Stockroom1
+1330	8851013785499	1	2019-07-25	2042408	1	Stockroom1
+1331	8851013773496	1	2019-07-25	2042408	1	Stockroom1
+1332	4800024550194	1	2019-07-25	2042408	1	Stockroom1
+1333	4800024572981	1	2019-07-25	2042408	1	Stockroom1
+1334	4800024562616	1	2019-07-25	2042408	1	Stockroom1
+1335	4800024562692	1	2019-07-25	2042408	1	Stockroom1
+1336	4800024576972	1	2019-07-25	2042408	1	Stockroom1
+1337	4800024558305	1	2019-07-25	2042408	1	Stockroom1
+1338	4800024550927	1	2019-07-25	2042408	1	Stockroom1
+1339	4800024576880	1	2019-07-25	2042408	1	Stockroom1
+1340	4800024574725	1	2019-07-25	2042408	1	Stockroom1
+1341	4800024570024	1	2019-07-25	2042408	1	Stockroom1
+1342	4800024570017	1	2019-07-25	2042408	1	Stockroom1
+1343	4800024571908	1	2019-07-25	2042408	1	Stockroom1
+1344	4800024570000	1	2019-07-25	2042408	1	Stockroom1
+1345	4800024550941	1	2019-07-25	2042408	1	Stockroom1
+1346	4800024550088	1	2019-07-25	2042408	1	Stockroom1
+1347	4801668606933	1	2019-07-25	2042408	1	Stockroom1
+1348	91037434227	1	2019-07-25	2042408	1	Stockroom1
+1349	4809012516532	1	2019-07-25	2042408	1	Stockroom1
+1350	4808647020094	1	2019-07-25	2042408	1	Stockroom1
+1351	4808647020100	1	2019-07-25	2042408	1	Stockroom1
+1352	4800024573544	1	2019-07-25	2042408	1	Stockroom1
+1353	4800024573520	1	2019-07-25	2042408	1	Stockroom1
+1354	4800024575500	1	2019-07-25	2042408	1	Stockroom1
+1355	4801668100103	1	2019-07-25	2042408	1	Stockroom1
+1356	4801668500293	1	2019-07-25	2042408	1	Stockroom1
+1357	4801668500286	1	2019-07-25	2042408	1	Stockroom1
+1358	4800344004414	1	2019-07-25	2042408	1	Stockroom1
+1359	14285000921	1	2019-07-25	2042408	1	Stockroom1
+1360	4800094045132	1	2019-07-25	2042408	1	Stockroom1
+1361	4800282006617	1	2019-07-25	2042408	1	Stockroom1
+1362	4800282006068	1	2019-07-25	2042408	1	Stockroom1
+1363	4800282006631	1	2019-07-25	2042408	1	Stockroom1
+1364	4801668100103	1	2019-07-25	2042408	1	Stockroom1
+1365	4801668100103	1	2019-07-25	2042408	1	Stockroom1
+1366	4800405123467	1	2019-07-25	2042408	1	Stockroom1
+1367	4800344004940	1	2019-07-25	2042408	1	Stockroom1
+1368	4801668602027	1	2019-07-25	2042408	1	Stockroom1
+1369	4801668100141	1	2019-07-25	2042408	1	Stockroom1
+1370	4800344004629	1	2019-07-25	2042408	1	Stockroom1
+1371	14285000914	1	2019-07-25	2042408	1	Stockroom1
+1372	14285003885	1	2019-07-25	2042408	1	Stockroom1
+1373	4800094097315	1	2019-07-25	2042408	1	Stockroom1
+1374	4800344001628	1	2019-07-25	2042408	1	Stockroom1
+1375	4800405123559	1	2019-07-25	2042408	1	Stockroom1
+1376	4800405123757	1	2019-07-25	2042408	1	Stockroom1
+1377	4800344004629	1	2019-07-25	2042408	1	Stockroom1
+1378	4804880214122	1	2019-07-25	2042408	1	Stockroom1
+1379	4800094098831	1	2019-07-25	2042408	1	Stockroom1
+1380	4800094037144	1	2019-07-25	2042408	1	Stockroom1
+1381	4806014000557	1	2019-07-25	2042408	1	Stockroom1
+1382	4800017908506	1	2019-07-25	2042408	1	Stockroom1
+1383	4804880221519	1	2019-07-25	2042408	1	Stockroom1
+1384	4804880213217	1	2019-07-25	2042408	1	Stockroom1
+1385	4806014000557	1	2019-07-25	2042408	1	Stockroom1
+1386	4806014099612	1	2019-07-25	2042408	1	Stockroom1
+1387	4800575140370	1	2019-07-25	2042408	1	Stockroom1
+1388	4800575110373	1	2019-07-25	2042408	1	Stockroom1
+1389	4800575110373	1	2019-07-25	2042408	1	Stockroom1
+1390	4806014093344	1	2019-07-25	2042408	1	Stockroom1
+1391	4804880553412	1	2019-07-25	2042408	1	Stockroom1
+1392	4800575141100	1	2019-07-25	2042408	1	Stockroom1
+1393	4800575370302	1	2019-07-25	2042408	1	Stockroom1
+1394	8996001440049	1	2019-07-25	2042408	1	Stockroom1
+1395	8996001440124	1	2019-07-25	2042408	1	Stockroom1
+1396	4800361381284	1	2019-07-25	2042408	1	Stockroom1
+1397	4800361002851	1	2019-07-25	2042408	1	Stockroom1
+1398	4806517042801	1	2019-07-25	2042408	1	Stockroom1
+1399	4806517042818	1	2019-07-25	2042408	1	Stockroom1
+1400	4800361393928	1	2019-07-25	2042408	1	Stockroom1
+1401	169	1	2019-07-25	2042408	1	Stockroom1
+1402	654	1	2019-07-25	2042408	1	Stockroom1
+1403	168	1	2019-07-25	2042408	1	Stockroom1
+1404	468	1	2019-07-25	2042408	1	Stockroom1
+1405	173	1	2019-07-25	2042408	1	Stockroom1
+1406	4804880551333	1	2019-07-25	2042408	1	Stockroom1
+1407	4804880332147	1	2019-07-25	2042408	1	Stockroom1
+1408	4800094099876	1	2019-07-25	2042408	1	Stockroom1
+1409	4800094097315	1	2019-07-25	2042408	1	Stockroom1
+1410	4804880322131	1	2019-07-25	2042408	1	Stockroom1
+1411	4804880551449	1	2019-07-25	2042408	1	Stockroom1
+1412	6929537239889	1	2019-07-25	2042408	1	Stockroom1
+1413	4804880551449	1	2019-07-25	2042408	1	Stockroom1
+1414	4806014099926	1	2019-07-25	2042408	1	Stockroom1
+1415	4806014099926	1	2019-07-25	2042408	1	Stockroom1
+1416	4805358501089	1	2019-07-25	2042408	1	Stockroom1
+1417	4800216127791	1	2019-07-25	2042408	1	Stockroom1
+1418	4800300990423	1	2019-07-25	2042408	1	Stockroom1
+1419	4806030202447	1	2019-07-25	2042408	1	Stockroom1
+1420	4808680021430	1	2019-07-25	2042408	1	Stockroom1
+1421	468	1	2019-07-25	2042408	1	Stockroom1
+1422	173	1	2019-07-25	2042408	1	Stockroom1
+1423	1598	1	2019-07-25	2042408	1	Stockroom1
+1424	8804108010037	1	2019-07-25	2042408	1	Stockroom1
+1425	4800147200655	1	2019-07-25	2042408	1	Stockroom1
+1426	4800147200655	1	2019-07-25	2042408	1	Stockroom1
+1427	4800365881087	1	2019-07-25	2042408	1	Stockroom1
+1428	8801382127789	1	2019-07-25	2042408	1	Stockroom1
+1429	8801382137917	1	2019-07-25	2042408	1	Stockroom1
+1430	8801382132240	1	2019-07-25	2042408	1	Stockroom1
+1431	8850389100691	1	2019-07-25	2042408	1	Stockroom1
+1432	8850389100769	1	2019-07-25	2042408	1	Stockroom1
+1433	8850389100769	1	2019-07-25	2042408	1	Stockroom1
+1434	8850389100677	1	2019-07-25	2042408	1	Stockroom1
+1435	4809014937168	1	2019-07-25	2042408	1	Stockroom1
+1436	4809014937458	1	2019-07-25	2042408	1	Stockroom1
+1437	4809014937472	1	2019-07-25	2042408	1	Stockroom1
+1438	4800024003652	1	2019-07-25	2042408	1	Stockroom1
+1439	4800024562258	1	2019-07-25	2042408	1	Stockroom1
+1440	841165135158	1	2019-07-25	2042408	1	Stockroom1
+1441	4800024562739	1	2019-07-25	2042408	1	Stockroom1
+1442	4800024136381	1	2019-07-25	2042408	1	Stockroom1
+1443	4800024562609	1	2019-07-25	2042408	1	Stockroom1
+1444	4800194184137	1	2019-07-25	2042408	1	Stockroom1
+1445	4800194184144	1	2019-07-25	2042408	1	Stockroom1
+1446	4800024578426	1	2019-07-25	2042408	1	Stockroom1
+1447	4806526380024	1	2019-07-25	2042408	1	Stockroom1
+1448	4800194184106	1	2019-07-25	2042408	1	Stockroom1
+1449	4485	1	2019-07-25	2042408	1	Stockroom1
+1450	4809015965009	1	2019-07-25	2042408	1	Stockroom1
+1406	4800110068886	1	2019-07-25	2042408	1	Stockroom1
+1451	333	1	2019-07-25	2042408	1	Stockroom1
+1452	352	1	2019-07-25	2042408	1	Stockroom1
+1453	357	1	2019-07-25	2042408	1	Stockroom1
+1454	358	1	2019-07-25	2042408	1	Stockroom1
+1455	358	1	2019-07-25	2042408	1	Stockroom1
+1456	356	1	2019-07-25	2042408	1	Stockroom1
+1457	4852	1	2019-07-25	2042408	1	Stockroom1
+1458	351	1	2019-07-25	2042408	1	Stockroom1
+1459	5854	1	2019-07-25	2042408	1	Stockroom1
+1460	4011	1	2019-07-25	2042408	1	Stockroom1
+1461	4809010354075	1	2019-07-25	2042408	1	Stockroom1
+1462	4809010354013	1	2019-07-25	2042408	1	Stockroom1
+1463	4809010354099	1	2019-07-25	2042408	1	Stockroom1
+1464	4809010354068	1	2019-07-25	2042408	1	Stockroom1
+1465	4809010354105	1	2019-07-25	2042408	1	Stockroom1
+1466	4809010354112	1	2019-07-25	2042408	1	Stockroom1
+1467	1001142	1	2019-07-25	2042408	1	Stockroom1
+1468	4809010354051	1	2019-07-25	2042408	1	Stockroom1
+1469	4902505089213	1	2019-07-25	20140622	1	Supplies
+1470	4809015059142	1	2019-07-25	2042408	1	Stockroom2
+1471	4809015059135	1	2019-07-25	2042408	1	Stockroom2
+1472	4809015059012	1	2019-07-25	2042408	1	Stockroom2
+1473	4800888202772	1	2019-07-25	2042408	1	Stockroom2
+1474	4902430759274	1	2019-07-25	2041984	1	Stockroom2
+1475	4800888151827	1	2019-07-25	2041984	1	Stockroom2
+1476	4800888112996	1	2019-07-25	2041984	1	Stockroom2
+1477	4800888199140	1	2019-07-25	2041984	1	Stockroom2
+1478	4800888183804	1	2019-07-25	2041984	1	Stockroom2
+1479	4800888189806	1	2019-07-25	2041984	1	Stockroom2
+1480	4902430387286	1	2019-07-25	2041984	1	Stockroom2
+1481	4800888151841	1	2019-07-25	2041984	1	Stockroom2
+1482	4902430583183	1	2019-07-25	2041984	1	Stockroom2
+1483	4809015059081	1	2019-07-25	2041984	1	Stockroom2
+1484	4806525943572	1	2019-07-25	2041984	1	Stockroom2
+1485	4800047840012	1	2019-07-25	2041984	1	Stockroom2
+1486	4800047840203	1	2019-07-25	2041984	1	Stockroom2
+1487	4800047840562	1	2019-07-25	2041984	1	Stockroom2
+1488	154682468754	1	2019-07-25	2041984	1	Stockroom2
+1489	4800047840272	1	2019-07-25	2041984	1	Stockroom2
+1490	4800011186603	1	2019-07-25	2041984	1	Stockroom2
+1491	4800011186702	1	2019-07-25	2041984	1	Stockroom2
+1492	4800011186900	1	2019-07-25	2041984	1	Stockroom2
+1493	4902430800853	1	2019-07-25	2041984	1	Stockroom2
+1494	4800047840579	1	2019-07-25	2041984	1	Stockroom2
+1495	4800047840265	1	2019-07-25	2041984	1	Stockroom2
+1496	954	1	2019-07-25	2041984	1	Stockroom2
+1497	520	1	2019-07-25	2041984	1	Stockroom2
+1498	4800888151841	1	2019-07-25	2041984	1	Stockroom2
+1499	1639	1	2019-07-25	2041984	1	Stockroom2
+1500	1638	1	2019-07-25	2041984	1	Stockroom2
+1501	4561	1	2019-07-25	2041984	1	Stockroom2
+1502	32354	1	2019-07-25	2041984	1	Stockroom2
+1503	6081	1	2019-07-25	2041984	1	Stockroom2
+1504	6082	1	2019-07-25	2041984	1	Stockroom2
+1505	4800014700028	1	2019-07-25	2041984	1	Stockroom2
+1506	4800014700004	1	2019-07-25	2041984	1	Stockroom2
+1507	4800049720244	1	2019-07-25	2041984	1	Stockroom2
+1508	8801382127789	1	2019-07-25	2041984	1	Stockroom2
+1509	9556007000365	1	2019-07-25	2041984	1	Stockroom2
+1510	9556007000457	1	2019-07-25	2041984	1	Stockroom2
+1511	4800049715608	1	2019-07-25	2041984	1	Stockroom2
+1512	8801382135166	1	2019-07-25	2041984	1	Stockroom2
+1513	4803925061110	1	2019-07-25	2041984	1	Stockroom2
+1514	4803925061134	1	2019-07-25	2041984	1	Stockroom2
+1515	4803925061103	1	2019-07-25	2041984	1	Stockroom2
+1516	4803925061127	1	2019-07-25	2041984	1	Stockroom2
+1517	398	1	2019-07-25	2041984	1	Stockroom2
+1518	4803925061141	1	2019-07-25	2041984	1	Stockroom2
+1519	3154140183103	1	2019-07-25	2041984	1	Supplies
+1520	3154144681100	1	2019-07-25	2041984	1	Supplies
+1521	3154144991100	1	2019-07-25	2041984	1	Supplies
+1522	3154144961103	1	2019-07-25	2041984	1	Supplies
+1523	4806021318942	1	2019-07-25	2041984	1	Supplies
+1524	3154140019020	1	2019-07-25	2041984	1	Supplies
+1525	26000223751	1	2019-07-25	2041984	1	Supplies
+1526	4549292041880	1	2019-07-25	2041984	1	Supplies
+1527	8885007020259	1	2019-07-25	2041984	1	Supplies
+1528	8885007020266	1	2019-07-25	2041984	1	Supplies
+1529	8885007020242	1	2019-07-25	2041984	1	Supplies
+1530	8885007027937	1	2019-07-25	2041984	1	Supplies
+1531	8885007027913	1	2019-07-25	2041984	1	Supplies
+1532	8885007027890	1	2019-07-25	2041984	1	Supplies
+1533	8885007027876	1	2019-07-25	2041984	1	Supplies
+1534	4902505343544	1	2019-07-25	2041984	1	Supplies
+1535	733586303004	1	2019-07-25	2041984	1	Supplies
+1536	6931717503031	1	2019-07-25	2041984	1	Supplies
+1537	6931717503024	1	2019-07-25	2041984	1	Supplies
+1538	6931717503031	1	2019-07-25	2041984	1	Supplies
+1539	1157	1	2019-07-25	2041984	1	Supplies
+1540	1178	1	2019-07-25	2041984	1	Supplies
+1541	509	1	2019-07-25	2041984	1	Supplies
+1542	465	1	2019-07-25	2041984	1	Supplies
+1543	4806028900935	1	2019-07-25	2041984	1	Supplies
+1544	4506	1	2019-07-25	2041984	1	Supplies
+1545	4442	1	2019-07-25	2041984	1	Supplies
+1546	4806028900928	1	2019-07-25	2041984	1	Supplies
+1547	4806502252307	1	2019-07-25	2041984	1	Supplies
+1548	4806503871798	1	2019-07-25	2041984	1	Supplies
+1549	4806503871798	1	2019-07-25	2041984	1	Supplies
+1550	4806021381861	1	2019-07-25	2041984	1	Supplies
+1551	4806028906319	1	2019-07-25	2041984	1	Supplies
+1552	4806028905961	1	2019-07-25	2041984	1	Supplies
+1553	488	1	2019-07-25	2041984	1	Supplies
+1554	487	1	2019-07-25	2041984	1	Supplies
+1555	1160	1	2019-07-25	2041984	1	Supplies
+1556	4484	1	2019-07-25	2041984	1	Supplies
+1557	502	1	2019-07-25	2041984	1	Supplies
+1558	4442	1	2019-07-25	2041984	1	Supplies
+1559	4806502256220	1	2019-07-25	2041984	1	Supplies
+1560	4800550021991	1	2019-07-25	2041984	1	Supplies
+1561	4800550021977	1	2019-07-25	2041984	1	Supplies
+1562	4800550021984	1	2019-07-25	2041984	1	Supplies
+1563	4902505088292	1	2019-07-25	2041984	1	Supplies
+1564	4902505089213	1	2019-07-25	2041984	1	Supplies
+1565	4683	1	2019-07-25	2042408	1	Supplies
+1566	1340	1	2019-07-25	2042408	1	Supplies
+1567	4683	1	2019-07-25	2042408	1	Supplies
+1568	9153	1	2019-07-25	2042408	1	Supplies
+1569	90030	1	2019-07-25	2042408	1	Supplies
+1570	6921734967930	1	2019-07-25	2042408	1	Supplies
+1571	6935834380148	1	2019-07-25	2042408	1	Supplies
+1572	6935834480145	1	2019-07-25	2042408	1	Supplies
+1573	6965463126268	1	2019-07-25	2042408	1	Supplies
+1574	5435	1	2019-07-25	2042408	1	Supplies
+1575	4974052860010	1	2019-07-25	2041984	1	Supplies
+1576	4643	1	2019-07-25	2042408	1	Supplies
+1577	6926341889644	1	2019-07-25	2041984	1	Supplies
+1578	4806506931277	1	2019-07-25	2042408	1	Supplies
+1579	4806021389164	1	2019-07-25	2042408	1	Supplies
+1580	6926341889668	1	2019-07-25	2041984	1	Supplies
+1581	6926341889118	1	2019-07-25	2042408	1	Supplies
+1582	9159	1	2019-07-25	2042408	1	Supplies
+1583	6931651503180	1	2019-07-25	2042408	1	Supplies
+1584	3471	1	2019-07-25	2042408	1	Supplies
+1585	3477	1	2019-07-25	2042408	1	Supplies
+1586	6926341889651	1	2019-07-25	2041984	1	Supplies
+1587	4974052812897	1	2019-07-25	2041984	1	Supplies
+1588	8851552504025	1	2019-07-25	2041984	1	Supplies
+1589	6926341871106	1	2019-07-25	2041984	1	Supplies
+1590	417	1	2019-07-25	2042408	1	Supplies
+1591	4991348042424	1	2019-07-25	2041984	1	Supplies
+1592	4806506930539	1	2019-07-25	2042408	1	Supplies
+1593	1403	1	2019-07-25	2042408	1	Supplies
+1594	403	1	2019-07-25	2042408	1	Supplies
+1595	404	1	2019-07-25	2042408	1	Supplies
+1596	875	1	2019-07-25	2042408	1	Supplies
+1597	1284	1	2019-07-25	2042408	1	Supplies
+1598	875	1	2019-07-25	2042408	1	Supplies
+1599	307	1	2019-07-25	2042408	1	Supplies
+1600	308	1	2019-07-25	2042408	1	Supplies
+1601	3442	1	2019-07-25	2042408	1	Supplies
+1602	1650	1	2019-07-25	2042408	1	Supplies
+1603	306	1	2019-07-25	2042408	1	Supplies
+1604	900	1	2019-07-25	2042408	1	Supplies
+1605	447	1	2019-07-25	2042408	1	Supplies
+1606	447	1	2019-07-25	2042408	1	Supplies
+1607	5097	1	2019-07-25	2041984	1	Supplies
+1608	1492	1	2019-07-25	2041984	1	Area
+1609	6936860838191	1	2019-07-25	2042408	1	Area
+1610	900	1	2019-07-25	2042408	1	Supplies
+1611	1153	1	2019-07-25	2042408	1	Supplies
+1612	1315010	1	2019-07-25	2042408	1	Supplies
+1613	3635	1	2019-07-25	2042408	1	Supplies
+1614	1246	1	2019-07-25	2042408	1	Supplies
+1615	4801278408347	1	2019-07-25	2041984	1	Supplies
+1616	7455	1	2019-07-25	2041984	1	Supplies
+1617	1247	1	2019-07-25	2042408	1	Supplies
+1618	7454	1	2019-07-25	2041984	1	Supplies
+1619	9159	1	2019-07-25	2042408	1	Supplies
+1620	1410	1	2019-07-25	2041984	1	Supplies
+1621	1410	1	2019-07-25	2041984	1	Supplies
+1622	4806504760145	1	2019-07-25	2041984	1	Supplies
+1623	461	1	2019-07-25	2042408	1	Supplies
+1624	36	1	2019-07-25	2041984	1	Supplies
+1625	8090	1	2019-07-25	2042408	1	Supplies
+1626	6933577800091	1	2019-07-25	2041984	1	Supplies
+1627	4806021381311	1	2019-07-25	2042408	1	Supplies
+1628	6924160112875	1	2019-07-25	2041984	1	Supplies
+1629	3618	1	2019-07-25	2042408	1	Supplies
+1630	3609	1	2019-07-25	2042408	1	Supplies
+1631	3621	1	2019-07-25	2042408	1	Supplies
+1632	3615	1	2019-07-25	2042408	1	Supplies
+1633	3615	1	2019-07-25	2042408	1	Supplies
+1634	6924160112875	1	2019-07-25	2041984	1	Area
+1635	2130100	1	2019-07-25	2042408	1	Supplies
+1636	3831	1	2019-07-25	2042408	1	Supplies
+1637	3822	1	2019-07-25	2042408	1	Supplies
+1638	1950	1	2019-07-25	2041984	1	Supplies
+1639	3829	1	2019-07-25	2042408	1	Supplies
+1640	4710850100381	1	2019-07-25	2041984	1	Supplies
+1641	1920	1	2019-07-25	2042408	1	Supplies
+1642	4710850100565	1	2019-07-25	2041984	1	Supplies
+1643	4902870729240	1	2019-07-25	2041984	1	Supplies
+1644	3628	1	2019-07-25	2042408	1	Supplies
+1645	4902870729233	1	2019-07-25	2041984	1	Supplies
+1646	3625	1	2019-07-25	2042408	1	Supplies
+1647	4806021300275	1	2019-07-25	2041984	1	Supplies
+1648	3631	1	2019-07-25	2042408	1	Supplies
+1649	3624	1	2019-07-25	2042408	1	Supplies
+1650	4806523080019	1	2019-07-25	2041984	1	Supplies
+1651	3630	1	2019-07-25	2042408	1	Supplies
+1652	3832	1	2019-07-25	2042408	1	Supplies
+1653	3630	1	2019-07-25	2042408	1	Supplies
+1654	3639	1	2019-07-25	2042408	1	Supplies
+1655	4902870766290	1	2019-07-25	2041984	1	Supplies
+1656	3627	1	2019-07-25	2042408	1	Supplies
+1657	1811	1	2019-07-25	2042408	1	Supplies
+1658	5409	1	2019-07-25	2041984	1	Supplies
+1659	4806011610018	1	2019-07-25	2041984	1	Supplies
+1660	1651	1	2019-07-25	2041984	1	Supplies
+1661	2600	1	2019-07-25	2041984	1	Supplies
+1662	1635	1	2019-07-25	2041984	1	Supplies
+1663	870	1	2019-07-25	2041984	1	Supplies
+1664	616	1	2019-07-25	2042408	1	Supplies
+1665	1031	1	2019-07-25	2041984	1	Supplies
+1666	1812	1	2019-07-25	2042408	1	Supplies
+1667	1812	1	2019-07-25	2042408	1	Supplies
+1668	95102	1	2019-07-25	2041984	1	Supplies
+1669	2600	1	2019-07-25	2041984	1	Supplies
+1670	1812	1	2019-07-25	2042408	1	Supplies
+1671	4806021383810	1	2019-07-25	2041984	1	Supplies
+1672	1812	1	2019-07-25	2042408	1	Supplies
+1673	4806021300282	1	2019-07-25	2041984	1	Supplies
+1674	3005	1	2019-07-25	2042408	1	Supplies
+1675	4806021384343	1	2019-07-25	2041984	1	Supplies
+1676	3004	1	2019-07-25	2042408	1	Supplies
+1677	1889	1	2019-07-25	2042408	1	Supplies
+1678	1889	1	2019-07-25	2042408	1	Supplies
+1679	1889	1	2019-07-25	2042408	1	Supplies
+1680	6931043391227	1	2019-07-25	2041984	1	Supplies
+1681	1889	1	2019-07-25	2042408	1	Supplies
+1682	4800557022045	1	2019-07-25	2041984	1	Supplies
+1683	1889	1	2019-07-25	2042408	1	Supplies
+1684	4800557022021	1	2019-07-25	2041984	1	Supplies
+1685	6935034600107	1	2019-07-25	2041984	1	Supplies
+1686	1280	1	2019-07-25	2042408	1	Supplies
+1687	6935034600213	1	2019-07-25	2041984	1	Supplies
+1688	1877	1	2019-07-25	2042408	1	Supplies
+1689	4806011111805	1	2019-07-25	2041984	1	Supplies
+1690	1030	1	2019-07-25	2041984	1	Supplies
+1691	606	1	2019-07-25	2041984	1	Supplies
+1692	4806011111812	1	2019-07-25	2041984	1	Supplies
+1693	4806021316139	1	2019-07-25	2041984	1	Supplies
+1694	4806503870319	1	2019-07-25	2041984	1	Supplies
+1695	1626	1	2019-07-25	2042408	1	Supplies
+1696	1622	1	2019-07-25	2042408	1	Supplies
+1697	1623	1	2019-07-25	2042408	1	Supplies
+1698	1813	1	2019-07-25	2042408	1	Supplies
+1699	1814	1	2019-07-25	2042408	1	Supplies
+1700	1810	1	2019-07-25	2042408	1	Supplies
+1701	1814	1	2019-07-25	2042408	1	Supplies
+1702	9066	1	2019-07-25	2042408	1	Supplies
+1703	4806014800379	1	2019-07-25	2042408	1	Supplies
+1704	4806014800386	1	2019-07-25	2042408	1	Supplies
+1705	4806014800331	1	2019-07-25	2042408	1	Supplies
+1706	9065	1	2019-07-25	2042408	1	Supplies
+1707	9067	1	2019-07-25	2042408	1	Supplies
+1708	9065	1	2019-07-25	2042408	1	Supplies
+1709	8993242598324	1	2019-07-25	2041984	1	Supplies
+1710	9070	1	2019-07-25	2042408	1	Supplies
+1711	4800552073080	1	2019-07-25	2041984	1	Supplies
+1712	9060	1	2019-07-25	2042408	1	Supplies
+1713	9570	1	2019-07-25	2042408	1	Supplies
+1714	9093	1	2019-07-25	2042408	1	Supplies
+1715	5411	1	2019-07-25	2042408	1	Supplies
+1716	9167	1	2019-07-25	2042408	1	Supplies
+1717	4800556410508	1	2019-07-25	2041984	1	Supplies
+1718	9167	1	2019-07-25	2042408	1	Supplies
+1719	9165	1	2019-07-25	2042408	1	Supplies
+1720	9166	1	2019-07-25	2042408	1	Supplies
+1721	9568	1	2019-07-25	2042408	1	Supplies
+1722	4800556410041	1	2019-07-25	2041984	1	Supplies
+1723	9663	1	2019-07-25	2042408	1	Supplies
+1724	224415	1	2019-07-25	2042408	1	Supplies
+1725	9657	1	2019-07-25	2042408	1	Supplies
+1726	797	1	2019-07-25	2041984	1	Supplies
+1727	9564	1	2019-07-25	2042408	1	Supplies
+1728	9565	1	2019-07-25	2042408	1	Supplies
+1729	9575	1	2019-07-25	2042408	1	Supplies
+1730	20200091	1	2019-07-25	2042408	1	Supplies
+1731	250	1	2019-07-25	2041984	1	Supplies
+1732	9094	1	2019-07-25	2042408	1	Supplies
+1733	9096	1	2019-07-25	2042408	1	Supplies
+1734	9572	1	2019-07-25	2042408	1	Supplies
+1735	9573	1	2019-07-25	2042408	1	Supplies
+1736	9571	1	2019-07-25	2042408	1	Supplies
+1737	435	1	2019-07-25	2041984	1	Supplies
+1738	6289	1	2019-07-25	2041984	1	Supplies
+1739	9069	1	2019-07-25	2042408	1	Supplies
+1740	9068	1	2019-07-25	2042408	1	Supplies
+1741	4806014800867	1	2019-07-25	2042408	1	Supplies
+1742	4806014800836	1	2019-07-25	2042408	1	Supplies
+1743	9068	1	2019-07-25	2042408	1	Supplies
+1744	6289	1	2019-07-25	2041984	1	Supplies
+1745	9577	1	2019-07-25	2042408	1	Supplies
+1746	1380	1	2019-07-25	2042408	1	Area
+1747	8016	1	2019-07-25	2041984	1	Supplies
+1748	1378	1	2019-07-25	2042408	1	Area
+1749	9075	1	2019-07-25	2042408	1	Area
+1750	9199	1	2019-07-25	2042408	1	Area
+1751	8016	1	2019-07-25	2041984	1	Supplies
+1752	9577	1	2019-07-25	2042408	1	Supplies
+1753	9166	1	2019-07-25	2042408	1	Supplies
+1754	9081	1	2019-07-25	2042408	1	Supplies
+1755	9575	1	2019-07-25	2042408	1	Supplies
+1756	229173	1	2019-07-25	2042408	1	Supplies
+1757	9577	1	2019-07-25	2042408	1	Supplies
+1758	956	1	2019-07-25	2041984	1	Supplies
+1759	1672	1	2019-07-25	2042408	1	Supplies
+1760	1061	1	2019-07-25	2041984	1	Supplies
+1761	9577	1	2019-07-25	2042408	1	Supplies
+1762	3043	1	2019-07-25	2041984	1	Supplies
+1763	1099	1	2019-07-25	2042408	1	Supplies
+1764	9662	1	2019-07-25	2042408	1	Supplies
+1765	9662	1	2019-07-25	2042408	1	Supplies
+1766	9661	1	2019-07-25	2042408	1	Supplies
+1767	9661	1	2019-07-25	2042408	1	Supplies
+1768	1099	1	2019-07-25	2042408	1	Supplies
+1769	9027	1	2019-07-25	2042408	1	Supplies
+1770	1624	1	2019-07-25	2042408	1	Supplies
+1771	4504	1	2019-07-25	2041984	1	Area
+1772	4059	1	2019-07-25	2041984	1	Supplies
+1773	728	1	2019-07-25	2042408	1	Supplies
+1774	7054	1	2019-07-25	2042408	1	Supplies
+1775	238	1	2019-07-25	2042408	1	Supplies
+1776	5580	1	2019-07-25	2042408	1	Supplies
+1777	3829	1	2019-07-25	2042408	1	Supplies
+1778	5000	1	2019-07-25	2042408	1	Supplies
+1779	245	1	2019-07-25	2042408	1	Supplies
+1780	5003	1	2019-07-25	2042408	1	Supplies
+1781	229165	1	2019-07-25	2042408	1	Supplies
+1782	1147	1	2019-07-25	2042408	1	Supplies
+1783	424	1	2019-07-25	2042408	1	Supplies
+1784	7778	1	2019-07-25	2042408	1	Supplies
+1785	543	1	2019-07-25	2042408	1	Supplies
+1786	3637	1	2019-07-25	2042408	1	Supplies
+1787	256	1	2019-07-25	2041984	1	Supplies
+1788	6557	1	2019-07-25	2041984	1	Supplies
+1789	49	1	2019-07-25	2041984	1	Supplies
+1790	51	1	2019-07-25	2041984	1	Supplies
+1791	49	1	2019-07-25	2041984	1	Supplies
+1792	8061	1	2019-07-25	2042408	1	Supplies
+1793	3041	1	2019-07-25	2042408	1	Supplies
+1794	3039	1	2019-07-25	2041984	1	Area
+1795	415	1	2019-07-25	2042408	1	Supplies
+1796	232	1	2019-07-25	2041984	1	Supplies
+1797	2050	1	2019-07-25	2042408	1	Supplies
+1798	1638	1	2019-07-25	2042408	1	Supplies
+1799	477	1	2019-07-25	2042408	1	Supplies
+1800	1034	1	2019-07-25	2042408	1	Supplies
+1801	4806503872313	1	2019-07-25	2042408	1	Supplies
+1802	440	1	2019-07-25	2041984	1	Supplies
+1803	4565659	1	2019-07-25	2041984	1	Supplies
+1804	4809010488046	1	2019-07-25	2041984	1	Supplies
+1805	941	1	2019-07-25	2042408	1	Supplies
+1806	6160	1	2019-07-25	2041984	1	Supplies
+1807	6063	1	2019-07-25	2041984	1	Supplies
+1808	6063	1	2019-07-25	2041984	1	Supplies
+1809	3278	1	2019-07-25	2041984	1	Supplies
+1810	130	1	2019-07-25	2041984	1	Supplies
+1811	130	1	2019-07-25	2041984	1	Supplies
+1812	131	1	2019-07-25	2041984	1	Supplies
+1813	1344	1	2019-07-25	2041984	1	Supplies
+1814	6028	1	2019-07-25	2041984	1	Supplies
+1815	7000	1	2019-07-25	2041984	1	Supplies
+1816	9062	1	2019-07-25	2042408	1	Supplies
+1817	9662	1	2019-07-25	2042408	1	Supplies
+1818	9061	1	2019-07-25	2042408	1	Supplies
+1819	5411	1	2019-07-25	2042408	1	Supplies
+1820	49867	1	2019-07-25	2041984	1	Area
+1821	1108	1	2019-07-25	2042408	1	Supplies
+1822	339	1	2019-07-25	2042408	1	Supplies
+1823	9575	1	2019-07-25	2042408	1	Supplies
+1824	9071	1	2019-07-25	2042408	1	Supplies
+1825	5001	1	2019-07-25	2041984	1	Area
+1826	20200091	1	2019-07-25	2042408	1	Supplies
+1827	3467	1	2019-07-25	2041984	1	Supplies
+1828	20200091	1	2019-07-25	2042408	1	Supplies
+1829	229165	1	2019-07-25	2042408	1	Supplies
+1830	6030	1	2019-07-25	2041984	1	Supplies
+1831	8189	1	2019-07-25	2041984	1	Supplies
+1832	6931699900347	1	2019-07-25	2041984	1	Supplies
+1833	1622	1	2019-07-25	2042408	1	Area
+1834	46	1	2019-07-25	2041984	1	Supplies
+1835	1814	1	2019-07-25	2042408	1	Supplies
+1836	8487	1	2019-07-25	2041984	1	Supplies
+1837	2055	1	2019-07-25	2041984	1	Supplies
+1838	4444	1	2019-07-26	2050110	1	Supplies
+1839	3444	1	2019-07-26	2050110	1	Supplies
+1840	1872	1	2019-07-26	2050110	1	Supplies
+1841	1066	1	2019-07-26	2050110	1	Supplies
+1842	1064	1	2019-07-26	2050110	1	Supplies
+1843	1067	1	2019-07-26	2050110	1	Supplies
+1844	85501	1	2019-07-26	2052923	1	Supplies
+1845	608	1	2019-07-26	2050110	1	Supplies
+1846	9066	1	2019-07-26	2052923	1	Supplies
+1847	9066	1	2019-07-26	2052923	1	Supplies
+1848	8001	1	2019-07-26	2050110	1	Supplies
+1849	8002	1	2019-07-26	2050110	1	Supplies
+1850	6093	1	2019-07-26	2050110	1	Supplies
+1851	9065	1	2019-07-26	2052923	1	Supplies
+1852	2131	1	2019-07-26	2050110	1	Supplies
+1853	9067	1	2019-07-26	2052923	1	Supplies
+1854	9065	1	2019-07-26	2052923	1	Supplies
+1855	9065	1	2019-07-26	2052923	1	Supplies
+1856	3446	1	2019-07-26	2050110	1	Supplies
+1857	9070	1	2019-07-26	2052923	1	Supplies
+1858	9060	1	2019-07-26	2052923	1	Supplies
+1859	81	1	2019-07-26	2050110	1	Supplies
+1860	6092	1	2019-07-26	2050110	1	Supplies
+1861	65	1	2019-07-26	2052923	1	Supplies
+1862	3428	1	2019-07-26	2052923	1	Supplies
+1863	3428	1	2019-07-26	2052923	1	Supplies
+1864	5809	1	2019-07-26	2052923	1	Supplies
+1865	5809	1	2019-07-26	2052923	1	Supplies
+1866	4890	1	2019-07-26	2052923	1	Supplies
+1870	4805	1	2019-07-26	2052923	1	Supplies
+1871	4890	1	2019-07-26	2052923	1	Supplies
+1872	605	1	2019-07-26	2052923	1	Supplies
+1873	605	1	2019-07-26	2052923	1	Supplies
+1874	5809	1	2019-07-26	2052923	1	Supplies
+1876	7100	1	2019-07-26	2052923	1	Supplies
+1877	9098	1	2019-07-26	2052923	1	Supplies
+1878	3231	1	2019-07-26	2050110	1	Supplies
+1879	85502	1	2019-07-26	2050110	1	Supplies
+1880	9098	1	2019-07-26	2052923	1	Supplies
+1881	4890	1	2019-07-26	2052923	1	Supplies
+1882	4890	1	2019-07-26	2052923	1	Supplies
+1883	3231	1	2019-07-26	2050110	1	Supplies
+1884	4890	1	2019-07-26	2052923	1	Supplies
+1885	4890	1	2019-07-26	2052923	1	Supplies
+1886	85504	1	2019-07-26	2050110	1	Supplies
+1887	85505	1	2019-07-26	2050110	1	Supplies
+1888	85506	1	2019-07-26	2050110	1	Supplies
+1889	4902505163104	1	2019-07-26	2052923	1	Supplies
+1890	4902505139314	1	2019-07-26	2052923	1	Supplies
+1891	4902505482014	1	2019-07-26	2052923	1	Supplies
+1892	4902505482021	1	2019-07-26	2052923	1	Supplies
+1893	13354	1	2019-07-26	2050110	1	Supplies
+1894	4902505084560	1	2019-07-26	2052923	1	Supplies
+1895	212314	1	2019-07-26	2050110	1	Supplies
+1896	4902505084584	1	2019-07-26	2052923	1	Supplies
+1897	1071	1	2019-07-26	2050110	1	Supplies
+1898	8802203504314	1	2019-07-26	2052923	1	Supplies
+1899	1068	1	2019-07-26	2050110	1	Supplies
+1900	8802203504314	1	2019-07-26	2052923	1	Supplies
+1901	1069	1	2019-07-26	2050110	1	Supplies
+1902	317	1	2019-07-26	2052923	1	Supplies
+1903	8802203083659	1	2019-07-26	2052923	1	Supplies
+1904	1067	1	2019-07-26	2050110	1	Supplies
+1905	1064	1	2019-07-26	2050110	1	Supplies
+1906	3406	1	2019-07-26	2050110	1	Supplies
+1907	2000	1	2019-07-26	2052923	1	Supplies
+1908	1850	1	2019-07-26	2050110	1	Supplies
+1909	4800639143255	1	2019-07-26	2052923	1	Supplies
+1910	3214410	1	2019-07-26	2050110	1	Supplies
+1911	4971850187653	1	2019-07-26	2052923	1	Supplies
+1912	6936399300060	1	2019-07-26	2052923	1	Supplies
+1913	1063	1	2019-07-26	2050110	1	Supplies
+1914	9012015800026	1	2019-07-26	2052923	1	Supplies
+1915	4710850104020	1	2019-07-26	2052923	1	Supplies
+1916	79	1	2019-07-26	2050110	1	Supplies
+1917	1059	1	2019-07-26	2050110	1	Supplies
+1918	4971760140601	1	2019-07-26	2052923	1	Supplies
+1919	1103	1	2019-07-26	2050110	1	Supplies
+1920	1402	1	2019-07-26	2052923	1	Supplies
+1921	1104	1	2019-07-26	2050110	1	Supplies
+1922	9556089243513	1	2019-07-26	2052923	1	Supplies
+1923	1105	1	2019-07-26	2050110	1	Supplies
+1924	9556089243537	1	2019-07-26	2052923	1	Supplies
+1925	9556089243520	1	2019-07-26	2052923	1	Supplies
+1926	79	1	2019-07-26	2050110	1	Supplies
+1927	20115	1	2019-07-26	2050110	1	Supplies
+1928	84056	1	2019-07-26	2050110	1	Supplies
+1929	8090	1	2019-07-26	2052923	1	Supplies
+1930	4806513823084	1	2019-07-26	2052923	1	Supplies
+1931	4006381333689	1	2019-07-26	2052923	1	Supplies
+1932	4006381333634	1	2019-07-26	2052923	1	Supplies
+1933	4006381333627	1	2019-07-26	2052923	1	Supplies
+1934	4006381333672	1	2019-07-26	2052923	1	Supplies
+1935	1772	1	2019-07-26	2050110	1	Supplies
+1936	4006381333641	1	2019-07-26	2052923	1	Supplies
+1937	477	1	2019-07-26	2052923	1	Supplies
+1938	4902505040788	1	2019-07-26	2052923	1	Supplies
+1939	4902505088179	1	2019-07-26	2052923	1	Supplies
+1940	4902505088193	1	2019-07-26	2052923	1	Supplies
+1941	3417	1	2019-07-26	2050110	1	Supplies
+1942	8549	1	2019-07-26	2050110	1	Supplies
+1943	4801234014421	1	2019-07-26	2052923	1	Supplies
+1944	4800888150202	1	2019-07-26	2052923	1	Supplies
+1945	48038379	1	2019-07-26	2052923	1	Supplies
+1946	4800888158468	1	2019-07-26	2052923	1	Supplies
+1947	4800888166494	1	2019-07-26	2052923	1	Supplies
+1948	4800888192882	1	2019-07-26	2052923	1	Supplies
+1949	4800888143921	1	2019-07-26	2052923	1	Supplies
+1950	4806525943800	1	2019-07-26	2052923	1	Supplies
+1951	4800310118299	1	2019-07-26	2052923	1	Supplies
+1952	8549	1	2019-07-26	2050110	1	Supplies
+1953	7100	1	2019-07-26	2050110	1	Supplies
+1954	4803	1	2019-07-26	2050110	1	Supplies
+1955	21841	1	2019-07-26	2050110	1	Supplies
+1956	3429	1	2019-07-26	2050110	1	Supplies
+1957	4902430749725	1	2019-07-26	2052923	1	Supplies
+1958	6903071016748	1	2019-07-26	2052923	1	Supplies
+1959	6971083000901	1	2019-07-26	2052923	1	Supplies
+1960	4800310117742	1	2019-07-26	2052923	1	Supplies
+1961	4803	1	2019-07-26	2050110	1	Supplies
+1962	1620	1	2019-07-26	2050110	1	Supplies
+1963	3438	1	2019-07-26	2050110	1	Supplies
+1964	3233	1	2019-07-26	2050110	1	Supplies
+1965	4800310117995	1	2019-07-26	2052923	1	Supplies
+1966	3662	1	2019-07-26	2050110	1	Supplies
+1967	6931717503031	1	2019-07-26	2052923	1	Supplies
+1968	3416	1	2019-07-26	2050110	1	Supplies
+1969	6931717503024	1	2019-07-26	2052923	1	Supplies
+1970	6933577800091	1	2019-07-26	2052923	1	Supplies
+1971	605	1	2019-07-26	2050110	1	Supplies
+1972	4806021316924	1	2019-07-26	2052923	1	Supplies
+1973	542	1	2019-07-26	2050110	1	Supplies
+1974	4806021316931	1	2019-07-26	2052923	1	Supplies
+1975	3439	1	2019-07-26	2050110	1	Supplies
+1976	1400000056905	1	2019-07-26	2052923	1	Supplies
+1977	9098	1	2019-07-26	2050110	1	Supplies
+1978	804	1	2019-07-26	2050110	1	Supplies
+1979	4805	1	2019-07-26	2050110	1	Supplies
+1980	4805	1	2019-07-26	2050110	1	Supplies
+1981	805	1	2019-07-26	2050110	1	Supplies
+1982	3418	1	2019-07-26	2050110	1	Supplies
+1983	552	1	2019-07-26	2052923	1	Supplies
+1984	547	1	2019-07-26	2052923	1	Supplies
+1985	512	1	2019-07-26	2050110	1	Supplies
+1986	1082	1	2019-07-26	2052923	1	Supplies
+1987	550	1	2019-07-26	2052923	1	Supplies
+1988	549	1	2019-07-26	2052923	1	Supplies
+1989	4805	1	2019-07-26	2050110	1	Supplies
+1990	549	1	2019-07-26	2052923	1	Supplies
+1991	3418	1	2019-07-26	2050110	1	Supplies
+1992	65	1	2019-07-26	2050110	1	Supplies
+1993	4806021388143	1	2019-07-26	2052923	1	Supplies
+1994	36	1	2019-07-26	2052923	1	Supplies
+1995	4902505343599	1	2019-07-26	2052923	1	Supplies
+1996	4902870729233	1	2019-07-26	2052923	1	Supplies
+1997	4806021306277	1	2019-07-26	2052923	1	Supplies
+1998	3428	1	2019-07-26	2050110	1	Supplies
+1999	4902870766290	1	2019-07-26	2052923	1	Supplies
+2000	4805	1	2019-07-26	2050110	1	Supplies
+2001	4976680851101	1	2019-07-26	2052923	1	Supplies
+2002	4976680311407	1	2019-07-26	2052923	1	Supplies
+2003	4976680312305	1	2019-07-26	2052923	1	Supplies
+2004	5809	1	2019-07-26	2050110	1	Supplies
+2005	9099	1	2019-07-26	2050110	1	Supplies
+2006	1870	1	2019-07-26	2052923	1	Supplies
+2007	1892	1	2019-07-26	2052923	1	Supplies
+2008	4800042112367	1	2019-07-26	2052923	1	Supplies
+2009	1893	1	2019-07-26	2052923	1	Supplies
+2010	5662	1	2019-07-26	2052923	1	Supplies
+2011	5661	1	2019-07-26	2052923	1	Supplies
+2012	1254	1	2019-07-26	2052923	1	Supplies
+2013	9097	1	2019-07-26	2050110	1	Supplies
+2014	4800042112510	1	2019-07-26	2052923	1	Supplies
+2015	3421	1	2019-07-26	2050110	1	Supplies
+2016	4800042110196	1	2019-07-26	2052923	1	Supplies
+2017	340	1	2019-07-26	2050110	1	Supplies
+2018	1869	1	2019-07-26	2052923	1	Supplies
+2019	805	1	2019-07-26	2050110	1	Supplies
+2020	3422	1	2019-07-26	2050110	1	Supplies
+2021	8888021200133	1	2019-07-26	2052923	1	Supplies
+2022	3431	1	2019-07-26	2050110	1	Supplies
+2023	8888021301502	1	2019-07-26	2052923	1	Supplies
+2024	8888021201567	1	2019-07-26	2052923	1	Supplies
+2025	4800042112138	1	2019-07-26	2052923	1	Supplies
+2026	8888021300949	1	2019-07-26	2052923	1	Supplies
+2027	3420	1	2019-07-26	2050110	1	Supplies
+2028	8888021200140	1	2019-07-26	2052923	1	Supplies
+2029	804	1	2019-07-26	2050110	1	Supplies
+2030	4800042130125	1	2019-07-26	2052923	1	Supplies
+2031	39800109682	1	2019-07-26	2052923	1	Supplies
+2032	1887	1	2019-07-26	2052923	1	Supplies
+2033	4800042141206	1	2019-07-26	2052923	1	Supplies
+2034	4800042135014	1	2019-07-26	2052923	1	Supplies
+2035	8888021100174	1	2019-07-26	2052923	1	Supplies
+2036	4800042112169	1	2019-07-26	2052923	1	Supplies
+2037	4800042112138	1	2019-07-26	2052923	1	Supplies
+2038	8888021100112	1	2019-07-26	2052923	1	Supplies
+2039	4800042110196	1	2019-07-26	2052923	1	Supplies
+2040	4800042112510	1	2019-07-26	2052923	1	Supplies
+2041	3527	1	2019-07-26	2052923	1	Supplies
+2042	3526	1	2019-07-26	2052923	1	Supplies
+2043	3525	1	2019-07-26	2052923	1	Supplies
+2044	3525	1	2019-07-26	2052923	1	Supplies
+2045	3524	1	2019-07-26	2052923	1	Supplies
+2046	3523	1	2019-07-26	2052923	1	Supplies
+2047	3520	1	2019-07-26	2052923	1	Supplies
+2048	3521	1	2019-07-26	2052923	1	Supplies
+2049	4800011121512	1	2019-07-26	2052923	1	Supplies
+2050	1620	1	2019-07-26	2050110	1	Supplies
+2051	3454	1	2019-07-26	2050110	1	Supplies
+2052	64	1	2019-07-26	2050110	1	Supplies
+2053	64	1	2019-07-26	2050110	1	Supplies
+2054	3419	1	2019-07-26	2050110	1	Supplies
+2055	64	1	2019-07-26	2050110	1	Supplies
+2056	605	1	2019-07-26	2052923	1	Supplies
+2057	5809	1	2019-07-26	2052923	1	Supplies
+2058	5809	1	2019-07-26	2052923	1	Supplies
+2059	605	1	2019-07-26	2052923	1	Supplies
+2060	223300	1	2019-07-26	2052923	1	Supplies
+2061	223300	1	2019-07-26	2052923	1	Supplies
+2062	7085	1	2019-07-26	2052923	1	Supplies
+2063	7085	1	2019-07-26	2052923	1	Supplies
+2064	223300	1	2019-07-26	2052923	1	Supplies
+2065	223300	1	2019-07-26	2052923	1	Supplies
+2066	7085	1	2019-07-26	2052923	1	Supplies
+2067	1847	1	2019-07-26	2052923	1	Supplies
+2068	3419	1	2019-07-26	2052923	1	Supplies
+2069	64	1	2019-07-26	2052923	1	Supplies
+2070	4805	1	2019-07-26	2052923	1	Supplies
+2071	64	1	2019-07-26	2052923	1	Supplies
+2072	3454	1	2019-07-26	2052923	1	Supplies
+1867	3428	1	2019-07-26	2052923	1	Supplies
+1868	9099	1	2019-07-26	2052923	1	Supplies
+1869	3418	1	2019-07-26	2052923	1	Supplies
+1875	3231	1	2019-07-26	2050110	1	Supplies
+2073	1620	1	2019-07-26	2052923	1	Supplies
+2074	64	1	2019-07-26	2052923	1	Supplies
+2075	1847	1	2019-07-26	2052923	1	Supplies
+2076	504	1	2019-07-26	2052923	1	Supplies
+2077	229221	1	2019-07-26	2052923	1	Supplies
+2078	6925847162572	1	2019-07-26	2052923	1	Supplies
+2079	4800047820182	1	2019-07-26	2052923	1	Supplies
+2080	4800047820243	1	2019-07-26	2052923	1	Supplies
+2081	4800095001113	1	2019-07-26	2052923	1	Supplies
+2082	4806500070767	1	2019-07-26	2052923	1	Supplies
+2083	4800047820243	1	2019-07-26	2052923	1	Supplies
+2084	4800011121550	1	2019-07-26	2052923	1	Supplies
+2085	4800011121512	1	2019-07-26	2052923	1	Supplies
+2086	4800011718804	1	2019-07-26	2052923	1	Supplies
+2087	4606033013398	1	2019-07-26	2052923	1	Supplies
+2088	9787560011813	1	2019-07-26	2052923	1	Supplies
+2090	788	1	2019-07-26	2052923	1	Supplies
+2091	4800095004190	1	2019-07-26	2052923	1	Supplies
+2092	4800047820199	1	2019-07-26	2052923	1	Supplies
+2093	4800047820250	1	2019-07-26	2052923	1	Supplies
+2094	4800011120607	1	2019-07-26	2052923	1	Supplies
+2095	4800011718804	1	2019-07-26	2052923	1	Supplies
+2096	4800011718545	1	2019-07-26	2052923	1	Supplies
+2097	4806500070774	1	2019-07-26	2052923	1	Supplies
+2098	4806500070767	1	2019-07-26	2042408	1	Supplies
+2099	9300995001299	1	2019-07-26	2050110	1	Supplies
+2104	1065	1	2019-07-26	2050110	1	Supplies
+2105	493	1	2019-07-26	2050110	1	Supplies
+2106	5349	1	2019-07-26	2050110	1	Supplies
+2107	4351	1	2019-07-26	2050110	1	Supplies
+2108	3493	1	2019-07-26	2050110	1	Supplies
+2109	80198	1	2019-07-26	2050110	1	Supplies
+2110	3034	1	2019-07-26	2050110	1	Supplies
+2111	489	1	2019-07-26	2050110	1	Supplies
+2112	1658	1	2019-07-26	2050110	1	Supplies
+2113	8045	1	2019-07-26	2050110	1	Supplies
+2114	6279	1	2019-07-26	2050110	1	Supplies
+2115	6925169492159	1	2019-07-26	2050110	1	Supplies
+2116	6925169492159	1	2019-07-26	2050110	1	Supplies
+2117	3494	1	2019-07-26	2050110	1	Supplies
+2118	80195	1	2019-07-26	2050110	1	Supplies
+2119	3494	1	2019-07-26	2050110	1	Supplies
+2120	4806505354282	1	2019-07-26	2050110	1	Supplies
+2121	4806505357955	1	2019-07-26	2050110	1	Supplies
+2122	6925169443182	1	2019-07-26	2050110	1	Supplies
+2124	4806515922044	1	2019-07-26	2050110	1	Supplies
+2125	476	1	2019-07-26	2050110	1	Supplies
+2126	476	1	2019-07-26	2050110	1	Supplies
+2127	5347	1	2019-07-26	2050110	1	Supplies
+2128	7901	1	2019-07-26	2050110	1	Supplies
+2129	1006	1	2019-07-26	2050110	1	Supplies
+2130	911	1	2019-07-26	2050110	1	Supplies
+2131	46469	1	2019-07-26	2050110	1	Supplies
+2132	4711815159642	1	2019-07-26	2050110	1	Supplies
+2133	843	1	2019-07-26	2050110	1	Supplies
+2134	3032	1	2019-07-26	2050110	1	Supplies
+2135	891	1	2019-07-26	2050110	1	Supplies
+2136	33923329415	1	2019-07-26	2050110	1	Supplies
+2137	8154	1	2019-07-26	2050110	1	Supplies
+2138	20	1	2019-07-26	2050110	1	Supplies
+2139	2056	1	2019-07-26	2050110	1	Supplies
+2089	4991348042424	1	2019-07-26	2052923	1	Supplies
+2100	1658	1	2019-07-26	2050110	1	Supplies
+2101	5350	1	2019-07-26	2050110	1	Supplies
+2102	1007	1	2019-07-26	2050110	1	Supplies
+2103	9300995001299	1	2019-07-26	2050110	1	Supplies
+2123	8071	1	2019-07-26	2050110	1	Supplies
+2140	1847	1	2019-07-26	2050110	1	Supplies
+2143	4974052854569	1	2019-07-26	2052923	1	Supplies
+2144	4902505088179	1	2019-07-26	2052923	1	Supplies
+2141	4902505088193	1	2019-07-26	2052923	1	Supplies
+2142	4902505088827	1	2019-07-26	2052923	1	Supplies
+2145	4800086044389	1	2019-07-29	2041984	1	Groceries
+2146	4800086044365	1	2019-07-29	2041984	1	Groceries
+2147	4800086044372	1	2019-07-29	2041984	1	Groceries
+2148	4800086045430	1	2019-07-29	2041984	1	Groceries
+2149	4800086045430	1	2019-07-29	2041984	1	Groceries
+2150	4800086043580	1	2019-07-29	2041984	1	Groceries
+2151	4800086040527	1	2019-07-29	2041984	1	Groceries
+2152	4800086035790	1	2019-07-29	2041984	1	Groceries
+2153	4800086035790	1	2019-07-29	2041984	1	Groceries
+2154	4800086040527	1	2019-07-29	2041984	1	Groceries
+2155	4800086040886	1	2019-07-29	2041984	1	Groceries
+2156	4800086040916	1	2019-07-29	2041984	1	Groceries
+2157	4800086040879	1	2019-07-29	2041984	1	Groceries
+2158	4800086045911	1	2019-07-29	2041984	1	Groceries
+2159	4800086038692	1	2019-07-29	2041984	1	Groceries
+2160	4800086045928	1	2019-07-29	2041984	1	Groceries
+2161	4800086045904	1	2019-07-29	2041984	1	Groceries
+2162	4800086035967	1	2019-07-29	2041984	1	Groceries
+2163	4800086035929	1	2019-07-29	2041984	1	Groceries
+2164	4800086036186	1	2019-07-29	2041984	1	Groceries
+2165	4800086045751	1	2019-07-29	2041984	1	Groceries
+2166	4800086045782	1	2019-07-29	2041984	1	Groceries
+2167	4800086045805	1	2019-07-29	2041984	1	Groceries
+2168	4800086045799	1	2019-07-29	2041984	1	Groceries
+2169	4800086045980	1	2019-07-29	2041984	1	Groceries
+2170	4800086045942	1	2019-07-29	2041984	1	Groceries
+2171	4800086045768	1	2019-07-29	2041984	1	Groceries
+2172	4800086046031	1	2019-07-29	2041984	1	Groceries
+2173	4800086044327	1	2019-07-29	2041984	1	Groceries
+2174	4800086134325	1	2019-07-29	2041984	1	Groceries
+2175	4806534190028	1	2019-07-29	2041984	1	Groceries
+2176	4800086043306	1	2019-07-29	2041984	1	Groceries
+2177	4800086045775	1	2019-07-29	2041984	1	Groceries
+2178	4800380320257	1	2019-07-29	2041984	1	Groceries
+2179	4800380320455	1	2019-07-29	2041984	1	Groceries
+2180	4800380320752	1	2019-07-29	2041984	1	Groceries
+2181	4800380320554	1	2019-07-29	2041984	1	Groceries
+2182	4800380330355	1	2019-07-29	2041984	1	Groceries
+2183	4800380511747	1	2019-07-29	2041984	1	Groceries
+2184	4800380510443	1	2019-07-29	2041984	1	Groceries
+2185	4800380520947	1	2019-07-29	2041984	1	Groceries
+2186	4800380540341	1	2019-07-29	2041984	1	Groceries
+2187	4800380511044	1	2019-07-29	2041984	1	Groceries
+2188	4800380070213	1	2019-07-29	2041984	1	Groceries
+2189	4800380530359	1	2019-07-29	2041984	1	Groceries
+2190	4800380520251	1	2019-07-29	2041984	1	Groceries
+2191	4806534190042	1	2019-07-29	2041984	1	Groceries
+2192	769828120825	1	2019-07-29	2041984	1	Groceries
+2193	769828120825	1	2019-07-29	2041984	1	Groceries
+2194	4806534190059	1	2019-07-29	2041984	1	Groceries
+2195	769828120849	1	2019-07-29	2041984	1	Groceries
+2196	769828120801	1	2019-07-29	2041984	1	Groceries
+2197	4800361406086	1	2019-07-29	2041984	1	Groceries
+2198	48041003	1	2019-07-29	2041984	1	Groceries
+2199	48041010	1	2019-07-29	2041984	1	Groceries
+2200	4800361404792	1	2019-07-29	2041984	1	Groceries
+2201	48040990	1	2019-07-29	2041984	1	Groceries
+2202	4800361402590	1	2019-07-29	2041984	1	Groceries
+2203	4800361343299	1	2019-07-29	2041984	1	Groceries
+2204	4800361409131	1	2019-07-29	2041984	1	Groceries
+2205	4800361397711	1	2019-07-29	2041984	1	Groceries
+2206	4804888322065	1	2019-07-29	2041984	1	Groceries
+2207	4804888322058	1	2019-07-29	2041984	1	Groceries
+2208	4804888322102	1	2019-07-29	2041984	1	Groceries
+2209	4804888322133	1	2019-07-29	2041984	1	Groceries
+2210	4804888322140	1	2019-07-29	2041984	1	Groceries
+2213	4804888322096	1	2019-07-29	2041984	1	Groceries
+2214	4804888322171	1	2019-07-29	2041984	1	Groceries
+2215	4804888322188	1	2019-07-29	2041984	1	Groceries
+2216	4804888322218	1	2019-07-29	2041984	1	Groceries
+2218	4804888322027	1	2019-07-29	2041984	1	Groceries
+2219	4804888322225	1	2019-07-29	2041984	1	Groceries
+2220	4804888322102	1	2019-07-29	2041984	1	Groceries
+2221	189	1	2019-07-29	2041984	1	Groceries
+2222	185	1	2019-07-29	2041984	1	Groceries
+2223	187	1	2019-07-29	2041984	1	Groceries
+2224	188	1	2019-07-29	2041984	1	Groceries
+2225	184	1	2019-07-29	2041984	1	Groceries
+2226	190	1	2019-07-29	2041984	1	Groceries
+2211	4804888322218	1	2019-07-29	2041984	1	Groceries
+2212	4804888322010	1	2019-07-29	2041984	1	Groceries
+2217	4804888322140	1	2019-07-29	2041984	1	Groceries
+\.
+
+
+--
+-- TOC entry 2926 (class 0 OID 41212)
+-- Dependencies: 215
+-- Data for Name: location; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.location (id, area) FROM stdin;
+2	Supplies
+4	Canteen
+5	Cold Room
+6	Office
+1	Groceries
+7	Stockroom2
+8	Stockroom3
+3	Stockroom1
+\.
+
+
+--
+-- TOC entry 2910 (class 0 OID 16416)
+-- Dependencies: 199
+-- Data for Name: product; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.product (product_code, description, uom, unit_cost, selling_price, supplier_id, on_hand) FROM stdin;
+480004972172	NATURES SPRING FIBR WATER 500ML	PCS	$15.00	$19.00	123	35
+4800024136381	DM PINE-ORANGE 46OZ	PCS	$76.78	$96.00	29	12
+4800049721272	NATURES SPRNG FIBR WATER 500ML	PCS	$15.00	$19.00	123	35
+4800060031503	JOY KITCHEN TOWEL 2PLY 120PULL	PCS	$117.90	$147.00	28	6
+4806517043174	GOYA BITS MILK CHOCO 35G	PCS	$21.60	$27.00	7	20
+4902430244909	SAFEGUARD BAR MENTHOL 135G	PCS	$36.12	$45.00	70	9
+4902430244923	SAFEGUARD BAR MENTHOL 90G	PCS	$24.45	$31.00	70	9
+4902430244947	SAFEGUARD BAR GREEN 135G	PCS	$36.12	$45.00	70	9
+4902430244961	SAFEGAURD BAR FRESH GREEN 90G	PCS	$24.45	$31.00	70	9
+4902430381802	SAFEGAURD IVORY WHITE CARE 90G	PCS	$24.45	$31.00	70	9
+4902430381857	SAFEGUARD IVORY WHITE 135G	PCS	$36.12	$45.00	70	9
+4902430429368	REJOICE SHMPO FRIZZ RPAIR 170M	PCS	$90.12	$113.00	70	3
+4902430429375	REJOICE SHAMPOO 3N1 170ML	PCS	$90.12	$113.00	70	3
+4902430850223	ARIEL LAU LIQUID 60G	PCS	$10.40	$13.00	70	48
+4902430862578	REJOICE LUMINOUS ROSE SHMP 340	PCS	$182.50	$228.00	70	3
+4902430862721	REJOICE LUMINOUS ROSE 170ML	PCS	$91.83	$115.00	70	3
+4902430890465	PTN SH HFC GD 150ML	PCS	$140.87	$176.00	70	2
+480901512707	Cocos Cider Vinegar 500ml	PCS	$200.00	$250.00	107	23
+4800310153733	Backwater Enchant Women 150ml	PCS	$171.20	$214.00	107	1
+4800110068886	ROYAL SPAHHETTI 900G	PCS	$76.19	$95.00	92	1
+769828120849	MELONA BANANA BANANE 70ML	PCS	$25.00	$31.00	11	0
+4800042125411	EVEREADY AAA 1212BP2 BLK	PCS	$48.80	$61.00	7	37
+8888021100204	EVEREADY BC 1235 SW2 THAI	PCS	$24.00	$30.00	7	7
+8888021201550	EVEREADY BC 1235 SW2 THAI	PCS	$103.20	$129.00	7	0
+8888021300949	EVEREADY RECHARGEABLE AA2	PCS	$312.00	$390.00	7	8
+4808888411583	PLMOLIVE ALOE VERA 90ML	PCS	$48.80	$61.00	21	0
+4902430623209	BONUX BAR ROS&VAN 130G	PCS	$8.80	$11.00	21	0
+4800216121058	LESLIE'S CHZCRN ORIG 70G	PCS	$17.60	$22.00	28	0
+4806014099889	GOODLIFE SESAME OIL 100ML	PCS	$92.80	$116.00	53	5
+8850007011149	J&J POWDER 200G	PCS	$63.20	$79.00	117	35
+1	HEADBAND	PCS	$6.40	$8.00	20	0
+619	KETTLE KORN 80G	PCS	$36.00	$45.00	20	0
+773	PAINT BRUSH #2	PCS	$5.60	$7.00	20	0
+913	WHISLE SILVER	PCS	$48.00	$60.00	20	0
+967	POWDER CHARCOAL 250G	PCS	$52.00	$65.00	20	0
+987	AUP MUG SOUVNR	PCS	$80.00	$100.00	20	0
+998	GARBAGE BAG S	PCS	$18.40	$23.00	20	0
+1340	ID LACE	PCS	$7.20	$9.00	20	0
+1868	AA ENERGIZER 1.5V	PCS	$32.80	$41.00	20	17
+4089	LOVE BOTTLE	PCS	$79.20	$99.00	20	0
+4643	EM KEY CHAIN-M	PCS	$31.20	$39.00	20	0
+4770	MOUSE TRAP B	PCS	$110.40	$138.00	20	2
+5291	PLATE MATT	PCS	$22.40	$28.00	20	0
+6098	HAND GLOVES COTTON	PCS	$35.20	$44.00	20	0
+6375	CZAIONLY'S SESAME OIL 1L	PCS	$136.80	$171.00	20	0
+7849	AUP BNANA CHP90G	PCS	$89.60	$112.00	20	0
+7851	VEGAN MORINGA 180G	PCS	$350.40	$438.00	20	0
+8889	BIBLIA TAGALOG	PCS	$360.00	$450.00	20	0
+9892	BDAY CARD	PCS	$15.20	$19.00	20	0
+11201	D'R TURMERIC 300G	PCS	$171.20	$214.00	20	0
+12345	D'RIGHTFOOD SOYABLEND3IN1	PCS	$90.40	$113.00	20	0
+12545	D'R CHILI POW 70G	PCS	$99.20	$124.00	20	0
+16764	CHARM FCON MYSTC 1L	PCS	$35.20	$44.00	20	0
+16765	CHARM FCON ATTRCTN 1L	PCS	$35.20	$44.00	20	0
+16766	CHARM FCON DENISE 1L	PCS	$35.20	$44.00	20	11
+20287	STTO'S SWT SMPLOK 28PCS	PCS	$0.00	$0.00	20	0
+21455	D'R RICEBLEND3IN1 400G	PCS	$177.00	$221.25	20	0
+33402	KEYCHAIN T	PCS	$60.00	$75.00	20	0
+33403	KEYCHAIN C	PCS	$48.00	$60.00	20	0
+46901	FF STICK BREAD	PCS	$10.40	$13.00	20	0
+48001	LA PRIMA VEGAN	PCS	$45.60	$57.00	20	0
+78210	JHS CLASS RECORD	PCS	$27.20	$34.00	20	0
+85002	CHRISTINA PANTY	PCS	$30.40	$38.00	20	4
+88956	SLIPPER HAVANA PL	PCS	$40.00	$50.00	20	1
+101103	D'R SAMBONG 200G	PCS	$108.00	$135.00	20	0
+101210	BROOCH 032	PCS	$24.80	$31.00	20	0
+214562	D'R RICE BLEND 300G	PCS	$140.00	$175.00	20	0
+229299	PLASTIC CUP	PCS	$7.20	$9.00	20	0
+369126	SUNFLOWER CLIP	PCS	$6.40	$8.00	20	0
+564600	KETTLE KORN 310G	PCS	$130.40	$163.00	20	0
+1201101	D'R SAMBONG LVS 300G	PCS	$171.20	$214.00	20	0
+1234567	D'R HERBAFULL10 250G	PCS	$164.80	$206.00	20	0
+1234568	D'R HERBAFULL10 400G	PCS	$230.40	$288.00	20	0
+1234570	D'R ROASTRICE 300G	PCS	$176.80	$221.00	20	0
+1244777	D'R LGHT SOY 3IN1 400G	PCS	$176.80	$221.00	20	0
+2672900	ELMRS W-GLE 36G	PCS	$16.80	$21.00	20	0
+6565999	RPM POLVRN 5PCS	PCS	$55.20	$69.00	20	0
+12336655	TOILET BRUSH W/CASE	PCS	$45.60	$57.00	20	47
+22101010	D'R TURMERIC 200G	PCS	$222.40	$278.00	20	0
+48031837	OFF OVERTIME 50ML	PCS	$83.20	$104.00	20	0
+48036016	J&J BBY OIL LITE 25ML	PCS	$15.20	$19.00	20	0
+48036207	ETHYL ALCOHOL 70% 60ML	PCS	$16.00	$20.00	20	40
+48038065	J&J BBY OIL ALOE VERA 25ML	PCS	$19.20	$24.00	20	0
+95502489	NSTL KITKAT 17G	PCS	$12.80	$16.00	20	0
+125447771	PAINT BRUSH 12	PCS	$28.80	$36.00	20	0
+11210000018	MCILHNY TABSCO PEPR SAU60ML	PCS	$88.80	$111.00	20	0
+11210009387	MCILHNY TABSCO G-PEPR SAU60ML	PCS	$88.80	$111.00	20	0
+14285000068	UFC TAMS ANHNG BNNA320G	PCS	$18.40	$23.00	20	24
+14285003267	JUFRAN 100G	PCS	$20.80	$26.00	20	0
+14800000320	MOTTS APPLE JUICE 946ML	PCS	$122.40	$153.00	20	0
+26000005135	ELMERS S-GLUE 1STCK 6G	PCS	$19.20	$24.00	20	0
+35203000076	KIM 6-PCK PENCILS	PCS	$12.00	$15.00	20	0
+39800109675	ENERGIZER 364/363 S&OXDE 1.55V	PCS	$16.00	$20.00	20	0
+39800109682	ENERGIZER 0%HG 379	PCS	$18.40	$23.00	20	0
+39800111036	ENERGIZER 377/376 S&OXDE 1.55V	PCS	$16.00	$20.00	20	26
+41255015296	DCNHS RYL BLBRY 595G	PCS	$196.00	$245.00	20	3
+41800354009	WELCH 100%G-J 295ML	PCS	$56.80	$71.00	20	0
+63211012613	CAMPBELL MSHRMCRM 284ML	PCS	$46.40	$58.00	20	0
+74305052163	BRAGG APPLE-C CDR VNGR 473ML	PCS	$116.80	$146.00	20	0
+74305055164	BRAGG APPLE CDR VNGR 473ML	PCS	$116.80	$146.00	20	0
+480036138302	DRUMSTICK CHOCO&VANLLA 110ML	PCS	$36.80	$46.00	20	0
+480088819097	SURF BAR CHERRY BLM 130G	PCS	$8.80	$11.00	20	45
+731126101165	NAGARAYA ORGNAL 160G	PCS	$31.20	$39.00	20	0
+731126103169	NAGARAYA BBQ160G	PCS	$31.20	$39.00	20	0
+733586305008	SCRIPTI STCKY NOTE 12X 76MM	PCS	$35.20	$44.00	20	10
+733586456915	SCRPTI PNTFLM 6MM X48MM	PCS	$35.20	$44.00	20	0
+745621101025	TITA ELY COCNUT STRNG HS340G	PCS	$87.20	$109.00	20	0
+750515017429	FITA CRCKRS 9PCS 30G	PCS	$4.80	$6.00	20	0
+750515021228	M.Y. SN GRHAM-HNY 25G	PCS	$4.80	$6.00	20	0
+750515021266	MYSAN GRAHAM CHC 25G	PCS	$4.80	$6.00	20	0
+750515030039	SKY FLKS CHEESE 25G	PCS	$4.80	$6.00	20	0
+766966325563	COCONUTMLK POW 50G	PCS	$24.80	$31.00	20	0
+800024577818	DM SPGETTI CMBO ITAL 1KG	PCS	$132.80	$166.00	20	3
+883585956692	HP INK ADVNCE #703 BLCK	PCS	$390.40	$488.00	20	4
+883585956708	HP INK ADVNCE #703 TRI-CLR	PCS	$390.40	$488.00	20	18
+1251000000586	ICH-WAM 2	PCS	$36.00	$45.00	20	0
+3154140113018	MAPED TCHNC-300	PCS	$13.60	$17.00	20	0
+3154143543119	MAPED STAPLER HD-50R	PCS	$108.00	$135.00	20	3
+3154143920200	MAPED STAPLER 392020	PCS	$108.00	$135.00	20	0
+3154143927100	MAPED OFFICE STAPLER	PCS	$90.40	$113.00	20	0
+4606033013398	FNGCAI SNIGN NIPPER	PCS	$44.80	$56.00	20	83
+4713389118889	DINOSAURS STNLESS	PCS	$12.20	$15.25	20	0
+4800010075922	PRESTO PNTBUTTR 300G	PCS	$47.20	$59.00	20	0
+4800010076073	PRESTO PNTBUTTR 30G	PCS	$5.00	$6.25	20	0
+4800011120607	ETHYL TRICLOSAN 70% ACTVE 60ML	PCS	$18.40	$23.00	20	22
+4800011121529	ETHYL ALCHL 70% REGULAR 250ML	PCS	$36.00	$45.00	20	13
+4800011122205	ETHYL ALCOHOL 70% 60ML	PCS	$18.40	$23.00	20	12
+4800011122229	ETHYL ALCHL 70%FEMME 250ML	PCS	$36.80	$46.00	20	14
+4800011175010	ETHYL ALCHL 70% SLTION 150ML	PCS	$23.20	$29.00	20	0
+4800011175027	ETHYL ALCOHOL 70% 250ML	PCS	$32.00	$40.00	20	0
+4800011188034	ZIP LQUID INSCT RPLNT 50ML	PCS	$40.00	$50.00	20	0
+4800011500805	MAMAS LOVE CTTN 5G	PCS	$4.00	$5.00	20	0
+4800011736020	OMEGA PAINKILLER 30ML	PCS	$30.40	$38.00	20	0
+4800011782805	BIODERM BLM SOAP 60G	PCS	$14.40	$18.00	20	39
+4800011783031	BIODERM TIMELESS 60G	PCS	$14.00	$17.50	20	70
+4800011795331	BIODERM PRISTEN 60G	PCS	$14.00	$17.50	20	49
+4800017480507	RAM YNG CRN WHL SPR410G	PCS	$32.00	$40.00	20	18
+4800017480606	RAM CRM STYL CRN410G	PCS	$27.20	$34.00	20	13
+4800017913708	RAM RAISINS 30G	PCS	$12.00	$15.00	20	0
+4800022030506	HNTS TOMATO SAUCE 1KG	PCS	$55.20	$69.00	20	0
+4800022080723	HNTS SPAGHETTI SAUCE PRTY 1KG	PCS	$55.20	$69.00	20	0
+4800022117061	HNTS SPAGSAUCE PRMESAN1KG	PCS	$63.20	$79.00	20	0
+4800024012401	DM PNEAPPLE CHNKS 822G	PCS	$69.20	$86.50	20	0
+4800024016157	DM RED CNE VINGR47CL	PCS	$37.20	$46.50	20	0
+4800024556165	DM TOMTO SAUCE ORIG 1KG	PCS	$72.80	$91.00	20	0
+4800024558503	TODAY MIX FRT 432G	PCS	$45.60	$57.00	20	0
+4800024562425	DM SPAG SUCE ITAL 560G	PCS	$54.40	$68.00	20	0
+4800024570741	DM QCKNEASY CURRY 40G	PCS	$22.40	$28.00	20	0
+4800024570758	DM QCKNEASY GRAVY 30G	PCS	$14.40	$18.00	20	0
+4800024575494	DM SPAG SAUCE FILI 560G	PCS	$48.80	$61.00	20	0
+4800024579300	DEL MONTE PNAPPLE JCE  1L	PCS	$71.20	$89.00	20	0
+4800029831045	FLOWER MALLOWS 135G	PCS	$24.80	$31.00	20	0
+4800034013252	HAPEE GUMTECT TTHPASTE 100ML (	PCS	$96.00	$120.00	20	15
+4800042135038	EVRDY LED 2XD 3511BP	PCS	$99.20	$124.00	20	0
+4800042141275	EVRDY 2-D LED W2BAT SET	PCS	$268.80	$336.00	20	0
+4800045380091	SHIELD BP 90G	PCS	$16.80	$21.00	20	0
+4800045380107	SHIELD BTH SOAP CW 90G	PCS	$16.80	$21.00	20	0
+4800053800130	SUSNB GRBNZS CHKPS225G	PCS	$20.80	$26.00	20	0
+4800053800147	SUSNBKR GRBZS CHKPS400G	PCS	$31.20	$39.00	20	0
+4800060331009	KOTEX UNSCNTD 20LINERS	PCS	$37.60	$47.00	20	0
+4800060331504	KORTEX LONGR&WDER 8LINERS	PCS	$26.40	$33.00	20	3
+4800060331603	KOTEX LONGR&WIDER 16LINERS	PCS	$51.20	$64.00	20	0
+4800060334000	NEWTEX PANTLNER 20LINERS	PCS	$24.80	$31.00	20	7
+4800067601846	SOSA 500ML	PCS	$70.40	$88.00	20	0
+4800092110030	REBISCO CHOCO 320G	PCS	$46.40	$58.00	20	0
+4800092110047	REBISCO STRWBRY 320G	PCS	$46.40	$58.00	20	0
+4800092112492	REBISCO WWHEAT320G	PCS	$51.20	$64.00	20	0
+4800092113253	REBISCO CHOCO 32G	PCS	$6.40	$8.00	20	0
+4800092113260	REBISCO STRWBRY 32G	PCS	$6.40	$8.00	20	0
+4800092113352	FROOTEES STRWJAM 32G	PCS	$6.40	$8.00	20	0
+4800110060637	WK FSTA MACARONI ELBOW 1KG	PCS	$65.60	$82.00	20	12
+4800110060842	FIESTA MACARONI SALAD 400G	PCS	$33.60	$42.00	20	0
+4800110068954	RYAL MACARONI ELBOW 200G	PCS	$28.80	$36.00	20	13
+4800110080369	SNKIST ORNGE JUICE 235ML	PCS	$16.00	$20.00	20	0
+4800110080376	SNKST MNGO JUICE 235ML	PCS	$17.60	$22.00	20	0
+4800110080383	SUNKIST GRAPE 235ML	PCS	$16.00	$20.00	20	0
+4800110080482	SLCTA MOO M-C 245ML	PCS	$22.40	$28.00	20	0
+4800110091556	WHITE KNG PUTO 400G	PCS	$63.20	$79.00	20	0
+4800110093895	SLCT FRTFIED MLK 245ML	PCS	$22.40	$28.00	20	0
+4800110098470	FIESTA SPAGHETTI SAUCE 1KG	PCS	$40.00	$50.00	20	0
+4800147200426	NEW ORCHID CHEERY 100G	PCS	$36.80	$46.00	20	0
+4800147200433	NEW ORCHID STRAWBERRY 100G	PCS	$36.80	$46.00	20	0
+4800147200464	NEW ORCHID SAMPAGUITA 100G	PCS	$36.80	$46.00	20	1
+4800147200990	NEW ORCHID APPLE 100G	PCS	$36.80	$46.00	20	0
+4800147201010	NEW ORCHID APPLE 100G	PCS	$39.20	$49.00	20	0
+4800147201836	NEW ORCHID MELON 100G	PCS	$36.80	$46.00	20	0
+4800147201898	NEW ORCHID BLUEBERRY 100G	PCS	$43.20	$54.00	20	0
+4800186002029	GOLDEN OATS PRMOPCK 2X400G	PCS	$104.80	$131.00	20	0
+4800186004115	GOLDEN OATS FRTD MLK CAL200G	PCS	$42.40	$53.00	20	9
+4800186004917	GOLDEN OATS CHOCO200G	PCS	$42.40	$53.00	20	0
+4800188108385	LIKAS PAPAYA 135G	PCS	$52.80	$66.00	20	0
+4800194101912	OISHI OHEYA CHEZ FLVR 40G	PCS	$9.20	$11.50	20	0
+4800194106191	OISHI ZIGGS 100G	PCS	$23.20	$29.00	20	0
+4800194112529	SUNDAYS PNEAPPLE 35G	PCS	$8.00	$10.00	20	0
+4800194112628	SUNDAYS MANGO 35G	PCS	$8.00	$10.00	20	0
+4800194117975	OISHI OHEYA F-ONION40G	PCS	$9.20	$11.50	20	0
+4800194117982	OISHI OHEYA BBQ40G	PCS	$9.20	$11.50	20	0
+4800194145046	OISHI BRED PAN CHEDRCHS42G	PCS	$9.60	$12.00	20	0
+4800214018022	FRUIT-TELLA ORNGE 1PCK	PCS	$0.00	$0.00	20	0
+4800214018039	FRUIT-TELLA STRWBBRY 1PCK	PCS	$13.60	$17.00	20	0
+4800216110328	NACHO HOT CHILI 100G	PCS	$18.40	$23.00	20	0
+4800216125216	FARMER PTTCHIP CHDR-SRCRM 90G	PCS	$43.20	$54.00	20	0
+4800237888817	CHATLET CHCOPNUT 288G	PCS	$22.40	$28.00	20	0
+4800282006013	GOLDEN VLLY OLIVE OIL 500ML	PCS	$216.80	$271.00	20	5
+4800310153566	BLACKWATER DESIRE150ML	PCS	$171.20	$214.00	20	0
+4800310153573	BLACKWATER ADMIRE 150ML	PCS	$151.20	$189.00	20	1
+4800310153726	BLACKWATER WOMEN 150ML	PCS	$171.20	$214.00	20	4
+4800310260387	BLACKWATER DYNAMIC 100ML	PCS	$113.60	$142.00	20	0
+4800310342601	BLACKWATER EB 100ML	PCS	$113.60	$142.00	20	0
+4800310342625	BLACKWATER SPORTS 100ML	PCS	$113.60	$142.00	20	0
+4800310343189	BLACKWATER PINK 100ML	PCS	$124.00	$155.00	20	2
+4800310343202	BLACKWATER SONICE 100ML	PCS	$124.00	$155.00	20	7
+4800310343219	BLACKWATER SO NICE 100ML	PCS	$124.00	$155.00	20	0
+4800312283148	VERNEL ROSE ANTIBAC 35ML	PCS	$4.00	$5.00	20	0
+4800312283360	VERNEL LQD BSKY ANTBC 35ML	PCS	$4.00	$5.00	20	0
+4800312465506	VERNEL LVNDR ANTIBAC 35ML	PCS	$4.00	$5.00	20	0
+4800312466206	DUTCH POW LMNSCNT 50G	PCS	$6.40	$8.00	20	0
+4800312466299	DUTCH POW REGULAR 50G	PCS	$6.40	$8.00	20	0
+4800314000019	SCOTCH-BRITE 75MM	PCS	$20.80	$26.00	20	104
+4800314000026	SCOTCH-BRITE 95MM	PCS	$30.40	$38.00	20	0
+4800361328302	MAGIC SARAP 96G	PCS	$32.00	$40.00	20	0
+4800361373081	NSTLE YGRT BUCO-PNDN 120G	PCS	$23.20	$29.00	20	0
+4800361387880	NSTL TEMPT ITLIAN CHC HZLNUT 8	PCS	$184.00	$230.00	20	0
+4800361387903	NSTL TEMPT FRNCH SLTD CRMEL800	PCS	$184.00	$230.00	20	0
+4800361393928	NSTL MILO 22G	PCS	$6.80	$8.50	20	0
+4800361393942	NSTL MILO 264G	PCS	$66.40	$83.00	20	0
+4800361396769	NSTL TEMPT CCKSDOUGH 1.3L	PCS	$208.80	$261.00	20	0
+4800361397681	NSTL 2N1SORB HALO&UBEHLYA 1L	PCS	$150.40	$188.00	20	0
+4800361397698	NSTL 2N1 DBL ESP MGGSMNCHCO 1L	PCS	$150.40	$188.00	20	0
+4800361399432	NSTL TEMPT PNTBTTR&CHCO1.3L	PCS	$132.00	$165.00	20	0
+4800361401609	NSTL STRWBRY CHSCK 100ML	PCS	$36.80	$46.00	20	0
+4800361401982	NSTL SORBETES KESO 1L	PCS	$168.00	$210.00	20	0
+4800374040116	PIONEER MGHTY GASKT 15G	PCS	$21.60	$27.00	20	0
+4800528456374	HOBE SPCL PALABOK 454G	PCS	$26.40	$33.00	20	0
+4800552888011	CHPS DLGHT CHCHPCKS 40G	PCS	$9.60	$12.00	20	0
+4800552888066	CHPS DLGHT CHCHPCKS 20G	PCS	$4.80	$6.00	20	0
+4800552888219	CHPS DLGHT SFTBRWCKS 200G	PCS	$48.00	$60.00	20	0
+4800552888318	CHPS DLGHT PNT&CRMLCHPCKS 40G	PCS	$9.60	$12.00	20	0
+4800552888813	CHIPS DLGHT MINI 130G	PCS	$44.00	$55.00	20	0
+4800575883000	CARNATION EVAP 370ML	PCS	$32.80	$41.00	20	0
+4800631681892	B-BWNG B-DDY 90G	PCS	$15.20	$19.00	20	0
+4800639021942	MONGL XL#2 IDZN	DOZE	$0.00	$0.00	20	0
+4800888112965	DOMEX CLSSC 500ML	PCS	$81.60	$102.00	20	10
+4800888112972	DOMEX CLSSC 1LITER	PCS	$138.40	$173.00	20	10
+4800888133502	CLEAR FRAGRANCE SHMPO 80ML	PCS	$50.40	$63.00	20	0
+4800888136671	SURF BAR  BLSSM FRSH 130G	PCS	$8.80	$11.00	20	77
+4800888136732	SURF BAR OXYBBLS 130G	PCS	$8.80	$11.00	20	52
+4800888136794	SURF BAR OXYBBLS &MCRBBLES 130	PCS	$8.00	$10.00	20	42
+4800888138385	SSILK SHA STRIGHT 10ML	PCS	$4.80	$6.00	20	0
+4800888140432	SURF LEMON DOUBLE POWER 190ML	PCS	$26.40	$33.00	20	0
+4800888143495	VASELINE LOTION SPF 100ML	PCS	$243.52	$304.40	20	8
+4800888144942	PONDS FACIAL WASH 10G	PCS	$12.80	$16.00	20	0
+4800888151056	SURF KALAMANSI DOUBLE PWR 190M	PCS	$28.80	$36.00	20	0
+4800888154293	DOVE NRISHING  90ML	PCS	$55.20	$69.00	20	0
+4800888154309	DOVE INTENSE SHMPO 90ML	PCS	$55.20	$69.00	20	0
+4800888154422	DOVE CON INTENSE 10ML	PCS	$5.60	$7.00	20	2
+4800888155962	SURF BAR  ANTIBAC 130G	PCS	$8.00	$10.00	20	0
+4800888157683	SURF FABCON MRNNG FRSH 800ML	PCS	$113.60	$142.00	20	4
+4800888158826	VASELINE THCK&SHNY SHMPO 16ML	PCS	$4.80	$6.00	20	19
+4800888160027	REXONA ICE COOL 3ML	PCS	$7.20	$9.00	20	0
+4800888160904	SURF FABCON BLOSSOM FRESH 800M	PCS	$96.80	$121.00	20	0
+4800888171498	SURF FABCON ANTBCTRL 800ML	PCS	$113.60	$142.00	20	3
+4800888176851	MASTER FCIAL SCRB 4G	PCS	$4.80	$6.00	20	0
+4800888179630	DOVE CONDITNER 10ML	PCS	$5.60	$7.00	20	0
+4800888180070	CREAM SLK  STNDOUT&STRGHT 10ML	PCS	$6.40	$8.00	20	0
+4800888190215	DOVE CON OXGN 10ML	PCS	$5.60	$7.00	20	0
+4800888199119	SURF BAR PRPLBLSM 130G	PCS	$8.80	$11.00	20	20
+4800888602718	KNORR CHCKN CUBE 10G	PCS	$4.80	$6.00	20	0
+4800888602732	KNORR BEEF CUBE 10G	PCS	$4.80	$6.00	20	0
+4800888605344	KNORR KARE2X 40G	PCS	$24.00	$30.00	20	0
+4801010103011	J&J PWDR PRCKLY HEAT 25G	PCS	$16.00	$20.00	20	0
+4801010107101	J&J COLING PWDR 50G	PCS	$20.24	$25.30	20	0
+4801010160007	ISOPRPHYL BND-AID 70% 150ML	PCS	$28.80	$36.00	20	0
+4801010539001	J&J ACTVE FRSH 200ML	PCS	$70.40	$88.00	20	0
+4801010562108	J&J BBY MLK SOAP 100G	PCS	$27.20	$34.00	20	0
+4801234010126	PLDGE NTRL LQD WAX 500ML	PCS	$190.40	$238.00	20	9
+4801234010133	PLDGE NTRL LQD WAX 1L	PCS	$358.40	$448.00	20	4
+4801234010218	PLDGE RED LQD WAX 1L	PCS	$358.40	$448.00	20	8
+4801234010225	PLDGE RED LQD WAX 500ML	PCS	$192.00	$240.00	20	18
+4801234061210	GLADE SPRING JASMINE 320ML	PCS	$158.40	$198.00	20	0
+4801234072667	MR MUSCLE 250ML	PCS	$37.60	$47.00	20	0
+4801234105211	BAYGON MSQTO COIL 125G	PCS	$13.60	$17.00	20	24
+4801234133634	OFF CLEAN FEEL 6ML	PCS	$6.40	$8.00	20	1
+4801668606452	LOCALLY CLMNSI 240ML	PCS	$24.80	$31.00	20	0
+4801668606469	LOCALLY POMELO 240ML	PCS	$24.80	$31.00	20	0
+4801668606476	LOCALLY TMARND  240ML	PCS	$24.80	$31.00	20	0
+4801668606629	LOCALLY GYBANO 240ML	PCS	$24.80	$31.00	20	0
+4801958390108	CRISPYFRY BREDNG MIX 62G	PCS	$14.40	$18.00	20	251
+4801981109180	MINUTE MAID PULPY ORNGE 1L	PCS	$56.00	$70.00	20	0
+4801981139194	8 O'CLCK ORANGE 87.5G	PCS	$44.80	$56.00	20	0
+4801981139231	8 O'CLOCK PONKAN175G	PCS	$88.80	$111.00	20	0
+4801981139255	8 O'CLCK PINEAPPLE 87.5G	PCS	$44.80	$56.00	20	0
+4801981139279	8 O'CLCK ORNGMNGO 87.5G	PCS	$44.80	$56.00	20	0
+4803746151472	HRBS&BEUTY LOTION 250ML	PCS	$116.00	$145.00	20	0
+4803746151489	HRBS&BEAUTY LOTION 250ML	PCS	$99.20	$124.00	20	0
+4803746151496	HRBS&BEAUTY LOTION 250ML	PCS	$98.40	$123.00	20	0
+4803746380025	TUFFPLD ETERNTY800G	PCS	$162.40	$203.00	20	0
+4803746900018	ALERT OPTIMUM TTHPASTE 160G	PCS	$118.40	$148.00	20	0
+4803746900032	ALERT KIDS TTHPASTE 50G	PCS	$60.00	$75.00	20	2
+4803925062322	G ACTIVE 500ML	PCS	$28.00	$35.00	20	0
+4803925241123	GATORADE TRPCAL FRT 1.5L	PCS	$85.60	$107.00	20	0
+4804888528160	KA DOLLY S-N GYBNO 320ML	PCS	$35.20	$44.00	20	0
+4804888555388	FRY&POP ONN&GRLC CRCK200G	PCS	$29.60	$37.00	20	0
+4804888618809	ZESTO YO! MNGO STRWBRY 200ML	PCS	$19.20	$24.00	20	0
+4804888618816	ZESTO YO! BNANA LYCHE 200ML	PCS	$19.20	$24.00	20	0
+4804888620543	ZESTO KIDZ JUICE 200ML	PCS	$8.00	$10.00	20	0
+4804888800228	ZESTO MNGO NCTAR 250ML	PCS	$23.20	$29.00	20	0
+4804888815246	TOBI SWEET&CREAMY PB240G	PCS	$83.20	$104.00	20	0
+4804888815338	TOBI MELON SEEDS 100G	PCS	$32.80	$41.00	20	0
+4804888815413	TOBI MXD NUTS 45G	PCS	$21.60	$27.00	20	0
+4804888815444	TOBI MXCAN STYL 50G	PCS	$18.40	$23.00	20	0
+4804888815512	TOBI PISTACHIOS 50G	PCS	$70.40	$88.00	20	0
+4804888815666	TOBI CHOCO PB240G	PCS	$87.20	$109.00	20	0
+4804888815673	TOBI CREAMY PB240G	PCS	$87.20	$109.00	20	0
+4805358245051	STAR MARGRN CLASC250G	PCS	$64.80	$81.00	20	0
+4805358279056	STAR MARGRN SWT BLND250G	PCS	$64.80	$81.00	20	0
+4806011111805	TOP CHLK 12PCS	PCS	$12.80	$16.00	20	59
+4806014000014	JOLLY YNG CORN 425G	PCS	$35.20	$44.00	20	14
+4806014000304	J-C FRSH MLK  1L	PCS	$69.60	$87.00	20	0
+4806014000359	GOODLIFE VRMCLLI 1.59OZ	PCS	$7.20	$9.00	20	0
+4806014000601	GOOD LIFE SSME OIL 210ML	PCS	$115.20	$144.00	20	4
+4806014000816	JOLLY GRASS JELLY 540G	PCS	$28.80	$36.00	20	0
+4806014092828	JOLLY STBLK BNS180G	PCS	$20.80	$26.00	20	13
+4806014093849	JOLLY PCH HLVS 825G	PCS	$80.00	$100.00	20	0
+4806014093856	DN ELNA OLV PTD GRN140G	PCS	$56.80	$71.00	20	0
+4806014093948	DN ELNA OLV PTD BLCK140G	PCS	$52.80	$66.00	20	0
+4806014095874	JOLLY SHIT MSHRM198G	PCS	$34.40	$43.00	20	0
+4806014096048	JOLLY PINEAPPLE TIDBITS 850G	PCS	$64.80	$81.00	20	8
+4806014099278	JLLY PMEINTO 113G	PCS	$24.80	$31.00	20	10
+4806014099766	JLLY TOMATO PSTE 70G	PCS	$12.00	$15.00	20	0
+4806014800850	SPRNG CMB #85	PCS	$6.40	$8.00	20	0
+4806020400587	SPEED BAR POWER DUO 380G	PCS	$21.60	$27.00	20	0
+4806020440187	SPEED FABCON WHTNR 55G	PCS	$4.80	$6.00	20	11
+4806020440224	SPEED FABCON WHTNR 1000G	PCS	$83.20	$104.00	20	0
+4806020440576	SPEED FABCON FRSH ROSES55G	PCS	$4.80	$6.00	20	0
+4806020440583	SPEED BABAD TPDPCK 35G	PCS	$4.40	$5.50	20	0
+4806020456195	SPEED FABCON 1000G	PCS	$72.80	$91.00	20	0
+4806020456249	SPEED FABCON KALAMANSI 1000G	PCS	$72.80	$91.00	20	0
+4806020456362	SPEED FABCON  55G	PCS	$4.80	$6.00	20	30
+4806020456386	SPEED FABCON KALMNSI90G	PCS	$7.20	$9.00	20	0
+4806020456478	SPEED FABCON FRSHRSS 1000G	PCS	$83.20	$104.00	20	0
+4806020497525	SPEED BAR. PWR WHTENER 160G	PCS	$8.00	$10.00	20	24
+4806020497532	SPEED BAR KLAMNSI 160G	PCS	$7.20	$9.00	20	7
+4806020497549	SPEED BAR FABCON 160G	PCS	$8.00	$10.00	20	11
+4806020497563	SPEED BAR. BLUE 160G	PCS	$8.00	$10.00	20	2
+4806021316139	JOY MLTI CHLK 12PCS	PCS	$12.00	$15.00	20	0
+4806021381861	J&GLSSY PPER A-4 210GSM	PCS	$88.00	$110.00	20	3
+4806021384251	OIL PSTLE 18-CLR 9X60MM	PCS	$35.20	$44.00	20	0
+4806028900959	INDEX CARD 3X5 100S CLRD	PCS	$38.40	$48.00	20	0
+4806028905954	FLMNGO S&PPR 80GSM	REAM	$0.00	$0.00	20	10
+4806030200153	JLLY PNEAPPLE CHNKS 850G	PCS	$64.00	$80.00	20	7
+4806500070767	CARRIE CTICLE REMOVR 30ML	PCS	$8.00	$10.00	20	198
+4806500070774	CARRIE CTCLE RMVR 60ML	PCS	$8.00	$10.00	20	91
+4806500075243	TAWA UNSCENTD PWDR 50GMS	PCS	$7.20	$9.00	20	0
+4806500670073	KOMEYA 3Q BIHON 454G	PCS	$26.40	$33.00	20	0
+4806500670462	KOMEYA 3QPALABOK 454G	PCS	$26.40	$33.00	20	4
+4806501705323	CHAMPOIN POW CTRS FRSH 120G	PCS	$11.20	$14.00	20	0
+4806502138939	SNBST CRMSTYL CORN425G	PCS	$32.00	$40.00	20	8
+4806502139769	SUNBST LYCHEE 565G	PCS	$55.20	$69.00	20	0
+4806502140338	INDEX CARD 4X6 100S CLRD	PCS	$55.20	$69.00	20	0
+4806502252680	SKTCH PAD 152MM X 228 MM	PCS	$12.80	$16.00	20	0
+4806502252697	SKETCH PAD 228MMX 304MM	PCS	$24.00	$30.00	20	0
+4806502254295	VICTORY LESSON	PCS	$12.00	$15.00	20	0
+4806502760369	DAILA AVOCADO SOAP 90G	PCS	$99.20	$124.00	20	0
+4806502760444	DAILA HS 135G	PCS	$69.00	$86.25	20	5
+4806502760895	DAILA FEMININE SOAP 90G	PCS	$89.00	$111.25	20	0
+4806502761496	DAILA DAYAP SOAP 90G	PCS	$99.20	$124.00	20	0
+4806502761533	DAILA GUGO SHMP BAR 120G	PCS	$110.40	$138.00	20	1
+4806502761755	GUGO SHAMPOO 250ML	PCS	$210.40	$263.00	20	0
+4806502816479	HGH ENDRNCE DEODORNT 45G	PCS	$164.00	$205.00	20	0
+4806504760169	SNOWMAN VNYL CLP NO.50 BXS	PCS	$16.00	$20.00	20	0
+4806507831569	SLKA GREEN PPYA 200ML	PCS	$100.00	$125.00	20	0
+4806512304195	CRISTELA 15011	PCS	$132.00	$165.00	20	0
+4806512305277	CRISTELA 8108	PCS	$88.00	$110.00	20	0
+4806512305987	CRISTELA 687	PCS	$155.20	$194.00	20	0
+4806512306021	CRISTELA 17140	PCS	$60.80	$76.00	20	0
+4806512306212	CRISTELA 30007 J	PCS	$100.00	$125.00	20	0
+4806512306397	CRSTLA MFG DRMAT-M	PCS	$69.60	$87.00	20	0
+4806512306427	CRSTLA MFG DRMAT-L	PCS	$80.00	$100.00	20	0
+4806512306571	CRISTELA 5105	PCS	$70.40	$88.00	20	0
+4806512306861	CRISTELA 15015 B	PCS	$158.00	$197.50	20	0
+4806512306939	CRISTELA30011B	PCS	$40.00	$50.00	20	0
+4806512307264	CRISTELA 9001	PCS	$78.80	$98.50	20	0
+4806512307950	CRISTELA 17212 C	PCS	$111.60	$139.50	20	0
+4806512308421	CRISTELA SL002	PCS	$15.60	$19.50	20	0
+4806512308483	CRISTELA SL008	PCS	$17.60	$22.00	20	0
+4806512308506	CRISTELA SL010	PCS	$22.80	$28.50	20	0
+4806512308841	CRISTELA H-001 E	PCS	$43.60	$54.50	20	0
+4806512308858	CRISTELA H-002 D	PCS	$127.80	$159.75	20	0
+4806512308889	CRISTELA H-005 D	PCS	$39.00	$48.75	20	0
+4806512308896	CRISTELA H-006 J	PCS	$115.80	$144.75	20	0
+4806512309312	CRISTELA CL-001	PCS	$79.20	$99.00	20	0
+4806512309350	CRISTELA CL-003	PCS	$55.60	$69.50	20	0
+4806512880064	ELLPS CUTIE 100ML	PCS	$51.20	$64.00	20	6
+4806512880071	ELLPS MISSY 100ML	PCS	$51.20	$64.00	20	4
+4806512880880	ELLPS TRIXEE 100ML	PCS	$51.20	$64.00	20	5
+4806512881313	ELLPS S-MYSTIQUE 65ML	PCS	$73.60	$92.00	20	2
+4806512881702	ELLIPS COLOGNE 100ML	PCS	$51.20	$64.00	20	4
+4806513170973	MOSQUIGO 50ML	PCS	$18.40	$23.00	20	0
+4806514650016	BUENAS NATDCC 340G	PCS	$44.80	$56.00	20	8
+4806514650030	BUENAS NATDCC GRN 340G	PCS	$44.80	$56.00	20	10
+4806514650047	BUENAS KAONG WHT 340G	PCS	$59.20	$74.00	20	3
+4806514650054	BUENAS KAONG RED 340G	PCS	$59.20	$74.00	20	14
+4806514650061	BUENAS KAONG GRN 340G	PCS	$59.20	$74.00	20	10
+4806514650085	BUENAS WHTEBEANS 340G	PCS	$60.80	$76.00	20	0
+4806514650092	BUENAS REDBEANS 340G	PCS	$58.40	$73.00	20	0
+4806514650122	BUENAS JACKFRT LANKA340G	PCS	$90.40	$113.00	20	0
+4806514650139	BUENAS UBE 340G	PCS	$72.00	$90.00	20	0
+4806515630000	SUKA PNAKRAT SAWSWN BYAN250ML	PCS	$48.80	$61.00	20	0
+4806515630291	SUKA PNAKRAT SWTENED250ML	PCS	$48.80	$61.00	20	0
+4806517040043	DLFI KNCKNCKS MLK62G	PCS	$14.80	$18.50	20	0
+4806517040067	DLFI KNCKNCKS STWBRRY62G	PCS	$14.40	$18.00	20	0
+4806517040401	DLFI KNICK KNCKS STRWBRRY 28G	PCS	$6.00	$7.50	20	0
+4806517781106	TAWAS POWDER 50G	PCS	$12.00	$15.00	20	0
+4806518330068	BELO WBB 90G	PCS	$52.00	$65.00	20	0
+4806518330075	BELO WBB 135G	PCS	$68.80	$86.00	20	0
+4806518330518	BELO ESSENTIAL SOAP 65G	PCS	$30.40	$38.00	20	0
+4806519890103	UNI KOJIC SOAP 90G	PCS	$26.40	$33.00	20	0
+4806523080002	MAX STAPLE NO.10-1M	PCS	$4.80	$6.00	20	816
+4806523080019	MAX STAPLE NO.10-1M BXS	PCS	$57.60	$72.00	20	0
+4806523121354	INDEX CARD 3X5 100S CLRD	PCS	$38.40	$48.00	20	2
+4806523121415	INDEX CARD 4X6 100S CLRD	PCS	$55.20	$69.00	20	12
+4806524580044	COTTON ABSRBNT ROLL 10G	PCS	$4.80	$6.00	20	0
+4806525080024	BUBBLE MAN LIQ LMN 20ML	PCS	$4.80	$6.00	20	103
+4806525940168	DONCD CRM STY CRN425G	PCS	$28.00	$35.00	20	6
+4806527020509	VICTORY BIOPOWDR W/ DSNF70G	PCS	$8.80	$11.00	20	0
+4806531300222	NFC LYCHEE F-JELLY 480G	PCS	$19.20	$24.00	20	0
+4806531670066	APPLAUSE FABCON SCNT 1L	PCS	$70.40	$88.00	20	31
+4806789000400	KIWI SHOECREAM BROWN 5ML	PCS	$7.20	$9.00	20	0
+4806789010102	FISSAN DIAPER RSH PWDR 50G	PCS	$60.00	$75.00	20	2
+4806789519957	MASTER ZEROIL 4G	PCS	$4.80	$6.00	20	0
+4807770101533	BINGO ORANGE 28G	PCS	$4.80	$6.00	20	0
+4807770101557	BINGO DBLCHC 28G	PCS	$4.80	$6.00	20	0
+4807770120435	VOICE CMBO CHOC 30G	PCS	$4.80	$6.00	20	0
+4807770120787	VOICE STRWBRRY 25G	PCS	$4.80	$6.00	20	0
+4807770121210	NISSN STCKWFR STRW 22G	PCS	$4.80	$6.00	20	0
+4807770121395	MONDE SPCL MMN VNLCRM 192G	PCS	$52.80	$66.00	20	0
+4807770121685	VOICE C-MOCHA 25G	PCS	$4.80	$6.00	20	0
+4807770121784	MONDE SPCLMMN STRWJAM 192G	PCS	$52.80	$66.00	20	0
+4807770122323	NSSN BTTR CCNT BTS 30G	PCS	$6.40	$8.00	20	0
+4808647310089	TANG ORANGE 525G	PCS	$161.60	$202.00	20	0
+4808647310287	TANG PINEAPPLE 350G	PCS	$110.40	$138.00	20	0
+4808680220802	KNORR BEEFSOUP 60G	PCS	$28.00	$35.00	20	0
+4808680221359	KNORR CHCKNSOUP 60G	PCS	$31.20	$39.00	20	0
+4808680233000	KNORR LIQ SEASNING ORIG500ML	PCS	$120.80	$151.00	20	0
+4808885280076	CARONIA CTCLE RMVR 30ML	PCS	$14.40	$18.00	20	0
+4809010639622	MARKY'S BKOPNDN PUTOSKO 170G	PCS	$24.00	$30.00	20	0
+4809010742247	GREEN LEAVE BUKO PNDA	PCS	$10.40	$13.00	20	0
+4809010742278	LYE WATER (LIHIA) 60ML	PCS	$10.40	$13.00	20	0
+4809011390003	CONCRP UBEPSTLLA96G	PCS	$20.00	$25.00	20	0
+4809011956070	LEMONADA CLMNSI 800ML	PCS	$160.00	$200.00	20	0
+4809011956117	LEMONDA CLMNSI JUICE 330ML	PCS	$22.40	$28.00	20	0
+4809012063173	KITCHENTOWEL 1ROLL	PCS	$50.40	$63.00	20	0
+4809012371001	MITSUKA THMB TCKS #111	PCS	$15.20	$19.00	20	0
+4809013293968	ACNE CARE SOAP 135G	PCS	$148.80	$186.00	20	53
+4809013293982	SNOW SOAP PPYA&TMTO 125G	PCS	$59.20	$74.00	20	47
+4809013300451	KOJIE SAN D&W SOAP 65G	PCS	$36.80	$46.00	20	16
+4809013772104	SUNRISE CORN COFFEE 250G	PCS	$140.00	$175.00	20	0
+4809014247205	FLRSH GLASS CANDLE XL	PCS	$130.40	$163.00	20	3
+4809014247236	FLOURISH CANDLE FACTORY	PCS	$34.40	$43.00	20	0
+4809014247267	FLOURISH CANDLE 16/5	PCS	$20.80	$26.00	20	0
+4809014247304	FLOURISH CANDLE 22/2	PCS	$59.20	$74.00	20	9
+4809014247519	FLOURISH CANDLE 3/20	PCS	$22.40	$28.00	20	0
+4809014247526	FLOURISH CANDLE 5/20	PCS	$32.80	$41.00	20	0
+4809014247533	FLOURISH CANDLE  18/4	PCS	$27.20	$34.00	20	0
+4809014247540	FLOURISH CANDLE 19/4	PCS	$52.80	$66.00	20	0
+4809014247571	FLOURISH CANDLE 6/20	PCS	$47.20	$59.00	20	5
+4809014247908	FLOURISH CANDLE 10/10	PCS	$38.40	$48.00	20	1
+4809014412009	SHULAMMITE CS 150G	PCS	$93.60	$117.00	20	22
+4809014412023	L-GLUTATHIONE 150G	PCS	$143.20	$179.00	20	31
+4809014799117	BIOGLOW DEODORIZER 500ML	PCS	$180.00	$225.00	20	1
+4809014799124	BIOGLOW DLIQUID 500ML	PCS	$100.00	$125.00	20	1
+4809015264669	INDEX CARD 5X8 100S CLRD	PCS	$100.00	$125.00	20	3
+4891138887948	ENERGIZER RECHARGE SET	PCS	$1,850.40	$2,313.00	20	0
+4891228530181	SCHCK2 BLADE	PCS	$14.40	$18.00	20	37
+4891228607012	SCHICK  EXCTA2 BLADE	PCS	$22.60	$28.25	20	25
+4895136004147	H&BRUSH SET	PCS	$0.00	$0.00	20	0
+4902430089616	WHSPER PANTLINR 40UNSC	PCS	$84.80	$106.00	20	12
+4902430177597	PERLA BAR. ORIGINAL WHITE 95GX	PCS	$43.20	$54.00	20	0
+4902430178211	DOWNY ANTIBAC 900ML	PCS	$152.00	$190.00	20	0
+4902430178228	PERLA HYPOALLERGENIC BAR95GX4	PCS	$43.20	$54.00	20	0
+4902430222891	SAFEGUARD PW 180G	PCS	$48.80	$61.00	20	13
+4902430228138	SAFEGUARD CE 135G	PCS	$37.60	$47.00	20	0
+4902430264938	PANTENE SHMPO 10ML	PCS	$4.80	$6.00	20	3
+4902430264952	PANTENE ANTI DRFT SHMPO 10ML	PCS	$6.40	$8.00	20	38
+4902430276337	DOWNY PRFM PASSION 900ML	PCS	$176.80	$221.00	20	8
+4902430278096	TIDE BAR NTRE FRSH 380G	PCS	$21.60	$27.00	20	17
+4902430316811	SAFEGUARD TF 90G	PCS	$25.60	$32.00	20	0
+4902430346191	DOWNY LQD. 1 BANLAW 40ML	PCS	$7.20	$9.00	20	2
+4902430358453	OLAY LGHT D-C 7.5G	PCS	$16.00	$20.00	20	0
+4902430381789	SAFEGUARD IWC 90G	PCS	$24.80	$31.00	20	16
+4902430389563	JOY LIQUID.LEMN 45ML	PCS	$10.40	$13.00	20	0
+4902430390903	BONUX POW 3N1 FBCN 57G	PCS	$4.80	$6.00	20	0
+4902430399401	PANTENE CONDTNER DMGE CARE 75M	PCS	$50.40	$63.00	20	0
+4902430400978	PANTENE CNTRL CONDTNER 165ML	PCS	$102.40	$128.00	20	5
+4902430412681	TIDE LEMON&CALMNSI1750G+	PCS	$165.60	$207.00	20	0
+4902430414906	PANTENE CNDTNER CNTRL 180ML	PCS	$128.00	$160.00	20	2
+4902430429405	REJOICE SFT SMTH SHMPO 70ML	PCS	$40.00	$50.00	20	0
+4902430434393	JOY LIQUID. KLMNSI 20ML	PCS	$5.60	$7.00	20	17
+4902430440035	BONUX BAR LVNDR&LMN 130G	PCS	$8.80	$11.00	20	0
+4902430440066	BONUX 3IN1 LAVDR&LEMON1.4KG	PCS	$99.20	$124.00	20	0
+4902430452694	DOWNY GRDN BLM 43ML	PCS	$7.20	$9.00	20	102
+4902430452779	DOWNY FABRIC. GRDEN BLM 900ML	PCS	$130.40	$163.00	20	4
+4902430473491	ARIEL SUNRISE FRSH700G	PCS	$92.00	$115.00	20	12
+4902430490368	SCRET S-D DEODRNT 14G	PCS	$64.80	$81.00	20	0
+4902430495103	SAFEGUARD FG 90G	PCS	$27.20	$34.00	20	13
+4902430506977	H&SHLDR MEN  CL-BLST  315ML	PCS	$220.20	$275.25	20	0
+4902430513074	DOWNY LQD GRDNBLM 3PID 66ML	PCS	$9.60	$12.00	20	145
+4902430522076	SAFEGUARD GUAVA SOAP 60G	PCS	$16.00	$20.00	20	92
+4902430523219	BONUX BAR KALAMANSI 130G	PCS	$8.00	$10.00	20	0
+4902430523226	BONUX BAR FLWRFST 130G	PCS	$8.00	$10.00	20	0
+4902430623193	BONUX ROSE&VAN 1.4KG	PCS	$99.20	$124.00	20	0
+4902430623216	BONUX BAR ROS&VAN 380G	PCS	$22.40	$28.00	20	0
+4902430624572	PNTNE 3MNT CNDTNER 340ML	PCS	$223.20	$279.00	20	7
+4902430640053	ARIEL POW SNRS FRSH 48G	PCS	$7.20	$9.00	20	68
+4902430640077	ARIEL POW FPSSION 45G	PCS	$7.20	$9.00	20	169
+4902430671569	ARIEL SUNRS FRSH PWER GL900G	PCS	$132.80	$166.00	20	0
+4902430671620	ARIEL POWER GEL LQUD 45ML	PCS	$8.00	$10.00	20	0
+4902430674034	SAFEGUARD FPINK 180G	PCS	$48.80	$61.00	20	10
+4902430679602	DOWNY BABY GENTLE 900ML	PCS	$151.20	$189.00	20	1
+4902430687393	DOWNY PRFM SWEETHEART 900ML	PCS	$176.80	$221.00	20	0
+4902430688062	JOY LQUID. LVNDR&LMN 20ML	PCS	$5.60	$7.00	20	67
+4902430693110	OLAY PAPAYA BAR 60G	PCS	$30.40	$38.00	20	0
+4902430693134	OLAY WHTNING BAR 60G	PCS	$30.40	$38.00	20	17
+4902430727167	DOWNY FAB FUSION 25ML	PCS	$7.20	$9.00	20	0
+4902430729901	DOWNY FAB PASSION 20ML	PCS	$4.80	$6.00	20	350
+4902430729918	DOWNY FAB ROMANCE 20ML	PCS	$4.80	$6.00	20	0
+4902430731461	DOWNY FABRIC. DARING 25ML	PCS	$7.20	$9.00	20	0
+4902430742900	OLAY WHTNING BATH SET	PCS	$84.80	$106.00	20	0
+4902430743846	PANTENE SMMER RESCUE 12ML	PCS	$4.80	$6.00	20	1
+4902430747011	PMPRS  4-PNTS L	PCS	$40.80	$51.00	20	0
+4902430749756	OLAY NTRAL WHTE D-C 7.5G	PCS	$22.40	$28.00	20	0
+4902430752695	H&SHLDR SHMPO SPRME 330ML	PCS	$238.52	$298.15	20	0
+4902430754330	SAFEGUARD FPA 3PCS 60G	PCS	$43.20	$54.00	20	0
+4902430754347	SAFEGUARD FGREEN 3S	PCS	$43.20	$54.00	20	0
+4902430768924	ARIEL POW GBLSSM 1710G	PCS	$188.80	$236.00	20	8
+4902430774024	DOWNY FAB SWTHRT3PID 60ML	PCS	$14.40	$18.00	20	0
+4902430775878	RJOICE  SHMP PRFME FRSH 16ML	PCS	$4.80	$6.00	20	1
+4902430775892	REJOICE PRFME FRSH 340ML	PCS	$160.80	$201.00	20	0
+4902430775922	REJOICE PRFME FRSH 170ML	PCS	$4.80	$6.00	20	0
+4902430798020	OLAY NTRAL WHTE 75G P-SHT	PCS	$34.40	$43.00	20	0
+4902430800853	TIDE BAR  DWNY PERFUM380G	PCS	$21.60	$27.00	20	0
+4902430805735	PNTNE SHMPOO 12ML	PCS	$4.80	$6.00	20	0
+4902430805759	PNTNE SHMP UV-R 340ML	PCS	$190.44	$238.05	20	0
+4902430805810	PNTNE 3MNT CNDTNER 340ML	PCS	$223.20	$279.00	20	0
+4902430935593	SAFEGUARD FG 135G	PCS	$37.60	$47.00	20	19
+4902430970525	SAFEGUARD MENTHOL SOAP 60G	PCS	$16.80	$21.00	20	201
+4902505040177	PLOT BX-V5-B 1DZN	DOZE	$0.00	$0.00	20	0
+4902505040702	PLOT SC-FINE 1DZ	PCS	$336.00	$420.00	20	0
+4902505040788	PLOT SC-B 1DZ	DOZE	$0.00	$0.00	20	0
+4902505042805	PLOT WBMK-M-B 1DZ	DOZE	$0.00	$0.00	20	0
+4902505139321	PLOT G-TEC-C4 RED	PCS	$58.40	$73.00	20	0
+4902505152856	PLOT HI-TCPNT V5	PCS	$59.20	$74.00	20	2
+4902505343599	PILOT WYTEBORDMRKR INK	PCS	$95.20	$119.00	20	0
+4902505360084	PLOT BL-FR5-B	PCS	$58.40	$73.00	20	0
+4902505360169	PLOT BL-FR5 1DZ	DOZE	$0.00	$0.00	20	0
+4902505399152	PLOT  BL-FRP4 1DZ	DOZE	$0.00	$0.00	20	0
+4902505399411	PLOT BL-FR05-B 1DZ	DOZE	$0.00	$0.00	20	0
+4902870729288	STAPLER HD-50R	PCS	$272.00	$340.00	20	11
+4902870729295	MAX STAPLER W/RMVR HD-50R	PCS	$253.60	$317.00	20	0
+4902870729301	MAX STPLR HD-50R	PCS	$230.40	$288.00	20	0
+4902870729318	MAX STPLER HD-50R	PCS	$272.00	$340.00	20	0
+4902870775681	MAX STPLR HD-10	PCS	$18.40	$23.00	20	0
+4968306479585	KIWI BLCK SHOE PLSH 45ML	PCS	$90.40	$113.00	20	0
+4971850091585	CASIO MZ-12S	PCS	$264.80	$331.00	20	17
+4974052815560	ARTLNE PNT MRK 2.3MM PNK	PCS	$80.00	$100.00	20	4
+4974052820007	ARTLNE P-MRKR 2.3MM	PCS	$80.00	$100.00	20	0
+4974052827822	ARTLNE P-MRKR 2.3 ORNGE	PCS	$80.00	$100.00	20	10
+4974052854620	ARTLNE-500A  W-MRKR 2.0MM 1DZ	PCS	$80.00	$100.00	20	0
+4976680311308	EXTRA H&DTY  FJTSU R2/SP2	PCS	$40.00	$50.00	20	0
+4976680311407	EXTRA H&DTY FJTSU R14/SP2	PCS	$30.40	$38.00	20	5
+4976680312305	EXTR H&DTY FJTSU AA 1.5V	PCS	$90.40	$113.00	20	11
+4976680317904	EXTRA H&DTY FJTSU  AAA 1.5V	PCS	$36.00	$45.00	20	0
+4976680851101	FJTSU H&DTY  R20N/2100SP2	PCS	$40.00	$50.00	20	0
+4987176600776	VCKS VAPORUB 10G	PCS	$44.40	$55.50	20	18
+6177068462096	PARTY CANDLE	PCS	$10.40	$13.00	20	0
+6682838968727	NUMBER CANDEL	PCS	$0.00	$0.00	20	0
+6902482001008	KINGS VRMCLLI 70OZ	PCS	$19.20	$24.00	20	100
+6902482001015	KINGS VRMCLLI 3.18OZ	PCS	$9.60	$12.00	20	346
+6910181209304	SHUYA W/ WING 10PADS 240MM	PCS	$150.40	$188.00	20	0
+6910181209328	SHUYA NON WING 30PADS	PCS	$150.40	$188.00	20	0
+6923828830847	PLR BEAR D-SDED 6MM X 10M	PCS	$12.80	$16.00	20	0
+6923828839253	PLR BEAR D-SIDED 24MM X 10M	PCS	$12.80	$16.00	20	0
+6923828896058	PLR BEAR CRRCTN TAPE	PCS	$31.20	$39.00	20	0
+6926341827226	HBW OFFICE STPLER NO.9948	PCS	$55.20	$69.00	20	0
+6926341829022	HBW PUNCHER 42517S	PCS	$105.60	$132.00	20	0
+6926341871106	HBW STMP PAD NO.4	PCS	$10.40	$13.00	20	0
+6927097022002	SCOUR POWER PAD BIG	PCS	$10.40	$13.00	20	0
+6927097022019	SCOUR POWER SMALL	PCS	$8.80	$11.00	20	0
+6927500618259	RNBOW 18B-WTERCLRS	PCS	$23.20	$29.00	20	0
+6931043391227	HBW SHARPENER SH308	PCS	$175.20	$219.00	20	3
+6931100513852	HBW CRRCTION PEN 9ML	PCS	$44.00	$55.00	20	0
+6932124711101	SNOWMAN PUSH PIN #3351	PCS	$24.00	$30.00	20	5
+6932124788110	SNOWMAN PAPER FASTENER 50PCS	PCS	$24.80	$31.00	20	0
+6933696871279	MAGIC&RLIGHT CNDLE	PCS	$12.00	$15.00	20	0
+6935316000045	HAIR COMB #8329A	PCS	$10.40	$13.00	20	0
+6935316000052	HAIR CMB #8216	PCS	$7.20	$9.00	20	0
+6937619300082	HENG DA H&BRUSH	PCS	$20.00	$25.00	20	0
+6938159707287	NICTY COMB #728	PCS	$12.00	$15.00	20	0
+6987247805428	SHOE GLUE 6G	PCS	$6.40	$8.00	20	0
+7622300124632	EDEN SINGLES 125G	PCS	$45.60	$57.00	20	0
+8801117534912	ORION 468G	PCS	$0.00	$0.00	20	0
+8801549100525	AROMAX BRWN SHOE PLISH 50ML	PCS	$80.00	$100.00	20	0
+8850006481806	PLMLIVE CNDTNER 15ML	PCS	$4.00	$5.00	20	0
+8850006491102	SAFEGUARD MENTHOL SOAP 60G	PCS	$4.80	$6.00	20	0
+8850006491119	PALMOLIVE INTNSIVE SHMPO 13ML	PCS	$4.80	$6.00	20	0
+8850006491973	PALMOLIVE VBRANT SHMPO 13.5ML	PCS	$4.00	$5.00	20	0
+8850006493045	PLMOLIVE S&S SHMPO 15ML	PCS	$4.80	$6.00	20	0
+8850006590355	TENDER CARE PWDR MILD 50G	PCS	$16.80	$21.00	20	0
+8850006590379	TENDER CARE PWDR PNK SFT 50G	PCS	$18.40	$23.00	20	0
+8850007500629	J&J PWDR. PRCKLY HEAT 200G	PCS	$84.80	$106.00	20	0
+8851552504025	HORSE STMP BLACK NO.3	PCS	$40.00	$50.00	20	0
+8851932323901	AXE DEODRANT 50ML	PCS	$88.80	$111.00	20	1
+8888021300161	ENERGIZER ECR2025 3V L&B	PCS	$18.40	$23.00	20	0
+8888021300185	ENERGIZER ECR2032 3V L&B	PCS	$18.40	$23.00	20	0
+8888021301410	ENERGIZER RECHARGE AA2	PCS	$488.00	$610.00	20	0
+8888077102061	MEIJI HLLO PNDA 35G	PCS	$15.20	$19.00	20	0
+8888336011332	KORTEX MAXIWING 8PADS	PCS	$27.20	$34.00	20	0
+8934839123420	CLOSEUP GEL TTHPASTE 2X 90ML	PCS	$94.40	$118.00	20	0
+8934868053408	DOMEX CLASSIC 150ML	PCS	$23.20	$29.00	20	9
+8934868094975	SURF FABCON FRNCH PRFME 800ML	PCS	$100.00	$125.00	20	0
+8934868110651	SURF FABCON LUXE PERFUME 800ML	PCS	$96.80	$121.00	20	0
+8934868125198	SURF FABCON MAGICAL BLOOM 800M	PCS	$110.40	$138.00	20	0
+8991102023238	FORMULA SILVER PROTECTOR BRUSH	PCS	$16.80	$21.00	20	0
+8991102025256	FORMULA QUICKCLEAN BRUSH	PCS	$12.00	$15.00	20	0
+8992222053815	GATSBY FACEWASH 5G	PCS	$7.20	$9.00	20	0
+8992759214017	NICE BTHROOM TISSUE 1ROLL	PCS	$7.20	$9.00	20	0
+8992959107515	SOFTEX SLIM NONWING 8PADS	PCS	$34.40	$43.00	20	0
+8992959107539	SOFTEX SLIM WING 8PADS	PCS	$37.60	$47.00	20	0
+8993417302114	ELLIPS COLOGNE 25ML	PCS	$15.20	$19.00	20	13
+8993417302169	ELLIPS COLOGNE 25ML	PCS	$14.40	$18.00	20	7
+8993417302190	ELLIPS COLOGNE 25ML	PCS	$15.20	$19.00	20	8
+8993417322136	INTENSE S-CLGNE 75ML	PCS	$43.20	$54.00	20	28
+8993417322143	INTENSE COLOGNE 75ML	PCS	$43.20	$54.00	20	10
+8993417322235	INTNS CLGNE CNFDNT150ML	PCS	$77.60	$97.00	20	5
+8993417322242	INTENSE SPLSH COLOGNE 150ML	PCS	$77.60	$97.00	20	1
+8999002675427	ENRGZER MAX AAX1 1.5V	PCS	$0.00	$0.00	20	0
+8999999003654	VASELINE B3 LOTION 25ML	PCS	$18.40	$23.00	20	0
+8999999038601	PONDS SPF 15 DY CRM 10G	PCS	$36.80	$46.00	20	0
+8999999041913	SLCT OOH PNPG VNLLA 65ML	PCS	$0.00	$0.00	20	0
+8999999041920	SLCT OOH PNPG CHCLT 65ML	PCS	$0.00	$0.00	20	0
+8999999502911	CLOSEUP RED HOT 2X 90ML	PCS	$104.00	$130.00	20	0
+8999999716912	PONDS DAY CRM 20G	PCS	$64.00	$80.00	20	0
+9310155100434	SAN RMO SPGETTI PSTA 500G	PCS	$57.60	$72.00	20	0
+9421023610112	GRIST TOILET CLEANER 550ML	PCS	$120.00	$150.00	20	0
+9556001670212	NSTL KITKAT 2F 48S	PCS	$12.00	$15.00	20	0
+9556006000281	J&J BBY SHMPO 500ML	PCS	$90.40	$113.00	20	0
+9556006004234	J&J SFT&SHNY SHMPO 200ML	PCS	$100.80	$126.00	20	0
+9556006014547	J&J BBY SHMPO 100ML	PCS	$52.80	$66.00	20	0
+9556006014585	J&J SFT&SHNY SHMPO 100ML	PCS	$55.20	$69.00	20	0
+9556006014592	J&J  CNDITINNG SHMPO 100ML	PCS	$55.20	$69.00	20	0
+9556006060308	J&J BBY BATH 100ML	PCS	$49.60	$62.00	20	0
+9556006287187	J&J BBY BATH  200ML	PCS	$92.00	$115.00	20	0
+9556006287194	JOHNSON BBY BTH. MLK& OATS 600	PCS	$201.60	$252.00	20	0
+9556089431996	FABER CSTELL 0.5 BLCK	PCS	$8.80	$11.00	20	0
+9786219522922	ADVNCE F-ACCNTNG V-1 2017	PCS	$336.00	$420.00	20	0
+9786219522939	ADVNCE F-ACCNTNG V-2 2018	PCS	$496.00	$620.00	20	0
+9789715427852	MEDICAL PARASITOLOGY	PCS	$864.00	$1,080.00	20	0
+9789715871044	INTRMDITE ACCNTNG V-1 2018	PCS	$400.00	$500.00	20	0
+9789715871099	THE INTRMDT ACCNTNG V-3 2017	PCS	$400.00	$500.00	20	0
+48000154001007	ROYAL FOIL	PCS	$0.00	$0.00	20	0
+47	CAMEL CASEROL #32	PCS	$0.04	$336.00	20	0
+8150	METAL SCREW ASSTRD	PCS	$0.08	$0.10	20	1414
+1655	BENDING STRAW 4 CANTEEN	\N	$0.17	$0.20	87	0
+602	BUTTONS ASSRTD	PCS	$0.25	$0.50	20	4480
+523	INDEX CARD 3X5 SINGLE	PCS	$0.25	$0.50	63	0
+737	ART PAPER 1S	PCS	$0.28	$1.00	107	2639
+420	BIODATA	PCS	$0.37	$0.45	20	793
+546100	PAPER FASTENER METAL 1X1	PCS	$0.40	$0.50	20	400
+311	BOND PAPER LONG	PCS	$0.50	$1.00	20	0
+312	BOND PAPER SHORT 3S	PCS	$0.50	$2.00	20	0
+713	PAPER FASTENER 1X1	PCS	$0.50	$3.00	20	0
+44450	GASKET RUBBER	PCS	$0.50	$1.00	20	0
+522	INDEX CARD 4X6 SINGLE	PCS	$0.50	$1.00	63	0
+1020	MENTOS MINT	PCS	$0.60	$1.00	67	0
+8935001706809	MENTOS MINT	PCS	$0.60	$1.00	107	0
+4800631000310	GM5 BUTTER COOKIES 8G	PCS	$0.69	$1.00	20	0
+4800631000334	GM5 MARIE 8.5G	PCS	$0.69	$1.00	20	0
+31	SUPER ZUPER	PCS	$0.73	$1.00	7	0
+6268	NEEDLE SMALL	PCS	$0.75	$1.00	20	0
+32	COLA CANDY	PCS	$0.78	$1.00	7	0
+430	CANDY SINGLE	PCS	$0.80	$1.00	15	0
+889	PAPER CLIP 1S	PCS	$0.80	$1.00	20	458
+4809010524546	SUGO SLTD PEANT 6G	PCS	$0.82	$1.00	53	0
+4809010524706	SUGO MXD NTS 6G	PCS	$0.82	$1.00	107	0
+4809010524188	SUGO HNY RSTD 6G	PCS	$0.83	$1.00	107	0
+4809010524485	SUGO HOT&SPCY 6G	PCS	$0.83	$1.00	107	0
+4809010524768	SUGO GRLC ADBO 6G	PCS	$0.83	$1.00	107	0
+8706	PASTILLAS CANDY ASSTRD	PCS	$0.83	$1.50	113	0
+344	MILKITA CANDY	PCS	$0.85	$1.00	1	59
+905	8OZ PAPER CUP	PCS	$0.88	$43.00	20	0
+410	BINDER CLIP #1 1/4	PCS	$0.94	$2.00	63	67
+475	BAND-AID PLASTER	PCS	$0.95	$2.00	20	47
+748	DAN ERICS SANDWICH ICS 110ML	PCS	$1.00	$25.00	6	0
+509	ENVELOP LETTER S	PCS	$1.00	$1.00	20	0
+620	COLORED PAPER	PCS	$1.00	$2.00	20	2455
+732	NAIL CLIPPER S	PCS	$1.00	$21.00	20	0
+6284	TOX BRWN #10	PCS	$1.00	$1.50	20	0
+56401	PONY #40	PCS	$1.00	$2.00	20	0
+1046	HOOK #1	PCS	$1.00	$1.00	107	2
+1016	PANDA PASTE SMALL	PCS	$1.05	$2.00	100	0
+1023	MENTOS INCRDBLE	PCS	$1.08	$1.00	67	0
+9169	HAIR GRIP	PCS	$1.15	$2.00	20	0
+706	HAIRPIN	PCS	$1.17	$3.00	20	288
+524	INDEX CARD 5X8 SINGLE	PCS	$1.25	$2.00	63	0
+403	BROWN ENVELOP LONG	PCS	$1.30	$3.00	20	1161
+404	BROWN ENVELOP SHORT	PCS	$1.30	$3.00	100	2489
+723	PARCHMENT PAPER 1S	PCS	$1.32	$2.00	117	-32
+201130	PLASTIC TRASHBAG SMALL SM	PCS	$1.35	$2.00	63	0
+777	CONSTRUCTION PAPER	PCS	$1.40	$2.00	20	11
+261	SAFETY PIN #3,4	PCS	$1.47	$2.00	20	3874
+465	LETTER ENVELOPE L	PCS	$1.50	$2.50	20	0
+12121	HOOK & I	PCS	$1.50	$2.00	20	0
+5065	OLIVENZA BUENO MATCHES	PCS	$1.58	$2.00	117	525
+5066	COMMANDO MATCHES	PCS	$1.58	$2.00	117	375
+671	BALLON S	PCS	$1.60	$2.00	20	0
+8501	NEEDLE BIG	PCS	$1.60	$2.00	20	0
+409	BINDER CLIP #1	PCS	$1.67	$3.00	63	29
+260	SAFETY PIN #2	PCS	$1.80	$2.50	20	1185
+4807770120206	NISSIN WAFER CHOCO 12G	PCS	$1.84	$3.00	1	0
+4807770120220	NISSIN WAFER BUTTER 12G	PCS	$1.90	$2.00	21	0
+257	POT HOLDER	PCS	$2.00	$3.00	20	0
+513	OSLO PAPER	PCS	$2.00	$2.00	20	-145
+954	FOAM URATEX SMALL	PCS	$2.00	$3.00	20	58
+996	PONY GARTER #22	PCS	$2.00	$3.00	20	0
+3527	RIBBON 1/8	\N	$2.00	$3.00	20	-41
+9192	RUBBER PONY #44	PCS	$2.00	$3.00	20	0
+9196	SANRIO #49	PCS	$2.00	$3.00	20	13
+4800112010210	ROYAL MATCHES	PCS	$2.00	$2.00	107	0
+1611	CANTEEN SPOON & FORK	\N	$2.00	$2.00	578	-106
+411	BINDER CLIP #3/4	PCS	$2.06	$5.00	100	47
+8995200703566	SG SGMP GREEN 7ML	PCS	$2.07	$3.00	113	0
+8995200703573	SG SHMP BLUE 7ML	PCS	$2.07	$3.00	113	13
+8995200703580	SG SHMP PINK 7ML	PCS	$2.07	$3.00	113	17
+201131	PLASTIC TRASHBAG M	PCS	$2.20	$3.00	63	0
+1022	MENTOS ASSRTD FRTS	PCS	$2.21	$3.00	67	0
+1021	MENTOS RAINBOW	PCS	$2.21	$3.00	107	0
+1017	PANDA PASTE MEDIUM	PCS	$2.29	$3.00	100	-34
+4455	SPAG BOX FOR CANTEEN	PCS	$2.30	$2.30	20	900
+712	FROSTY ICEPOP SINGLE	PCS	$2.30	$3.00	53	0
+1640	ID CLIP PLASTIC	PCS	$2.40	$4.00	20	-100
+9195	RUBBER PONY #47	PCS	$2.40	$3.00	20	0
+6908116867156	FLOWER HAIR GRIP	PCS	$2.40	$3.00	20	0
+1639	ID CLIP METAL	PCS	$2.40	$4.00	63	-100
+9198	PONY TELEPHONE WIRE #52	PCS	$2.50	$3.00	20	38
+501	FRT SABA	PCS	$2.50	$4.00	23	4405
+8935001721550	MILKY STRAWBRY&CARAMEL 1S	PCS	$2.56	$3.00	67	240
+259	SAFETY PIN  #1	PCS	$2.60	$4.00	20	0
+48025522	MAGIC SARAP 8G	PCS	$2.60	$3.25	20	0
+1779	PLASTIC CUP 16OZ 4 CANTEEN	\N	$2.63	$3.00	87	0
+1715	PAPER BAG #20	PCS	$2.66	$3.50	85	0
+1013	STICKER PAPER A4 1S	PCS	$2.70	$4.00	100	-2
+823	FFBMK	PCS	$2.80	$3.50	107	0
+1716	PAPER BAG #25	PCS	$2.87	$4.00	85	0
+438	RULER 6	PCS	$3.00	$5.00	20	0
+543	TAILOR CHALK	PCS	$3.00	$4.00	20	0
+616	GIFT WRAPPER ASSRTD	PCS	$3.00	$5.00	20	703
+3491	CHILI POWDER 20G	PCS	$3.00	$5.00	20	-13
+3526	RIBBON 1/4	\N	$3.00	$4.00	20	22
+9025	CLAMP #57	PCS	$3.00	$4.00	20	0
+9057	CLAMP BLACK SMALL	PCS	$3.00	$4.00	20	60
+9197	PONY TELEPHONE WIRE #51	PCS	$3.00	$4.00	20	25
+351010	PHOTO PAPER 1'S	PCS	$3.00	$4.00	20	0
+4800631681779	COWBOY BUTTER COOKIES	PCS	$3.00	$1.00	20	0
+201132	PLASTIC TRASHBAG L	PCS	$3.00	$4.00	63	0
+4806011610018	ARMAK SCOTCH TAPE 1/2	PCS	$3.00	$4.00	63	43
+7455	GLUE STICK SMALL	PCS	$3.00	$4.00	100	-38
+7456	GLUE GUN SMALL	PCS	$3.00	$4.00	100	100
+8090	2HOLE SHARPENER PLASTC	PCS	$3.00	$8.00	100	134
+337	ROCK SALT 500G	PCS	$3.09	$4.00	1	190
+4809010997975	SEEDLESS RAISN 30G	PCS	$3.19	$4.00	53	96
+9187	RUBBER PONY #41	PCS	$3.20	$4.00	20	0
+9194	RUBBER PONY #46	PCS	$3.20	$4.00	20	0
+30301894	PONY WIRE #41	PCS	$3.20	$4.00	20	0
+4680	330ML BOTTLE	PCS	$3.25	$3.25	87	1704
+421	GRAPHING PAPER 10'S	PCS	$3.30	$7.00	100	3651
+890	HOOK #2	PCS	$3.33	$4.15	20	0
+4806526075135	COCO OAT CHOCO	PCS	$3.39	$4.00	107	0
+9650	MEAL BOX FOR CANTEEN	PCS	$3.40	$3.40	20	100
+4807	SHARPENER ORDINARY 2SIDED	PCS	$3.43	$5.00	63	0
+4800552999601	SMILEY BERRY BLAST 20G	PCS	$3.44	$5.00	104	0
+307	FOLDER LONG	PCS	$3.50	$6.00	20	1060
+1015	HBW BALLPEN RED	PCS	$3.50	$5.00	100	0
+621	DORCO BLADE	PCS	$3.51	$5.00	20	0
+4800047841040	DEL FS P 22ML	PCS	$3.60	$5.00	15	205
+4800047841088	DEL FSBLU 22ML	PCS	$3.60	$5.00	15	444
+4800047841378	DEL LAVANDER 22ML	PCS	$3.60	$5.00	15	280
+308	FOLDER SHORT	PCS	$3.60	$5.00	20	672
+21133	PLASTIC TRASHBAG XL	PCS	$3.65	$5.00	63	0
+4902430293419	WHISPER COTTONY 16S	PCS	$3.70	$5.00	70	192
+343	MILKITA LOLLIPOP	PCS	$3.75	$5.00	1	3
+625	NET BRUSH	PCS	$3.75	$7.00	20	96
+9073	HAIRPIN #5321089	PCS	$3.75	$5.00	20	52
+2000	HBW 2000 BALLPEN BLACK	PCS	$3.75	$5.00	100	120
+3362	ADDITIONAL PAYMENT	\N	$3.75	$5.00	107	-9
+4808591800049	OVALTINE ALLINONE 20G	PCS	$3.75	$5.00	324	0
+4800631001843	BOY BAWANG CRCKRNT 25G	PCS	$3.80	$5.00	76	200
+313	PANDA CRYSTAL BALLPEN BLACK	PCS	$3.80	$5.00	100	344
+349	ILLUSTRATION BOARD 1/8	PCS	$4.00	$6.00	20	132
+472	RIBBON 1/2	PCS	$4.00	$5.00	20	-4
+606	MANILA PAPER	PCS	$4.00	$5.00	20	485
+614	HOOK #2-1/2	PCS	$4.00	$4.00	20	16
+628	BALLON B	PCS	$4.00	$5.00	20	0
+935	PASTE NEW	PCS	$4.00	$5.00	20	0
+1250	LUBID #12	PCS	$4.00	$5.00	20	0
+3408	LAUREL LEAVES 20G	PCS	$4.00	$5.00	20	-31
+3525	RIBBON 3/4	\N	$4.00	$5.00	20	-32
+9096	SANRIO 275S	PCS	$4.00	$5.00	20	85
+10554	SANRIO  #48	PCS	$4.00	$5.00	20	0
+460032	PONY #44	PCS	$4.00	$5.00	20	0
+408	PROTRACTOR BIG/SMALL	PCS	$4.00	$5.00	63	113
+447	SLIDING FOLDER SHORT ASSORTED	PCS	$4.00	$6.00	100	120
+1492	RAMBO RULER 12	PCS	$4.00	$5.00	100	100
+5097	JOY PLASTIC RULER 12	PCS	$4.00	$5.00	100	50
+9159	GLITTER ASSTD	PCS	$4.00	$6.00	100	87
+95102	SCOTCH TAPE 1/2	PCS	$4.00	$5.00	100	62
+384	PEANUT REPACK	PCS	$4.00	$5.00	107	282
+3510	POLVORON	PCS	$4.00	$5.00	107	0
+1609	CANTEEN PUTO	\N	$4.00	$4.00	578	-695
+4800888154255	DOVE NOURSHNG SHMPO 10ML	PCS	$4.10	$5.00	36	72
+4800888154262	DOVE INTENSE SHMPO 10ML	PCS	$4.10	$6.00	36	136
+4800888154279	DOVE S&SLKY SHMPO 10ML	PCS	$4.10	$6.00	36	618
+4800888179593	DOVE HFALL RSCUE 10ML	PCS	$4.10	$6.00	36	144
+4800888190185	DOVE OXYGN NOURSHMNT 10ML	PCS	$4.10	$5.00	36	144
+4902430822909	REJOICE SHAMPOO 13ML	PCS	$4.12	$5.00	70	273
+8990800020778	MENTOS BEATS FRUIT 9G	PCS	$4.14	$5.00	67	48
+4800034601657	HAPEE CLSSIC WHITE DBLE 27G	PCS	$4.15	$6.00	15	121
+4800034601664	HAPEE TWENS EMR 30G	PCS	$4.15	$6.00	15	144
+179	NET BAG S	PCS	$4.20	$6.00	20	0
+7989	RUG COLORED	PCS	$4.20	$6.00	20	0
+4800888191939	SUNSILK SH PRFCT STRGHT 13ML	PCS	$4.20	$6.00	36	0
+4806506705823	H&Y COCOJU JLLY LYCH 200G	PCS	$4.20	$5.00	53	0
+4806506705854	H&Y COCOJU BBLEGUM	PCS	$4.20	$6.00	53	0
+4806020456355	SPEED FABCON KALMNSI55G	PCS	$4.23	$5.00	20	0
+4800888169709	SUNSILK S&L 13ML	PCS	$4.24	$6.00	20	47
+4800888149716	SSILK SMTH&MNGBL 13ML	PCS	$4.25	$5.00	36	432
+4800888169693	SSLK SHA RECNSTRCTN 13ML	PCS	$4.25	$6.00	36	228
+4800888169716	SSILK STRONG AND LONG 13ML	PCS	$4.25	$6.00	36	720
+7612100064276	OVALTINE TABLET MALT	PCS	$4.25	$6.00	324	0
+4902430698139	REJOICE SHAMPOO 13ML	PCS	$4.32	$6.00	70	4
+4800888206084	CSILK KRATIN REP SHINE 10ML	PCS	$4.35	$6.00	36	555
+4902430159104	WHISPER SUPER CLN 16S	PCS	$4.36	$5.00	70	332
+4806018405921	LS COOKIE SAYS 30G	PCS	$4.38	$6.00	79	0
+8993175542289	ENERLIFE MINE HZLNT CHCBAR 20G	PCS	$4.39	$6.00	19	289
+4505	CUTTER BLADE REFILL	\N	$4.40	$6.00	20	0
+8934868125211	SURF FABCON MAGIC BLOOM 28ML	PCS	$4.40	$5.00	20	138
+4800888141194	CLEAR CMPLT SFT 12ML	PCS	$4.40	$6.00	36	73
+4800888157614	SURF FABCON BLSSMFRSH 28ML	PCS	$4.40	$5.00	36	162
+4800888206121	CSILK KERATIN STRAIGHT 10ML	PCS	$4.40	$6.00	36	269
+8934868094982	SURF FABCON FRNCH FRFUME 25ML	\N	$4.40	$5.00	36	138
+8934868110170	SURF FABCON LUXEPERFUM 28ML	PCS	$4.40	$5.00	36	210
+315	HBW MATRIX PEN	PCS	$4.50	$6.00	20	0
+674	PING PONG BALL	PCS	$4.50	$6.00	20	30
+933	TITUS BALLPEN	PCS	$4.50	$6.00	20	-10
+4800550021991	EASYWRITE 1/4 PAD	PCS	$4.50	$6.00	20	50
+1014	HBW BALLPEN BLK&BLUE	PCS	$4.50	$6.00	63	290
+4800631681557	BBAWANG PUTOSEKO MILK 30G	PCS	$4.50	$6.00	76	12
+4800631681564	BBAWANG PUTOSEKO CHOCO 30G	PCS	$4.50	$6.00	76	24
+3154145117103	MAPED T-DUO ERASER	PCS	$4.50	$6.00	100	0
+4715925306187	PENCIL ERASER ASSTD	\N	$4.50	$6.00	100	534
+6904542616283	GIGI POWDER DTRGNT 50G	PCS	$4.50	$6.00	113	0
+6902482001022	ORD VERMICELLI STNGHN 1.59OZ	PCS	$4.50	$6.00	114	62
+4809011849082	EBS OTAP 40G	PCS	$4.50	$6.00	116	0
+4902430390897	BONUX POW KAL 57G	PCS	$4.51	$5.50	36	0
+4807770100703	NISSIN BRDSTIX 20G	PCS	$4.54	$6.00	1	0
+4807770122163	NISSIN BUTTER COCO 25G	PCS	$4.55	$6.00	15	0
+4902430634007	PANTENE TRT 10ML	PCS	$4.58	$6.00	70	7
+4902430634014	PANTENE 3MNT CONDITNER	PCS	$4.58	$6.00	70	48
+4902430762625	PANTENE CN 10ML	PCS	$4.58	$6.00	70	0
+8993175539890	RICHOCO CHOCO WAFER 24G	\N	$4.60	$6.00	7	0
+8993175541787	RICHOCO WHITE 24G	\N	$4.60	$6.00	7	0
+708	STRAW SMALL	PCS	$4.60	$6.00	20	0
+4800631001836	BOY BAWANG PEANUTS 25G	PCS	$4.60	$6.00	76	100
+4800631001850	BBAWANG MIX NUTS 25G	PCS	$4.60	$6.00	76	200
+4902430344883	DOWNY 1BANLAW 27ML	PCS	$4.61	$6.00	70	219
+4902430727006	PANTNE SHAMP COLOR&PERM 12ML	PCS	$4.62	$6.00	20	61
+4902430819022	DWNY FABEN LIQ 23ML	PCS	$4.62	$6.00	20	50
+1902430344876	DOWNY ANTIBAC 27ML	PCS	$4.62	$6.00	61	0
+4902430344876	DOWNY ANTIBAC 27ML	PCS	$4.62	$6.00	70	178
+4902430401845	DOWNY FAB SRISEFRSH 28ML	PCS	$4.62	$6.00	70	494
+4902430698078	REJOICE FRGRNT SHMPO 16ML	PCS	$4.62	$6.00	70	282
+4902430698085	PANTENE CNTROL SHMPO 12ML	PCS	$4.62	$6.00	70	346
+4902430698146	PANTENE DMGE CARE 12+1 12ML	PCS	$4.62	$6.00	70	255
+4902430727005	PANTENE SHMPO 12ML	PCS	$4.62	$6.00	70	0
+4902430729925	DOWNY FAB MYSTIQUE 20ML	PCS	$4.62	$6.00	70	218
+4902430729932	DOWNY FEBN LIQ 20ML	PCS	$4.62	$6.00	70	223
+4902430732475	DOWNY DARING 20ML	PCS	$4.62	$6.00	70	96
+4902430754767	REJOICE PRFME SHMPO 16ML	PCS	$4.62	$6.00	70	0
+4902430759960	PANTENE PROV SILKYSMOOTH 12ML	PCS	$4.62	$6.00	70	330
+4800523441832	TOMI SWEET CORN 25G	PCS	$4.65	$6.00	15	0
+473	EGG S FOR CANTEEN	PCS	$4.66	$4.66	1244	5816
+4902430726993	H&S APPLE SHMPO 12ML	PCS	$4.67	$6.00	70	339
+4902430752657	HS SH SUPREME 10ML	PCS	$4.67	$6.00	70	48
+750515030152	SKY FLKS GARLIC 25G	PCS	$4.68	$6.00	1	0
+4902430752589	H&SHLDER SPREME SHMPO 10ML	PCS	$4.68	$6.00	70	0
+750515030176	SKYFLAKES ONION 25G	PCS	$4.69	$6.00	20	0
+4807770120763	MONDE SUMO CKSCRM 20G	PCS	$4.69	$6.00	20	0
+4902430389570	JOY LQUD.LEMON 20ML	PCS	$4.73	$6.00	70	158
+750515031029	SKY FLAKS TSKLTE 30G	PCS	$4.73	$6.00	20	0
+750515031043	SKY FLKS CNDNSDA 30G	PCS	$4.73	$6.00	20	0
+750515031067	SKY FLKS S-MNTKLYA 30G	PCS	$4.73	$6.00	20	0
+4807770101540	BINGO VANILLA 28G	PCS	$4.73	$6.00	20	0
+4807770121302	VOICE OVRLOD 25G	PCS	$4.73	$6.00	20	0
+4902430389549	JOY LQUD. ANTIBAC 18ML	PCS	$4.73	$6.00	20	192
+4902430440080	BONUX POW 3N1 FBCN 57G	PCS	$4.74	$6.00	70	181
+4902430623179	BONUX POW 3N1 FBCN 57G	PCS	$4.74	$6.00	70	161
+4800194104883	BUNDIES BBQ FLAVOR 24G	PCS	$4.79	$6.00	10	0
+4800194104906	BUNDIES CHEDDAR CHEZ 24G	PCS	$4.79	$6.00	10	0
+4902430453295	DOWNY GRDN BLOM 28ML	PCS	$4.79	$6.00	15	168
+461	SEAGULL LEADS 0.5	PCS	$4.80	$6.00	20	290
+652	ASSTRD CLRD RAG DVSR	PCS	$4.80	$6.00	20	0
+955	FOAM URATEX BIG	PCS	$4.80	$7.00	20	5
+9190	RUBBER PONY #43	PCS	$4.80	$6.00	20	0
+498	CARBON PAPER SHORT	PCS	$4.80	$6.00	63	250
+4902430698055	PANTENE PINK 12ML	PCS	$4.80	$6.00	70	0
+1879	EGG MEDIUM	\N	$4.83	$4.85	1244	240
+4800092113307	HANSEL CHC SNDWHICH 31G	PCS	$4.85	$6.00	15	0
+4800888151704	CLEAR COOL SPORT MNTHOL 10ML	PCS	$4.85	$6.00	36	494
+4800194113571	OISHI CHOCO LO 30G	PCS	$4.86	$7.00	10	500
+4800010064360	HELLO VNLA 15G	PCS	$4.90	$6.00	15	0
+4800888151827	SURF FABCON KALMNSI61G	PCS	$4.90	$7.00	36	948
+4800888151834	SURF POW FBCN TAWAS 61G	PCS	$4.90	$7.00	36	514
+4800888151841	SURF FABCON SUNFRSH61G	PCS	$4.90	$7.00	36	855
+4800888183804	SURF POW FBCN RSFRSH 57G	PCS	$4.90	$6.00	36	1364
+4800888189806	SURF POW FBCN CHRRYBLSSM 50G	PCS	$4.90	$6.00	36	973
+4800888199133	SURF POW PRPLBLSSM 50G	PCS	$4.90	$6.00	36	576
+425	BINDER CLIP #2	PCS	$4.91	$6.00	20	71
+4902430205313	H&S SHMP MEN HAIR RETAIN 10ML	PCS	$4.94	$6.50	70	0
+4902430333597	H&SHLDER MNTHL SHMPO 12ML	PCS	$4.94	$7.00	70	700
+4902430736510	H&SHLDER LEMON SHMPO 12ML	PCS	$4.94	$7.00	70	335
+4806525940526	NASH IRISH CHOCO 20G	PCS	$4.95	$8.00	1	351
+4902430698658	H&S SMTH&SLKY 12ML	PCS	$4.96	$6.00	70	654
+303	IODIZED SALT 500G	PCS	$5.00	$6.00	1	97
+750515030190	SKYFLAKES FIT OATFIBR 25G	PCS	$5.00	$7.00	1	0
+4806525943572	SOFIA KERATIN SHAMPOO 20ML	PCS	$5.00	$6.50	1	149
+4806525943589	SOFIA KERATIN CONDITIONER 20ML	PCS	$5.00	$6.50	1	488
+4806018403859	LS CHOCHOCHOCO VAN 38G	PCS	$5.00	$7.00	12	0
+4806018403873	LS CHOCHOCHESSEMLK38G	PCS	$5.00	$7.00	12	0
+4800010064384	HELLO CHOCO 15G	\N	$5.00	$5.00	15	0
+178	NET BAG M	PCS	$5.00	$6.50	20	0
+306	PLASTIC ENVELOP SHORT	PCS	$5.00	$7.00	20	562
+416	TAPE MEASURE	PCS	$5.00	$7.00	20	0
+417	ASTRA COAT	PCS	$5.00	$7.00	20	360
+436	HAIRNET COARSE	PCS	$5.00	$7.00	20	0
+437	RULER 12	PCS	$5.00	$7.00	20	0
+443	SLIDING FOLDER CLEAR S	PCS	$5.00	$6.00	20	100
+451	CATLEYA FILLER MINI	PCS	$5.00	$6.00	20	0
+611	FLAT GARTER #36	PCS	$5.00	$7.00	20	0
+1251	LUBID #14	PCS	$5.00	$7.00	20	0
+1375	PONY #79	PCS	$5.00	$6.50	20	0
+1382	HAIRNET #87	PCS	$5.00	$6.50	20	0
+3524	RIBBON 1	\N	$5.00	$6.00	20	163
+4683	ID LACE METAL	PCS	$5.00	$7.00	20	114
+7052	CANTEEN EXTRA CHEESE	\N	$5.00	$5.00	20	-1
+9200	PONY TELEPHONE WIRE #54	PCS	$5.00	$7.00	20	18
+132255	PONY #31	PCS	$5.00	$7.00	20	0
+4806018403835	WHATTA TOPS 35G	PCS	$5.00	$6.00	20	0
+6935834003030	ID CARD T-021	PCS	$5.00	$7.00	20	0
+8560	EMPTY BOX	PCS	$5.00	$5.00	21	0
+8561	SAKO	PCS	$5.00	$5.00	21	0
+4800888139306	CRMSILK STANDOUT STRGHT 12ML	PCS	$5.00	$7.00	36	516
+4806020400303	SELECT SUKNG PUTI 200ML	PCS	$5.00	$6.50	53	0
+412	BINDER CLIP #1 5/8	PCS	$5.00	$7.00	63	-30
+2408	JULIE'S LE-MOND	PCS	$5.00	$7.00	71	0
+1018	PANDA PASTE JUMBO	PCS	$5.00	$6.50	100	0
+2474	CUTTER SMALL	PCS	$5.00	$7.00	100	0
+6925336985095	SUPER ERASER ER-509	PCS	$5.00	$6.50	100	0
+3044	ARTIST BRUSH #2	PCS	$5.00	$7.00	107	3
+4881	MOSQUITO KILLER REFILL	\N	$5.00	$6.00	107	-37
+9115	VGT COCONUT KAYOD	\N	$5.00	$5.00	107	-44
+1613	CANTEEN HOT WATER	\N	$5.00	$5.00	578	-3
+4800523441955	LOADED! SNACK 32G	PCS	$5.03	$7.00	15	1500
+4800888154415	DOVE GOLD 10ML	PCS	$5.05	$7.00	20	0
+4800194153225	BREADPAN CHEESE 24G	PCS	$5.10	$7.00	10	0
+4800194153683	BREADPAN BUTTER 24G	PCS	$5.10	$7.00	10	0
+4800194153232	OISHI BREAD PAN GARLIC	PCS	$5.10	$7.00	15	0
+7622300742164	TIGER ENERGY CHOCO 21G	\N	$5.11	$7.50	15	0
+4800060075200	PURITY COTTON ROLL 10G	PCS	$5.15	$7.00	28	61
+4902430522809	H&SHLDER MEN 12ML	PCS	$5.15	$7.00	70	591
+4800888150219	POND FASCIAL SCRUB 4G	PCS	$5.20	$7.00	36	16
+4800888189608	PONDS ACNE CLEAR 4G	PCS	$5.20	$7.00	36	0
+4800216120013	CLOVER CHPS CHEESE 26G	PCS	$5.25	$7.00	28	0
+4800888152732	PONDS FF WB SPOTLESS 4G	PCS	$5.25	$7.00	36	30
+4800888158208	PONDS PURE WHITE 4G	PCS	$5.25	$7.00	36	3
+4806011610070	ARMAK SCOTCH TAPE 3/4	PCS	$5.25	$7.00	63	50
+4800888161277	CSILK STUNNING SNHE GLD 11ML	PCS	$5.30	$7.00	15	0
+4800888139276	CREAM SLK DMGE CNTRL 11ML	PCS	$5.30	$7.00	36	534
+4800888139313	CSILK DANDRUFF 11ML	PCS	$5.30	$7.00	36	0
+4800888154439	DOVE CON STRGHT&SLKY 10ML	PCS	$5.30	$7.00	36	0
+4800888180100	CREAM SLK RESCUE SHMPO 11ML	PCS	$5.30	$7.00	36	293
+4800888200525	CREAM SLK CLR PRTCT 11ML	PCS	$5.30	$7.00	36	288
+4806018403712	LS WHATTATOPS CHOCO 350G	PCS	$5.35	$7.00	79	0
+750515030008	SKYFLAKES CRCKERS FIR OMEGA-3	PCS	$5.38	$7.00	1	5
+4806018405655	LS LAVA CAKE 42G	PCS	$5.40	$7.00	15	0
+4902430856591	HS SHM SUMMER EXP 12ML	PCS	$5.40	$7.00	70	0
+6750	AGBMK BOOKMARK	PCS	$5.40	$6.75	107	0
+6944050200024	YDB SHOE GLUE	PCS	$5.41	$7.00	20	0
+6987247805312	CJQ SHOE GLUE	PCS	$5.41	$7.00	20	0
+4800016082962	MAGIC CHIPS CHEESE 28G	PCS	$5.41	$7.00	117	1600
+6121	FUNNEL	PCS	$5.42	$7.00	20	3
+467	ASUETE 35G	PCS	$5.43	$7.00	20	0
+4800092553226	FUDGEE BARR DARK CHOCO 38G	PCS	$5.50	$7.00	15	0
+177	NET BAG L	PCS	$5.50	$7.00	20	0
+238	FORK STAINLSS SINGLE	PCS	$5.50	$7.00	20	315
+305	PLASTIC ENVELOP LONG	PCS	$5.50	$7.00	20	26
+328	NETBAG L	PCS	$5.50	$7.00	20	0
+6099	SPOON STAINLESS	PCS	$5.50	$7.00	20	0
+4806014800317	SPRINGMAID #31	PCS	$5.50	$7.00	20	48
+4806504760145	SNWMN THMB TCKS #163/GLD	PCS	$5.50	$7.00	20	86
+1650	FOLDER JACKET SHORT	\N	$5.50	$7.00	100	996
+7454	GLUE STICK BIG	PCS	$5.50	$7.00	100	50
+502	VICTORY YELLOW PAD 10'S	PCS	$5.55	$9.00	100	-41
+4902430639941	TIDE POW DOWNY GBLM50G	PCS	$5.57	$7.00	70	140
+4902430759236	TIDE PERFUME FNTSY 50G	PCS	$5.57	$7.00	107	71
+4902430639934	TIDE ORIGSCENT55G	PCS	$5.57	$7.00	20	78
+4902430640091	TIDE LEMN&KALMNSI55G	PCS	$5.57	$7.00	20	65
+4800016112560	CREAM O CAKEWCH 25G	PCS	$5.59	$7.00	117	0
+6821	UNI BALLPEN	PCS	$5.60	$7.00	20	0
+4800888139283	CREAM SLK DFNSE 11ML	PCS	$5.60	$7.00	36	636
+4800405126239	MARCA PNA SUKNG PUTI220ML	PCS	$5.60	$7.00	53	48
+4800405126246	MARCA PNA CANE VIN220ML	PCS	$5.61	$7.00	20	0
+4800888158468	PONDS PERFECT CARE 4G	PCS	$5.65	$7.00	36	27
+317	MONGOL #1,2,3	PCS	$5.67	$8.00	63	152
+4800888147240	CLOSEUP MNTHOL FRSH 2X10G	PCS	$5.70	$7.00	36	297
+4800888147288	CLOSEUP REDHOT TP 10G	PCS	$5.70	$7.00	36	333
+4806014800324	SPRINGMAID #32	PCS	$5.75	$7.50	20	0
+4806014800331	SPRINGMAID #33	PCS	$5.75	$7.50	20	36
+8456	ECO BAG S	PCS	$5.75	$8.00	107	24
+4800092660634	CHOCO MUCHO VIOLET 33G	PCS	$5.92	$7.00	117	600
+4800092660788	CHOCO MUCHO WHITE CHOCO 33G	PCS	$5.92	$7.00	117	400
+4800092550669	MG CROSSINI ROLLS 36G	PCS	$5.95	$7.50	15	0
+4800092550904	FUDGEE BAR CHC 41G	PCS	$5.95	$8.00	15	0
+4806018406157	LS WHATTA TOPS 35G	PCS	$6.00	$7.00	12	0
+4809010626011	LS CHEESE 30G	PCS	$6.00	$8.00	12	0
+4800092113321	HANSEL BUTTER SNDWHCH 31G	\N	$6.00	$6.00	15	0
+4800092113413	BRAVO BISCUIT	\N	$6.00	$6.00	15	0
+4807770122255	NISSIN WAFER CHC KING 22G	\N	$6.00	$6.00	15	0
+174	TAWAS PINO 75G	PCS	$6.00	$6.00	20	0
+442	SLIDING FOLDER CLEAR L	PCS	$6.00	$7.00	20	0
+445	SLIDING FOLDER LONG	PCS	$6.00	$6.00	20	0
+495	COMPASS SMALL	PCS	$6.00	$8.00	20	0
+675	PAPER CLIPS 33MM	PCS	$6.00	$8.00	20	0
+797	CREPE PAPER	PCS	$6.00	$8.00	20	31
+1373	PONY #77	PCS	$6.00	$8.00	20	0
+1374	PONY #78	PCS	$6.00	$8.00	20	0
+3045	ARTISH BRUSH #4	PCS	$6.00	$8.00	20	-2
+5854	BLCK PEPPER BUO 20G	PCS	$6.00	$8.00	20	159.97
+9178	HEADBAND #26	PCS	$6.00	$8.00	20	0
+9188	WIRE HEADBAND #50	PCS	$6.00	$8.00	20	0
+9189	RUBBER PONY #42	PCS	$6.00	$8.00	20	0
+9193	RUBBER PONY #45	PCS	$6.00	$8.00	20	0
+9199	PONY TELEPHONE WIRE #53	PCS	$6.00	$8.00	20	35
+30300170	PONY #29	PCS	$6.00	$8.00	20	0
+30302143	PONY WIRE #42	PCS	$6.00	$8.00	20	0
+4714060114794	HBW I GEL BALLPEN	PCS	$6.00	$7.50	20	0
+4800344004940	SILVER SWAN SUKNG PUTI200ML	PCS	$6.00	$7.00	20	176
+4806028515597	OFFICE PINS UW890-26	\N	$6.00	$8.00	20	0
+571	BLCK PEPPER PINO 20G	PCS	$6.00	$8.00	21	-77
+180	EGG	PCS	$6.00	$7.00	55	9936
+414	PERIODIC TABLE BIG	PCS	$6.00	$8.00	63	0
+870	CROCO SCOTCH TAPE 1/2	PCS	$6.00	$8.00	63	53
+1011	METAL SHAPENER SNGLE	PCS	$6.00	$8.00	100	0
+1652	PARAMOUNT MASKING TAPE 1/2X25	PCS	$6.00	$15.00	100	-23
+2600	PARAMOUNT MASKING TAPE 1/2X25	PCS	$6.00	$9.00	100	114
+4806021381311	JOY ERASER ER2201	PCS	$6.00	$8.00	100	15
+4806021388143	WELLS PAPER CLIP 33MM	PCS	$6.00	$8.00	100	10
+4806021388556	SOFT CARD HOLDER T-014V	PCS	$6.00	$8.00	100	0
+4806523020275	CUTTER KNIFE SMALL	PCS	$6.00	$8.00	100	0
+6924160112875	EAGLE VINYL COATED PAPER CLIP	PCS	$6.00	$8.00	100	3400
+6935834380148	ID HOLDER HORIZONTAL T-014H	PCS	$6.00	$7.00	100	200
+6935834480145	JING TAI CARD HOLDER T-014V	PCS	$6.00	$8.00	100	100
+338	TIRE WIRE #18,16,24	PCS	$6.00	$8.00	107	0
+4806506150357	EXTRA ABSORBENT COTTON 10G	PCS	$6.04	$8.00	77	22
+1210410	TIGER CELLO 12X66	PCS	$6.10	$8.00	37	0
+4806506150258	SOFT N WHITE 40 PULLS	PCS	$6.14	$8.00	77	24
+4800361383301	NESTLE MILO 22G	PCS	$6.15	$8.00	14	3107
+4806517042832	GOYAPRETZELTWIST DARKCHOC 28G	PCS	$6.15	$8.00	113	0
+4801668602027	DATU PUTI VINEGR200ML	PCS	$6.17	$8.00	19	279
+4806517042801	GOYA TWST CHOCO 28G	PCS	$6.20	$8.00	7	200
+4806517042818	GOYA TWIST MILK 28G	PCS	$6.20	$8.00	7	200
+4800092660962	CHOCO MUCHO DARK CHOCO 30G	PCS	$6.25	$8.00	15	0
+8745	TAWAS PINO 100G	PCS	$6.25	$8.00	20	41
+8886001038011	BENG BENG CHCO 26.5G	PCS	$6.36	$8.00	15	1670
+497	CARBON PAPER LONG	PCS	$6.37	$8.00	63	0
+884	CLAMP SMALL PAIR	PCS	$6.40	$8.00	20	0
+1233555	TOILET BRUSH W/O HANDLE	PCS	$6.40	$8.00	20	73
+3170	DYNAMIC REFILL MEDIUM	PCS	$6.40	$8.00	100	0
+4800011517018	ML COTTON 10G	PCS	$6.40	$8.00	107	12
+4800016963162	CLOUD 9 CHCO FUDGE 28G	PCS	$6.45	$8.00	15	0
+4800010961447	CLOUD 9 CLASSIC BAR 28G	PCS	$6.46	$8.00	15	0
+4806517040388	KNICK KNACKS CHOCO 28G	PCS	$6.48	$8.00	6	600
+4806517040395	KNICK KNACKS MILK 28G	PCS	$6.48	$8.00	7	500
+3407	MISUA 100G	PCS	$6.50	$9.00	20	2
+3442	FOLDER JACKET LONG	PCS	$6.50	$9.00	20	979
+419	PHILIPPINE MAP S	PCS	$6.50	$8.00	63	0
+48065038794966	NOTEBOOK SMALL/POCKET	PCS	$6.50	$8.00	63	50
+4800194116466	OISHI PILLOWS CHOCO38G	PCS	$6.55	$8.00	10	800
+4800194152327	OISHI PILLOWS UBE 38G	PCS	$6.55	$9.00	10	600
+4800194152662	OISHI CHOCO PLUNGE 30G	PCS	$6.55	$9.00	10	200
+4800888150608	REXONA SHOWER CLEAN 3ML	PCS	$6.60	$9.00	36	324
+4800888151100	REXONA PASSION 3ML	PCS	$6.60	$9.00	36	31
+4800888151117	REXONA QUNTUM PWDR DRY 3ML	PCS	$6.60	$9.00	36	48
+4800888158888	REXONA WMN DL PWDR DRY 3ML	PCS	$6.60	$9.00	36	71
+4800888166494	REXONA ADVNCD WHTNNG 3ML	PCS	$6.60	$9.00	36	46
+48008881600274	REXONA MSDL ICECOOL 3ML	PCS	$6.60	$8.00	36	48
+4421	PERIODIC TABLE SMALL	PCS	$6.60	$8.50	63	0
+8850006325216	COLG TP GRF27G	PCS	$6.63	$9.00	15	288
+8850006325223	COLGATE SPCY FRSH 22G	PCS	$6.63	$8.00	53	0
+8850006325230	COLGATE MNTH FRSH 22G	PCS	$6.63	$8.00	53	0
+4805358245150	STAR MARGARINE CLSSC 30G	PCS	$6.65	$8.50	900	0
+4805358279155	STAR MARGARINE SWTBLND 30G	PCS	$6.65	$8.50	900	0
+8996001440049	ENERGEN CHOCO 30G	PCS	$6.66	$8.00	19	915
+8996001440124	ENERGEN VANILLA 30G	PCS	$6.66	$8.00	19	1109
+166	ECO BAG MED	PCS	$6.75	$8.50	42	277
+4806020400174	SELECT S.SAUCE 200ML	PCS	$6.75	$9.00	53	0
+4800194116022	OISHI PIPE CHOCO 30G	PCS	$6.76	$9.00	10	0
+4800194116039	OISHI PIPE BITES WHTCHC 30G	PCS	$6.76	$9.00	10	0
+4902430727136	DOWNY PRFM COL. 33ML	PCS	$6.77	$12.00	70	0
+4800361383325	MILO 22G	PCS	$6.79	$7.00	15	0
+841165135141	MILKMAN YOGURT STRAW 100ML	PCS	$6.83	$9.00	7	52
+841165135158	MILK MAN YOGURT DRNK 100ML	\N	$6.83	$9.00	7	411
+4801234014421	KIWI SHOE CREAM BROWN 5ML	PCS	$6.84	$9.00	28	267
+406	CARTOLINA WHITE	PCS	$6.85	$9.00	63	145
+4800030280504	AUSTRALIA HRVST INSTHOTOAT 35G	PCS	$6.85	$9.00	104	0
+4800575142633	ALASKA SULTPACK 33G	PCS	$6.88	$9.00	19	658
+4806018401602	LS INIPIT CAKE SNDWCH 23G	PCS	$7.00	$9.00	1	0
+4800092551284	FUDGEE BAR MILK 40G	\N	$7.00	$7.00	15	0
+4800092551383	FUDGEE BARR MOCHA 39G	\N	$7.00	$7.00	15	0
+4800092551444	FUDGEE BAR MACAPUNO 39G	\N	$7.00	$7.00	15	0
+370	FF BISCOCHO	PCS	$7.00	$25.00	17	0
+378	RE-FASTPACK SOLO	PCS	$7.00	$7.00	20	0
+446	SLIDING FOLDER S MORROCO	PCS	$7.00	$8.00	20	0
+958	LANERA M	PCS	$7.00	$10.00	20	0
+995	HOLDER PLATE DIVISORIA	PCS	$7.00	$9.00	20	0
+1252	LUBID #16	PCS	$7.00	$9.00	20	-20
+6185	POT HOLDER BIG	PCS	$7.00	$9.00	20	0
+9024	CLAMP #58	PCS	$7.00	$9.00	20	0
+9058	CLAMP BLACK MEDIUM	PCS	$7.00	$9.00	20	12
+9177	HEADBAND #24,27	PCS	$7.00	$9.00	20	0
+9659	FASHION JEWELRY CLIP S	PCS	$7.00	$9.00	20	11
+4800631000587	3+2 BANANA CHIPS 8.5G	PCS	$7.00	$10.15	20	0
+4806014800836	SPRINGMAID #83	PCS	$7.00	$9.00	20	24
+4806014800867	SPRINGMAID #86	PCS	$7.00	$9.00	20	24
+4809011681590	COWBOY CHOCO SNDWCH 7G	PCS	$7.00	$10.15	20	0
+4801234014414	KIWI SHOE CREAM 5ML	PCS	$7.00	$9.00	28	55
+4902430346184	DOWNY ANTIBAC 40ML	PCS	$7.00	$9.00	70	85
+4806018401589	LS INIPIT CAKE SANDWHICH 23G	PCS	$7.00	$7.00	79	0
+95101	SCOTCH TAPE 3/4	PCS	$7.00	$9.00	100	60
+4806028900928	MUSIC NOTEBOOK SM	PCS	$7.00	$9.00	100	60
+1119	PLASTIC ENVLOP SHRT ADVNTR	PCS	$7.00	$9.00	107	0
+5016	YEMA TOWER NEW	PCS	$7.00	$9.00	107	0
+4809014719207	ES YEMA TOWER ORIG	PCS	$7.00	$9.00	107	0
+4902430819053	DWNY FBEN LIQ 36ML	PCS	$7.02	$9.00	20	63
+4902430346177	DOWNY SUNRISE FRESH 40ML	PCS	$7.02	$9.00	53	9
+4902430727143	DOWNY FBWN LIQ PSSN 35ML	PCS	$7.02	$9.00	70	232
+4902430727150	DOWNY FBEN LIQ MYS 33ML	PCS	$7.02	$9.00	70	267
+4902430731454	DOWNY LQD SWTHRT 25ML	PCS	$7.02	$9.00	70	97
+4800552888226	CHIPS DELIGHT BROWNIES 28G	PCS	$7.05	$9.00	54	0
+4902430640060	ARIEL POW CLRSTYL 45G	PCS	$7.09	$9.00	70	240
+407	CARTOLINA GR,ORN,YLW,BL,PINK	PCS	$7.10	$10.00	63	364
+4800639143255	TITUS BALLPEN BLACK	PCS	$7.10	$9.00	63	200
+4804888800020	ZESTO GRAPE JUICE 200ML	PCS	$7.20	$9.00	67	100
+4804888800068	ZESTO STRAWBERRY JUICE 200ML	PCS	$7.20	$9.00	67	100
+4804888800082	ZESTO PINEAPPLE JUICE 200ML	PCS	$7.20	$9.00	67	100
+4804888800143	ZESTO APPLE 110ML	PCS	$7.20	$9.00	67	200
+4801981139736	MINUTE MAID MANGO 200ML	PCS	$7.20	$9.00	211	60
+4801981139743	MINUTE MAID PINEAPPLE 200ML	PCS	$7.20	$9.00	211	60
+4801981164851	MINUTE MAID FRSH APPLE 200ML	PCS	$7.20	$9.00	211	120
+4801981164868	MINUTE MAID FRSH ORNGE 200ML	PCS	$7.20	$9.00	211	120
+4804888800006	ZEST.O ORANGE 200ML	PCS	$7.25	$9.00	7	100
+4800888177124	SURF POW BLSMFRSH 82G	PCS	$7.25	$9.00	36	360
+4800888191526	SURF FABCON ROSFRSH DBL100G	PCS	$7.25	$9.00	36	77
+4800194173230	OISHI BREADPAN TGARLIC 42G	PCS	$7.30	$12.00	10	0
+4902430781398	ARIEL GOLDEN BLOOM 45G	PCS	$7.32	$9.00	70	297
+4902430640084	ARIEL POW ANTIBAC 45G	PCS	$7.33	$9.00	70	189
+49814521	CHUPA CHUPS	PCS	$7.42	$9.00	67	-12
+14285002789	UFC BANANA CTSUP 100G	PCS	$7.42	$10.00	117	0
+4806020497556	SPEED BLUE DET BAR 160G	PCS	$7.43	$9.00	50	18
+4806502359754	FEMME BATH TISSUE 2PLY	PCS	$7.43	$10.00	117	192
+360	BAKING SODA 250G	PCS	$7.50	$10.00	1	0
+4400	FF SWEETCORN SM	PCS	$7.50	$10.00	17	0
+1384	HAIRNET #90	PCS	$7.50	$9.50	20	0
+4806014800379	SPRINGMAID #37	PCS	$7.50	$10.00	20	24
+4806014800386	SPRINGMAID #38	PCS	$7.50	$10.00	20	24
+7453038445603	HAIRNET #90 EVOK	PCS	$7.50	$9.50	20	0
+4800011000015	MAMAS LOVE COTTON BUDS 50S	PCS	$7.50	$10.00	40	42
+6970328410185	KING EGG 1S	PCS	$7.50	$10.00	49	0
+623	MC CODY LAUREL LEAVES	PCS	$7.50	$10.00	84	13
+4800405126222	MARCA PNA SOY SAUCE220ML	PCS	$7.54	$10.00	53	26
+48031813	OFF OVERTIME 6ML	PCS	$7.55	$10.00	28	78
+48038379	OFF KIDS 6ML	PCS	$7.55	$10.00	28	252
+4801234130848	OFF SFT&SCNTD LOTION 6ML	PCS	$7.55	$10.00	28	48
+4806030202430	JOLLY GREEN PEAS 100G	PCS	$7.55	$10.00	53	20
+4809011390010	LALA MILKY CHC 35G	PCS	$7.60	$10.00	53	400
+4809011390065	LALA UBE PASTILLAS 36G	PCS	$7.60	$10.00	53	400
+4805358324152	MAGNOLIA CHEEZ SPRD PLN 30G	PCS	$7.60	$10.00	900	0
+6924180200347	KAMI 2PLY 300S	PCS	$7.62	$10.00	76	701
+4800060252601	JOY POPUP TISSUE 2-PLY	PCS	$7.67	$10.00	28	24
+4800314009708	SCOTCH BRITE 75MM	PCS	$7.83	$10.00	76	71
+748485400075	PLUS APPLE 250ML	PCS	$7.87	$10.00	67	43
+748485400082	PLUS ORANGE 250ML	PCS	$7.87	$10.00	67	57
+748485400051	PLUS STRWBRY 250ML	PCS	$7.88	$10.00	67	280
+748485400068	PLUS GRAPES 250ML	PCS	$7.88	$10.00	67	380
+748485400174	PLUS PINEAPPLE 250ML	PCS	$7.88	$10.00	67	200
+3445	KODAK CDR BLANK	PCS	$7.92	$10.00	20	43
+167	ECO BAG LARGE	PCS	$7.95	$10.00	42	168
+8851717200007	DUTCHMILL STRWBRRY 90ML	PCS	$7.96	$10.00	1	0
+1178	VANDA SULATING PANGWAKAS	\N	$7.98	$10.00	20	0
+4800092113369	FROOTEES HONEY 32G	\N	$8.00	$8.00	15	0
+37	COMB 316H	PCS	$8.00	$10.00	20	0
+444	SLIDING FOLDER L MORROCO	PCS	$8.00	$9.00	20	0
+452	CATLEYA FILLER M	PCS	$8.00	$10.00	20	0
+500	PUSHER	PCS	$8.00	$10.00	20	0
+1381	HAIRNET #86	PCS	$8.00	$10.00	20	0
+3046	ARTISH BRUSH #8	PCS	$8.00	$11.00	20	3
+7051	CANTEEN EXTRA EGG	\N	$8.00	$8.00	20	-19
+9023	CLAMP #59	PCS	$8.00	$10.00	20	36
+9026	CLAMP #56	PCS	$8.00	$10.00	20	19
+9183	COMB #32	PCS	$8.00	$10.00	20	0
+9572	PONY RUBBER BIG 5S	PCS	$8.00	$10.00	20	33
+9657	FASHION JEWELRY CLIP M	PCS	$8.00	$10.00	20	21
+224414	HAIRPIN #59	PCS	$8.00	$10.00	20	0
+4806011111812	TOP CHALK DUSTLESS 12S	PCS	$8.00	$10.00	20	25
+4806519190401	VANDA MUSIC BOOK	PCS	$8.00	$10.00	20	1
+330	VGT KANGKONG	PCS	$8.00	$10.00	23	-164.41999999999999
+383	VGT CAMOTE TOPS	PCS	$8.00	$10.00	23	96
+3827	AGBMK THIN BOOKMARKS	PCS	$8.00	$8.00	41	89
+4806018401336	LS CUPCAKE BUTTERMLK 30G	PCS	$8.00	$8.00	79	0
+4806018403378	LS CUPCAKE CRM CARAMEL 30G	PCS	$8.00	$8.00	79	0
+4806018405808	LS WHATATOPS C&CRM 35G	PCS	$8.00	$8.00	79	0
+4809010626547	LS CUPCAKE MOCHA 30G	PCS	$8.00	$8.00	79	0
+4809010626752	LS CUPCAKE UBE 30G	PCS	$8.00	$8.00	79	0
+4809010626769	LS CUPCAKE PANDAN 30G	PCS	$8.00	$8.00	79	0
+4806028900935	VECO MUSIC BOOK BIG	PCS	$8.00	$10.00	100	13
+462	VGT TALBOS ASSRTD	PCS	$8.00	$10.00	107	704.90999999999997
+521	VGT GABI DAHON	PCS	$8.00	$11.00	107	-2
+822	5FFBMK	PCS	$8.00	$10.00	107	0
+978	SUNFLOWER SEED	PCS	$8.00	$10.00	107	0
+1444	LEATHER WALLET	PCS	$8.00	$10.00	107	0
+9116	COCONUT KAYOD LABOR	\N	$8.00	$8.00	107	-6
+401	SILVER SPRING SMALL	PCS	$8.00	$12.00	115	0
+3003	OLAF'S CREAM BAR ASSRTD	\N	$8.00	$10.00	301	-12
+4801668602034	DATU PUTI SOY SAUCE200ML	PCS	$8.09	$10.00	19	296
+441	YAKULT 80ML	PCS	$8.10	$10.50	30	9381
+4800344001949	SILVER SWAN SOY SAUCE200ML	PCS	$8.15	$10.00	19	255
+4800194173223	BREAD PAN CHEESE& ONION 42G	PCS	$8.16	$10.00	10	540
+4800194173681	BREAD PAN BTTERED TOAST 42G	PCS	$8.16	$10.00	10	540
+8993175538145	RICHEESE WAFER 50G	PCS	$8.19	$10.00	19	960
+8993175539241	RICHOCO WAFER 50G	PCS	$8.19	$10.00	19	1020
+8993175540438	RICHOCO WHITE WAFER 50G	PCS	$8.19	$10.00	19	900
+4804880551333	FRITO PLUS VGT OIL SUP 80ML	PCS	$8.21	$9.00	53	132
+4806506318870	SISTERS PANTLNER 8LINERS	PCS	$8.25	$11.00	77	88
+8001	FACE TOWEL 1ST HOME	PCS	$8.33	$11.00	20	24
+8851717200014	DUTCHMILL BLBRRY 90ML	PCS	$8.35	$10.00	1	0
+8851717904967	DELIGHT DRINK 100ML	PCS	$8.35	$11.00	1	1250
+4806506152399	TOILY BTHRM TISSUE 300SHEETS	PCS	$8.35	$11.00	19	954
+748485400044	PLUS MANGO 250ML	PCS	$8.38	$11.00	67	400
+748485400327	PLUS GUYABANO 250ML	PCS	$8.38	$11.00	67	400
+8850006494905	PALMOLIVE PINK 2+1	PCS	$8.40	$11.00	63	0
+8850006494929	PALMOLIVE VIOLET 2+1	PCS	$8.40	$11.00	63	0
+8992775349038	GERY CHOCO WFER ROLL 33G	PCS	$8.42	$11.00	76	60
+3472	BALLOON #5	PCS	$8.50	$11.00	20	-7
+4800888136770	SURF BAR FBCN  130G	PCS	$8.50	$11.00	36	191
+4800888190970	SURF BAR CHRRY BLSSOM 90	\N	$8.50	$11.00	36	20
+9556089243537	FABER CASTEL RED 0.5	PCS	$8.50	$11.00	63	194
+4809010109286	LAUR'S EGG CRKLTS30G	PCS	$8.50	$11.00	71	120
+1892	EVEREADY GP BLUE WRAP 2S	\N	$8.50	$11.00	86	-4
+9556089243520	FABER CASTELL 0.5 1423 BLACK	PCS	$8.50	$11.00	100	351
+9556089016513	FABER CASTELL 0.5	PCS	$8.50	$11.00	20	0
+4902430431149	TIDE BAR ORIGSCENT 130G	PCS	$8.54	$11.00	70	55
+4902430431163	TIDE BAR LEM&KAL 130G	PCS	$8.54	$11.00	70	48
+4800888150202	PONDS WHITE BEAUTY 6G	PCS	$8.55	$11.00	36	72
+4806501706108	CHAMPION BAR BLUE ORIG 145G	PCS	$8.56	$11.00	117	96
+4806501706115	CHAMPION BAR SUPRA CLEAN 145G	PCS	$8.56	$11.00	117	96
+4806517042122	GOYA MILK CHOCO 15G	PCS	$8.60	$11.00	7	72
+4806517043709	GOYA WHITE CHOCO 15G	PCS	$8.60	$11.00	7	72
+4800017908506	RAM IODIZED SLT 250G	PCS	$8.61	$11.00	19	184
+907	CARTOLINA RED	PCS	$8.65	$12.00	100	129
+3522	RIBBON 1 3/4	\N	$8.75	$11.00	20	911
+4809012601115	DF GULAMAN RED UNFLAVORED 24G	PCS	$8.75	$11.00	76	10
+4809012601146	DF GULAMAN WHITE 24G	PCS	$8.75	$11.00	76	25
+4809012601153	DF GULAMAN YELLOW UNFLAVORED	PCS	$8.75	$11.00	76	10
+4809012601160	DF GULAMAN GREEN UNFLAVORED	PCS	$8.75	$11.00	76	10
+1432	EASTER MORNING STICKER SHORT	\N	$8.75	$9.00	107	-4
+415	VENUS DYE	PCS	$8.80	$11.00	20	0
+4902430587907	TIDE POW RED JUMOS 80G	PCS	$8.80	$11.00	70	455
+4902430587914	TIDE POW LMN& KLMNS 80G	PCS	$8.80	$12.00	70	216
+4902430611312	TIDE DOWNY GARDNBLOM74G	PCS	$8.80	$11.00	70	661
+4902430759250	TIDE DOWNY PERFMFANTSY74G	PCS	$8.80	$11.00	70	362
+7622300704148	TANG APPLE	PCS	$8.81	$11.00	19	0
+191	EGG ORGANIC	PCS	$8.83	$10.00	42	679
+4806517043686	GOYA DARK CHOCO 15G	PCS	$8.84	$11.50	7	48
+4807770121708	NSSN WAFFLE DLUXE 23G	PCS	$8.85	$11.00	1	432
+4902430800846	TIDE BAR DWNY PERFANSY 130G	PCS	$8.91	$11.00	70	102
+4902430411530	TIDE BAR CUT DOWNY	PCS	$8.92	$12.00	15	17
+4902430431156	TIDE NATURE FRSH 130G	PCS	$8.92	$11.00	36	20
+69025310	SNICKER 20G	PCS	$9.00	$12.00	7	0
+8804108010037	SEAWEED MINI 10/30 2G	PCS	$9.00	$12.00	11	6304
+8809273404759	SEAWEEDS MINI 2G	PCS	$9.00	$12.00	11	2400
+618	SCISSORS SMALL	PCS	$9.00	$10.00	20	31
+3471	BALLOON LETTER W/O STCK	PCS	$9.00	$12.00	20	-8
+22100	ENVELOP W/GARTER LONG	PCS	$9.00	$12.00	20	-24
+1244774771	PAINT BRUSH 6	PCS	$9.00	$9.00	20	0
+4800550021977	EASYWRITE 1/2 CROSSWSE	PCS	$9.00	$12.00	20	48
+4800550021984	EASYWRITE 1/2 LENGHTWSE	PCS	$9.00	$12.00	20	7
+480	FRT TAMARIND	PCS	$9.00	$12.00	23	0
+871	CROCO TAPE 3/4	PCS	$9.00	$11.00	63	29
+872	SCOTCH TAPE 1	PCS	$9.00	$11.00	63	28
+4806513820007	BINDER CLIP 3/4 BOX	PCS	$9.00	$12.00	63	60
+348	ILLUSTRATION BOARD 1/4	PCS	$9.00	$12.00	100	135
+4800017900203	RAM GREEN PEAS 100G	PCS	$9.04	$11.00	19	12
+4800086036513	SCLT ICS COOKIES 60ML	PCS	$9.09	$12.00	9	0
+4800086036530	SLCT ICS COOKIESNCRM 70ML	PCS	$9.09	$12.00	9	0
+4800086045775	SLCTA C&CREAM 60ML	PCS	$9.09	$12.00	9	324
+4800086045782	SLCTA ROCKY ROAD 60ML	PCS	$9.09	$12.00	9	288
+4800086045799	SLCTA QUEZO REAL 60ML	PCS	$9.09	$12.00	9	216
+4800086045805	SLCT ICS UBE KESO 60ML	PCS	$9.09	$12.00	9	144
+4800086045882	SLCTA ROCKY ROAD 60ML	PCS	$9.09	$12.00	9	0
+4800086045973	SLCTA OOH WATERMELON 70ML	PCS	$9.09	$12.00	9	330
+4800086045980	SLCTA OOH PINEAPPLE 70ML	PCS	$9.09	$12.00	9	180
+4800086036506	SLCT ICS QZREAL 70ML	PCS	$9.09	$12.00	20	0
+4800086036520	SLCT ICS RCKYRD 70ML	PCS	$9.09	$12.00	20	0
+4800888160157	SURF DWL LIQ LEMON 50ML	\N	$9.10	$12.00	36	0
+4805358789777	MAGNOLIA POPSIES ORANGE 65ML	PCS	$9.10	$12.00	115	0
+4805358790773	MAGNOLIA POPSIES CHOCO 65ML	PCS	$9.10	$12.00	115	0
+1102	HAND TOWEL 1ST HOME	PCS	$9.17	$12.00	20	26
+8901393017816	CHUPA CHUPS SOUR BITES 24.2G	PCS	$9.19	$12.00	67	80
+8990800021188	MENTOS BEATS FRUIT 27G	PCS	$9.19	$12.00	67	18
+4807770122460	NISSIN WAFER PBUTTER 50G	PCS	$9.25	$12.00	1	270
+4807770122477	NISSIN WAFER CHEESE 50G	PCS	$9.25	$12.00	1	300
+8996001350584	CAL CHEESE WAFER 53.5G	PCS	$9.35	$12.00	117	360
+4902430813624	OLAY FACE LGHT PH 7.5G	PCS	$9.36	$12.00	70	0
+4807770122330	BINGO COOKIES FEELS CHCO 26G	\N	$9.40	$12.00	1	336
+9158	PLASTIC COVER 2.6	PCS	$9.40	$12.00	100	-2
+4806030202447	JOLLY GARBANZOS 100G	PCS	$9.44	$12.00	53	11
+4800552888035	CHIPS DELIGHT MINI	PCS	$9.45	$12.50	54	0
+3411	ATSUETE 50G	PCS	$9.50	$13.00	20	-14
+806525940328	GULAMAN KING WHITE 24G	PCS	$9.50	$12.00	20	40
+4806011614016	ARMAK TAPE L 3/4	PCS	$9.50	$12.00	20	0
+4800888152725	POND DTX CRM SWHT 6G	PCS	$9.50	$12.00	36	30
+4895137911208	SNOWMAN CUTTER S	PCS	$9.50	$12.00	63	0
+4809012601122	DF GULAMAN BUCO PNDAN 24G	PCS	$9.50	$12.00	76	15
+4809012601139	DF GULAMAN STRWBRRY 24G	PCS	$9.50	$12.00	76	16
+4806525940007	GULAMAN KING BUCO PANDAN 24G	\N	$9.50	$12.00	84	30
+4806525940014	GULAMAN KING ORANGE 24G	\N	$9.50	$12.00	84	2
+4806525940038	GULAMAN KING GREEEN 24G	\N	$9.50	$12.00	84	37
+4806525941820	GULAMAN KING STRAWBRRY 24G	\N	$9.50	$12.00	84	7
+4809014004112	GULAMAN KING YELLOW 24G	\N	$9.50	$12.00	84	10
+4809014004280	GULAMAN KING BLK 24G	PCS	$9.50	$13.00	88	3
+4809012175012	NAIL POLISH REMOVER 30ML	PCS	$9.50	$12.00	107	0
+4800186001374	GOLDEN OATS INSTNT35G	PCS	$9.50	$12.00	211	24
+89686170726	MI GORENG FRIED NOODLES	PCS	$9.50	$12.00	1890	475
+4902430249812	SAFEGRD BAR KLMNSI 42G	PCS	$9.54	$12.00	107	24
+4800194115605	WAFU WAFER CHOCO 40G	PCS	$9.60	$12.00	10	200
+4800194187053	WAFU WAFER CHEESE 40G	PCS	$9.60	$12.00	10	200
+639	YEMA WRAPPER	PCS	$9.60	$12.00	20	0
+4800274003518	QUAKER INSTANT OATMEAL 33G	PCS	$9.67	$12.50	15	0
+4806030202454	JOLLY SLT BLCKBNS TAUSI 100G	PCS	$9.69	$12.00	1	28
+8934868113034	BREEZE LIQ DET 70ML	PCS	$9.70	$12.00	36	210
+8934868137955	BREEZE LIQUID DETERGENT 60ML	\N	$9.70	$12.00	36	144
+4800523220123	RICHEE MILK 60G	PCS	$9.75	$13.00	15	0
+4806506150425	EXRA COTTON BUDS 80S	PCS	$9.75	$12.00	77	57
+4410	DELTA PE32	PCS	$9.75	$13.00	107	2
+4902430424264	DOWNY LQD. ANTBC 3X PCK 60ML	PCS	$9.77	$12.00	70	426
+4902430513081	DOWNY LQD SUNFRSH 60ML	PCS	$9.77	$12.00	70	144
+4809010354112	BROWN SUGAR 1/4 KG	PCS	$9.80	$12.00	1	700
+356	POPCORN 250G	PCS	$9.87	$12.00	1	90
+4809011168251	SUPEROX BLEACH 250ML	PCS	$9.89	$13.00	117	60
+48042857	YAKULT LIGHT 80ML	PCS	$9.90	$12.00	30	0
+6970990211455	SUPER PATATAS 25G	PCS	$9.90	$12.50	67	0
+6970990211806	AMERIA POTATO CHIPS 25G	PCS	$9.90	$13.00	67	0
+6970990211820	POTATO CHIPS BBQ 25G	PCS	$9.90	$13.00	67	0
+6970990211837	AMERIA POTATO CHIPS 25G	PCS	$9.90	$13.00	67	0
+4800300990218	CROWN BAKING SODA 125G	PCS	$9.90	$12.00	89	110
+480030099021	CROWN BAKING SODA 125G	PCS	$9.90	$12.00	104	0
+4800405133084	MARCA PNA CALMSI SOY SAUCE220M	PCS	$9.90	$12.50	20	0
+4902430764902	ARIEL GEL W/FRESHNESS 60G	PCS	$9.94	$13.00	50	0
+4800216127418	LSLIE'S I LOVE CHESE 50G	PCS	$9.95	$13.00	28	0
+186	DAN ERICS CUP S	PCS	$10.00	$13.00	6	0
+223	FF PANDE COCO 2S	PCS	$10.00	$12.00	17	15
+687	FF PANDECOCO	PCS	$10.00	$12.00	17	78
+20001	FF BASIL BREAD	PCS	$10.00	$13.00	17	0
+57	SOAP CASE SINGLE	PCS	$10.00	$13.00	20	0
+395	CRACKET HAIRNET	PCS	$10.00	$13.00	20	0
+453	CATLEYA FILLER B	PCS	$10.00	$12.00	20	0
+622	LETTER BALLONS	PCS	$10.00	$13.00	20	44
+629	PLASTIC COVER THIN 1YRD	PCS	$10.00	$15.00	20	80
+902	CLIP #102	PCS	$10.00	$13.00	20	0
+1099	CLAMP #60	PCS	$10.00	$13.00	20	22
+1108	CLIP #63	PCS	$10.00	$13.00	20	0
+1205	MC-L BAG	PCS	$10.00	$12.50	20	0
+1376	FLOWER PONY #81	PCS	$10.00	$15.00	20	0
+1379	HAIRNET #84	PCS	$10.00	$13.00	20	120
+3452	ID HOLDER MULTI FUNCTION	PCS	$10.00	$13.00	20	40
+3523	RIBBON 2	\N	$10.00	$13.00	20	345
+4301	GARTER PONY 6S	PCS	$10.00	$13.00	20	0
+6031	YARN ASSTD	PCS	$10.00	$15.00	20	56
+7050	CANTEEN SPAG EXTRA PASTA	\N	$10.00	$10.00	20	0
+7176	WHITE GLOVES COTTON	PCS	$10.00	$13.00	20	0
+9074	PONY TELEPHONE WIRE 10S	PCS	$10.00	$13.00	20	20
+9078	HAIRBAND #42	PCS	$10.00	$13.00	20	17
+9093	PONY PLASTIC 2S	PCS	$10.00	$13.00	20	48
+9168	HEADBAND #4	PCS	$10.00	$13.00	20	0
+9176	HEADBAND #25	PCS	$10.00	$13.00	20	0
+9184	COMB #33	PCS	$10.00	$13.00	20	0
+9573	PONY RUBBER SMALL	PCS	$10.00	$13.00	20	42
+9658	FASHION JEWELRY CLIP L	PCS	$10.00	$13.00	20	11
+45540	HAIRNET CRACKET	PCS	$10.00	$13.00	20	0
+229163	HEADBAND PLASTIC #65	PCS	$10.00	$13.00	20	0
+4806011627009	ARMAK ELECTRICAL TAPE S	PCS	$10.00	$13.00	20	0
+4806502250426	VISION MUSIC BOOK BIG	PCS	$10.00	$13.00	20	0
+4806502252307	SPELLING TABLET	PCS	$10.00	$13.00	20	21
+4806523020411	LCT STAMPAD INK BLUE	PCS	$10.00	$13.00	20	0
+503	VGT SPINACH	PCS	$10.00	$13.00	23	15
+728	SHUTTLE COCK FEATHER	PCS	$10.00	$13.00	23	135
+4800314007346	3M SCOTCH BRITE MPS	PCS	$10.00	$13.00	28	36
+4806020400709	SELECT SUKNG PUTI 340ML	PCS	$10.00	$13.00	53	0
+4809014937168	D DEL-C CLMNSI DRNK 200ML	PCS	$10.00	$12.50	75	420
+398	FRUIT DRINK ASSRTD 250ML	PCS	$10.00	$12.00	91	870
+1651	PARAMOUNT MASKING TAPE 3/4X25	PCS	$10.00	$13.00	100	46
+2601	PARAMONT MASKNG TAPE 3/4	PCS	$10.00	$14.00	100	55
+5409	CROCO DSIDED TAPE 1/2X10	PCS	$10.00	$13.00	100	147
+4806021316924	JOY BINDER CLIP 3/4	PCS	$10.00	$13.00	100	10
+327	ICE CANDY ASSTRD	PCS	$10.00	$12.00	107	3436
+696	VGT SILI LABUYO MOH	PCS	$10.00	$14.00	107	0
+914	SPECIAL PINIPIG	PCS	$10.00	$13.00	107	0
+979	CORNICK ASSTD SM REPACK	PCS	$10.00	$13.00	107	0
+4449	VGT TALBOS NG AMPALAYA	PCS	$10.00	$13.00	107	18
+4801981120147	MINUTE MAID FRSH ORANGE 250ML	PCS	$10.00	$13.00	211	252
+1827	CANTEEN PANDESAL	\N	$10.00	$10.00	578	-3
+4800060254506	JOY BT HI-SAVE 1ROLL	PCS	$10.04	$13.00	28	480
+4902430764858	ARIEL POW GEL SUNRISE FRESH 64	PCS	$10.04	$13.00	70	108
+897	ECO BAG XL	PCS	$10.10	$15.00	107	-392
+4800888187840	BREEZE POW ACTV BLCH 70G	PCS	$10.15	$13.00	36	794
+4800888202765	BREEZE PWDR RSEGLD PER 66G	PCS	$10.15	$13.00	36	768
+4800011000022	MAMAS LOVE CTTN BDS 100S	PCS	$10.15	$13.00	40	34
+4806506318931	SISTERS PANTLNER 8PADS	PCS	$10.25	$13.00	77	50
+4902430389556	JOY SAFEGUARD ANTIBAC 40ML	PCS	$10.39	$13.00	15	0
+4902430688079	JOY CMPLT LAV&LMN 45ML	PCS	$10.39	$13.00	70	4
+920	MC'CODY STAR ANISE 30G	PCS	$10.40	$13.00	1	0
+1007	ADAPTER OUTLET #304	PCS	$10.40	$13.00	20	193
+4686	ID HOLDER WATERPROF	PCS	$10.40	$13.00	20	0
+4806014800171	SPRINGMAID NO. 17	PCS	$10.40	$13.00	20	0
+4902430389532	JOY LIQUID.KLMNSI 45ML	PCS	$10.41	$13.00	70	39
+4800194128391	OISHI FROOZE APPLE 230ML	PCS	$10.46	$13.00	10	0
+4800194128414	OISHI FROOZE PINEAPPLE 230ML	PCS	$10.46	$13.00	10	0
+4800523443188	LOADED CHOCO FIILED 65G	PCS	$10.60	$14.00	117	750
+4902430583169	ARIEL POW SNRSFRSH 66G	PCS	$10.63	$14.00	70	528
+4902430583176	ARIEL POW CLRSTYL 66G	PCS	$10.63	$13.00	70	107
+4800017927408	RAM SLT BLK BNS100G	PCS	$10.64	$14.00	19	19
+4801288830084	THOSE DAYS NON-WING 8PADS	PCS	$10.67	$13.00	19	169
+4808888320106	COLGATE CLSSIC TBRUSH	PCS	$10.70	$14.00	117	0
+6914973603516	M&M ASSTRD 14.5G	PCS	$10.75	$13.00	7	0
+4902505084584	PILOT BP-S FINE BLUE	PCS	$10.75	$13.00	63	83
+4902505482007	PILOT BLK BP1RT	PCS	$10.75	$13.00	63	36
+4902505482021	PILOT BLUE BP 1RT	PCS	$10.75	$13.00	63	64
+4902505482014	PILOT RED BP-1RT	PCS	$10.75	$13.00	107	64
+4800194151702	OISHI PODS VPSNK60G	PCS	$10.76	$13.50	10	0
+4801288880089	THOSE DAYS THINS 8PADS	PCS	$10.78	$13.00	19	288
+4800575140158	ALSK EVAPORADA140ML	PCS	$10.79	$14.00	19	272
+4902430583183	ARIEL POW W/DOWNY 66G	PCS	$10.87	$14.00	15	943
+4902430463706	ARIEL POW ANTIBAC 60G	PCS	$10.87	$14.00	70	450
+4902430768917	ARIEL POW DWNY GLDNBLM 66G	PCS	$10.87	$14.00	70	545
+4800361394345	BEARBRAND SWAK 33G	PCS	$10.90	$14.00	14	1424
+4809014004297	BREAD CRUMBS 80G	PCS	$10.90	$14.00	84	3
+4805358701755	MIC FN KESONG PUTI 60ML	PCS	$10.90	$14.00	115	13
+4805358761834	MIC FN ICOS AVOCADO 60ML	PCS	$10.90	$14.00	115	54
+4805358777835	MIC FN ICOS MANGO CHCO 60ML	PCS	$10.90	$14.00	115	56
+4800361381604	NSTL KIMMY JELLY TONGUE 43G	PCS	$10.91	$14.00	32	118
+4902430296847	OLAY NW BLUE 7.5G	PCS	$10.97	$14.00	70	78
+8888021100174	EVEREADY 9V	PCS	$11.00	$87.00	7	19
+130	CANISTER #130	PCS	$11.00	$14.00	20	5
+135	HI-TOP  LB #135	PCS	$11.00	$14.00	20	0
+1135	HITOP LB #135	PCS	$11.00	$14.00	20	0
+1204	SOAP CASE #1204	PCS	$11.00	$14.00	20	0
+9072	SATIN FAN BIG	PCS	$11.00	$14.00	20	0
+9182	COMB #31	PCS	$11.00	$14.00	20	0
+4713389119732	DINO SMALL PAD	PCS	$11.00	$14.00	20	0
+4800888152886	PEPSODENT CFIGHTER 25G	PCS	$11.00	$14.00	36	12
+3828	EM 9USPC POCKETCARDS W/ BLING	PCS	$11.00	$11.00	41	90
+1637	CROCO SCOTCH TAPE 1X45M	\N	$11.00	$14.00	63	15
+4808647210099	CALUMET B-PWDR 50G	PCS	$11.05	$14.00	1	118
+4806506152221	HELLO BATH TISSUE 440SHTS	PCS	$11.05	$14.00	77	108
+9556089243513	FABER CASTELL BLUE	PCS	$11.10	$14.00	63	200
+4800361381024	BEAR BRND SWAK 33G	PCS	$11.13	$14.00	15	23
+2121440	TIGER CELLO TAPE 24X66	PCS	$11.20	$14.00	20	0
+4806501705026	CHAMPION POW WHTE 50G	PCS	$11.21	$14.00	15	0
+4801688103825	SNACKU VEGE SNACK 60G	PCS	$11.31	$14.00	117	0
+4804888902120	ZEST-O CHOCO 110ML	PCS	$11.40	$14.00	67	122
+4805358603028	MAGNOLIA CHOCOLAIT 110ML	PCS	$11.45	$14.00	900	0
+705632971260	PURE C CALAMANSI 250ML	PCS	$11.50	$14.00	19	6
+70	WHITE BOARD ERASER	PCS	$11.50	$15.00	20	0
+820	SOAP BASKET #820	PCS	$11.50	$15.00	20	0
+8336180067673	PLASTIC FORK 25PCS	PCS	$11.50	$15.00	20	214
+8336180067741	PLASTIC SPOON 25PCS	PCS	$11.50	$15.00	20	500
+3154142253354	MAPED ICE BPEN M BLCK	PCS	$11.50	$15.00	37	0
+4440	SPOON & FORK PLASTIC 25S	\N	$11.50	$15.00	107	0
+4806517043020	GOYA TAKE IT 17G	PCS	$11.50	$15.00	107	0
+4806014092811	JOLLY GREEN PEAS 155G	PCS	$11.58	$15.00	53	51
+4800888600219	KNORR SNGANG MISO 25G	PCS	$11.60	$15.00	36	216
+4809010354075	WASHED SUGAR 1/4	PCS	$11.75	$15.00	1	654
+4806506150432	EXTRA COTTON BUDS 108S	PCS	$11.75	$15.00	77	36
+4800194115445	OISHI POPCORN CHOCOLATE 60G	PCS	$11.78	$15.00	10	250
+399	VGT COCONUT L	PCS	$11.78	$15.00	23	32
+4800194105972	POPCORN CRMEL 90G	PCS	$11.79	$15.00	10	150
+4800194115247	CARAMEL POPCORN 60G	PCS	$11.79	$15.00	10	150
+4800060333904	NEWTEX PANTYLINER 8'S	PCS	$11.81	$15.00	76	12
+4011	SOYBEANS 250G	PCS	$11.83	$16.00	1	254
+3154145347548	SHARPENER MAPED	PCS	$11.87	$15.00	63	0
+4800016663802	JNJ NOVA CHEDDAR 40G	PCS	$11.90	$15.00	15	0
+4806517731090	NAT TWAS PWD 50G	PCS	$12.00	$15.00	15	0
+4806517781090	RDL TAWAS POW PLAIN	PCS	$12.00	$16.00	15	0
+391	FF KABABAYAN	PCS	$12.00	$18.00	17	0
+460	FF MAMON	PCS	$12.00	$17.00	17	0
+262	#262 DIPPER/TABO	PCS	$12.00	$15.00	20	38
+690	COLORED FOLDER	PCS	$12.00	$15.00	20	0
+741	GLASS PLATE	PCS	$12.00	$15.00	20	49
+757	TOKINA RUBBER PLUG 6A	PCS	$12.00	$15.00	20	0
+809	SOAP BASKET #809	PCS	$12.00	$15.00	20	0
+911	FAUCET FOAM	PCS	$12.00	$15.00	20	5
+1109	CLIP #64	PCS	$12.00	$15.00	20	0
+1126	PONY #71	PCS	$12.00	$15.00	20	0
+1128	CLIP #72	PCS	$12.00	$15.00	20	0
+1383	HAIRNET #88	PCS	$12.00	$15.00	20	0
+1806	FLOWER PONY #80	PCS	$12.00	$15.00	20	0
+3476	BALLOON #5 HEART PLAIN	PCS	$12.00	$16.00	20	-6
+5346	SYLVANIA CHNDLR 25W	PCS	$12.00	$15.00	20	0
+5350	SPARK PLUG 6A	PCS	$12.00	$15.00	20	15
+5411	PONY CLOTH	PCS	$12.00	$16.00	20	46
+6035	FF CAMOTE CHIPS	PCS	$12.00	$15.00	20	-10
+6491	HAIR CLIP RIBBON #50	PCS	$12.00	$16.00	20	10
+9061	HAIRPIN BOBPIN	PCS	$12.00	$16.00	20	3
+9083	HAIRBAND #46	PCS	$12.00	$16.00	20	11
+9095	HAIRBAND #48	PCS	$12.00	$16.00	20	11
+9175	HEADBAND #23	PCS	$12.00	$15.00	20	0
+9180	PLASTIC FAN #29	PCS	$12.00	$15.00	20	0
+9577	CLIP RIBBON ASSORTED	PCS	$12.00	$16.00	20	49
+9662	CLIP W/ FLOWER STONE	PCS	$12.00	$16.00	20	33
+11118	TABO #118	PCS	$12.00	$15.00	20	0
+35400	PONY ASSTRD	PCS	$12.00	$15.00	20	0
+224415	HAIRPIN STONE	PCS	$12.00	$16.00	20	113
+2154531	VICTORY LESSON PLAN	PCS	$12.00	$15.00	20	0
+4806021384459	JOY CLAY BAR	PCS	$12.00	$16.00	20	31
+6926341873100	HBW STAMP PAD INK 30ML BLACK	PCS	$12.00	$16.00	20	12
+6926341889644	HBW STAMP PAD 30ML BLUE	\N	$12.00	$16.00	20	11
+6926341889651	HBW STAMP PAD 30ML RED	\N	$12.00	$16.00	20	24
+6936773100101	HAIRNET CAP #89	PCS	$12.00	$15.00	20	0
+4806020400686	SELECT S.SAUCE TWSTCAP 340ML	PCS	$12.00	$15.00	53	0
+125560	EVEREADY AA BLUE	PCS	$12.00	$18.00	57	0
+6926341889668	HBW STAMPAD INK PURPLE 30ML	PCS	$12.00	$16.00	63	12
+7896	KING TAPE MASKING TAPE 1	PCS	$12.00	$15.00	100	1
+4806523020251	CUTTER KNIFE BIG	PCS	$12.00	$15.00	100	0
+6931717503024	KAI SI TE STCK NOTEPAD 2X3	PCS	$12.00	$15.00	100	63
+4115	CARTOLINA ORANGE THICK	\N	$12.00	$15.00	107	192
+4484	DRAWING BOOK	PCS	$12.00	$12.00	107	63
+4501	WRISTBAND SET	\N	$12.00	$15.00	107	0
+4809014155012	TAWAS SNOW FRESH 45GM	PCS	$12.00	$15.00	113	0
+400	SILVER SPRING BIG	PCS	$12.00	$16.00	115	210
+1641	CANTEEN BANANAQ SMALL	\N	$12.00	$12.00	578	-6
+4800552999663	SMILEY CHOCO 65G	PCS	$12.17	$15.50	104	0
+4800010079951	PRESTO CREAM PBUTTER 80G	PCS	$12.18	$15.00	117	0
+4800011586144	MAMAS LOVE CTTN 20G	PCS	$12.20	$15.00	40	32
+4800528456299	SPCL HOBE BIHON 227G	PCS	$12.21	$15.00	20	0
+354	SOYA BEAN 250G	PCS	$12.22	$16.00	1	155
+4902430191821	ARIEL BAR CUTUP 130G	PCS	$12.26	$16.00	70	24
+4800047840036	ZONROX BLEACH. ORIGINAL 250ML	PCS	$12.30	$15.00	15	180
+1869	EVEREADY 3A RED SINGLE	\N	$12.32	$15.00	86	0
+4806506150364	EXTRA ROLL COTTON 25G	PCS	$12.35	$16.00	77	55
+4806506150609	EXTRA BATH TISSUE 400+80S	PCS	$12.35	$16.00	77	108
+134	FRT PONKAN S	PCS	$12.37	$15.00	23	165
+4800631000662	BBAWANG BAKED CORN BBQ 50G	PCS	$12.38	$15.00	76	80
+342	CRICKET MINI LIGHTERS	PCS	$12.38	$16.00	324	0
+4806025963216	CRICKET MINI LIGHTERS 8X1	PCS	$12.38	$16.00	324	32
+8801038566337	DORCO SHAVE TD708N	PCS	$12.42	$16.00	53	0
+4800310153962	BW CHRCLFCLWSH 10ML	PCS	$12.42	$16.00	113	0
+332	ORIONCHOCOPIE 35G	PCS	$12.50	$16.00	11	62
+6106	TOILET BRUSH ORD	PCS	$12.50	$16.00	20	6
+9013	BAKING POWDER 250G	PCS	$12.50	$16.00	20	0
+9075	PONY GARTER 5S	PCS	$12.50	$16.00	20	7
+4800888192882	PONDS MEN ENRGYCHRG 10G	PCS	$12.50	$16.00	36	36
+4800067122068	TOOTHBRSH CLIO ECONOMY	PCS	$12.50	$16.00	86	0
+20123	SEA SALT 500G	\N	$12.50	$16.00	120	-33
+48032742	JOHNSON'S PWD CLSSIC 25G	PCS	$12.57	$16.00	117	60
+4800095004183	FAMILY RUBBING CMPOUND 60ML	PCS	$12.60	$16.00	54	30
+4807770121326	MONDE MAMON CLASSIC 43G	PCS	$12.64	$16.00	1	123
+4806505854232	CHICK BOY SWEET CORN 100G	PCS	$12.65	$16.00	8	80
+4806505854416	CHICK BOY SMOKED BBQ	PCS	$12.65	$16.00	8	160
+4800888163677	PEPSODENT TH BRUSH FIGTHER	PCS	$12.65	$16.00	36	11
+4806505854225	CHICKBOY CHEESE FLAVOR 100G	PCS	$12.65	$16.00	107	40
+4806505854423	CHICKBOY CALICRUNCH 100G	PCS	$12.65	$16.00	107	160
+4800060084707	PURITY COTTONBALLS 30S	PCS	$12.70	$16.00	20	9
+4806514870193	TRASH BAG SM	PCS	$12.70	$16.00	107	0
+4800010079968	PRESTO CHOCOLATE 80G	PCS	$12.70	$16.00	117	100
+4902430178259	PERLA ORIGNL WHTE SOAP 95G	PCS	$12.70	$16.00	117	72
+4902430178273	PERLA BAR. PAPAYA 95G	PCS	$12.70	$16.00	117	72
+4806516820240	KETTLE CORN SLTED CRML 40G	PCS	$12.71	$16.00	19	12
+4806516820356	KETTLE CORN CHEESE 40G	PCS	$12.71	$16.00	19	12
+4809010354037	REFINED SUGAR 1/4	PCS	$12.75	$16.00	1	195
+4800047840289	ZONROX LEMON 250ML	PCS	$12.75	$16.00	15	0
+455	GUITAR STRING #2	PCS	$12.80	$24.00	20	0
+456	GUITAR STRING #3	PCS	$12.80	$32.00	20	0
+1157	PHILIPPINE MAP BIG	\N	$12.80	$16.00	20	0
+114110	TIGER PCK TAPE TAN 2	PCS	$12.80	$16.00	20	0
+132441	PONY W/ STONE	PCS	$12.80	$16.00	20	0
+4801668100103	DATU PUTI VIN350ML	PCS	$12.85	$16.00	15	57
+748485200019	555 SARDINES TMT SAUCE 155G	PCS	$12.89	$16.50	110	0
+185	DAN ERICS ICECRMSTICK 60ML	PCS	$13.00	$16.00	6	396
+4800047840227	ZONROX BLEACH. FRESH 250ML	PCS	$13.00	$16.00	15	0
+4800047840555	ZONROX BLEACH. FLORAL 250ML	PCS	$13.00	$16.00	15	0
+157	HEADBAND #62	PCS	$13.00	$10.00	17	0
+102	DIPPER/TABO #102	PCS	$13.00	$16.50	20	0
+310	FOLDER W/PLASTIC SHORT	PCS	$13.00	$15.00	20	-402
+743	SOAP CASE #743	PCS	$13.00	$17.00	20	0
+9027	CLAMP #55	PCS	$13.00	$17.00	20	19
+9071	BAMBOO SILK FAN	PCS	$13.00	$17.00	20	3
+4806509521147	TRIMARK ALUMNUM FOIL	PCS	$13.00	$16.00	20	0
+898	VGT COCONUT S	PCS	$13.00	$16.00	23	84
+4800631000761	BBAWANG SALT&VINEGAR 100G	PCS	$13.00	$16.00	76	0
+4800631681311	BBAWANG LECHON MANOK 100G	PCS	$13.00	$16.00	76	680
+4809011681095	BBAWANG ADOBO 100G	PCS	$13.00	$16.00	76	760
+4809011681194	BBAWANG HOTGARLIC 100G	PCS	$13.00	$16.00	76	680
+4809011681378	BBAWANG GARLIC 100G	PCS	$13.00	$16.00	76	560
+4809011681392	BBAWANG CHILICHEESE 100G	PCS	$13.00	$16.00	76	680
+4809011681507	BBAWANG BBQ 100G	PCS	$13.00	$16.00	76	680
+4800550002150	ADVNCE STENO NB	PCS	$13.00	$16.00	100	0
+4801668600825	DATU PUTI VINEGAR 350ML	PCS	$13.03	$16.00	29	89
+4806522942202	SAVERS SPOON 25'S	PCS	$13.03	$17.00	117	217
+4806522942219	SAVERS FORK 25'S	PCS	$13.03	$17.00	117	182
+4800060230500	EMPRESS PAPER NAPKIN FLD 25S	PCS	$13.05	$17.00	28	2
+4806506150395	EXTRA COTTON BALLS 50'S	PCS	$13.07	$17.00	91	36
+4806506151118	SOFT N WHITE 100'S	PCS	$13.13	$17.00	77	48
+4902430694612	OLAY FACE CREAM PNK	PCS	$13.15	$17.00	70	90
+4902430749725	OLAY LGTSHINE PH 7.5G	PCS	$13.15	$17.00	70	24
+4807770121357	MONDE SPCLMMN MCHA 40G	PCS	$13.16	$16.00	1	36
+4800011718804	CASINO ETHYL 40% 60ML	PCS	$13.20	$16.00	40	13
+4806014092835	GOOD LIFE BRD CRMBS 80G	PCS	$13.21	$17.00	20	5
+4800030000188	IDEAL MACARONI 250G	PCS	$13.25	$17.00	20	0
+4800405123672	MARCA PINA SUKNG PTI350ML	PCS	$13.25	$17.00	53	28
+4800033152112	DENTAL-B GENERAL TBRUSH 8'S	PCS	$13.25	$17.00	77	24
+4800067122044	TOOTHBRSH CLIO ALL ARND	PCS	$13.25	$17.00	86	0
+1401	DDJK ASRTD COATED PEANUT 50G	PCS	$13.30	$17.00	107	-49
+4800010079944	PRESTO CRMS VANILLA 80G	PCS	$13.30	$17.00	117	150
+8002	FACE TOWEL CANNON WHITE	PCS	$13.33	$18.00	20	53
+4800344004414	SILVER SWAN SUKNG PTI350ML	PCS	$13.35	$17.00	19	121
+5052	BASONG PINOY CUPS 8OZ	PCS	$13.50	$18.00	20	24
+540110	SKETCH PAD 6X9	PCS	$13.50	$17.00	20	0
+4806507830371	DEFINE GEL CLEAR 50ML	PCS	$13.50	$17.00	222	0
+4806507830388	DEFINE GEL YELLOW 50ML	PCS	$13.50	$17.00	222	0
+4806507830395	DEFINE GEL GREEN 50ML	PCS	$13.50	$17.00	222	0
+4805358710771	MAGNOLIA TWIN PPSIES ORNG 70ML	PCS	$13.60	$17.00	115	42
+4805358711778	MAGNOLIA TWIN PPSIES CHCO 70ML	PCS	$13.60	$17.00	115	24
+48040693	J&J PWDER BLOSSM 25G	PCS	$13.61	$17.00	117	61
+4807770101694	NISSIN BUTTRCCNUT 90G	PCS	$13.63	$17.00	1	581
+4800086046079	SLCTA OOH WAFER SWEET CORN 118	PCS	$13.63	$17.00	9	40
+4800086041913	SLCT OOH PINIPIG VNLL 65ML	PCS	$13.64	$17.00	9	0
+4800086041920	SLCT OOH PINIPIG CHOCO 65ML	PCS	$13.64	$17.00	9	0
+4800086045751	SLCT OOH PINIPIG CHOCO 60ML	PCS	$13.64	$17.00	9	216
+4800086045768	SLCT OOH PINIPIG VANILLA 60ML	PCS	$13.64	$17.00	9	192
+4800086046031	SLCTA OOH MANGO STICK 60ML	PCS	$13.64	$17.00	9	150
+8851932268820	PADDLE PO IC WTRMLON 62G	PCS	$13.64	$17.00	9	0
+48000860268820	PADDLE POP IC WTRMLN 62G	PCS	$13.64	$17.00	9	0
+4800361399517	NSTL KIMY MIILKYSTCK 43G	PCS	$13.64	$17.00	32	51
+4805358703513	MAGNOLIA VANILLA CLSSC 70ML	PCS	$13.65	$17.00	2	96
+4805358796768	MAGNOLIA PINIPIG CRNCH VNLL	PCS	$13.65	$17.00	2	40
+4805358797765	MAGNOLIA PNPIG CRNCH 65ML	PCS	$13.65	$17.00	2	20
+4801010562306	JB SOAP MILK 60G PILLOW	PCS	$13.65	$17.00	69	0
+4805358702516	MAGNOLIA CHOCO CLSSC 70ML	PCS	$13.65	$17.00	115	143
+4805358715776	MIC FN STRAWBERRY 70ML	PCS	$13.65	$17.00	115	72
+4800060255008	JOY EXTRA 1ROLL	PCS	$13.74	$18.00	28	97
+4800094099876	MINOLA OIL POUCH 100ML	PCS	$13.74	$17.00	117	72
+3520	RIBBON 2 3/4	\N	$13.75	$17.00	20	311
+4806501705224	CHAMPION POW FABCON 120G	PCS	$13.83	$16.00	15	0
+750515017405	FITA CRACKER SLUGS 80G	PCS	$13.88	$18.00	1	42
+4800024561015	DM TOMATO PASTE 70G	PCS	$13.90	$18.00	29	32
+3512	FF BONETE	PCS	$14.00	$17.00	17	0
+485	CLEARBOOK REFILL S	PCS	$14.00	$17.00	20	0
+556	HANGER W/CLIP #556	PCS	$14.00	$17.50	20	0
+3473	BALLOON #10	PCS	$14.00	$18.00	20	0
+3478	LONG BALLOONS 160	PCS	$14.00	$18.00	20	14
+8080	LUNCH BOX #8080	PCS	$14.00	$18.00	20	0
+46469	NATIVE LUBID	PCS	$14.00	$19.00	20	0
+4800186004160	OATS PLUS CALC&FOIL 35G	PCS	$14.00	$18.00	20	24
+4800186004436	OATSPLUS STRWBRY W/ VIT C 35G	PCS	$14.00	$18.00	20	7
+4800186004535	OATSPLUS W/ IRON&LBF 35G	PCS	$14.00	$18.00	20	0
+4800186004955	OAT PLUS CHOCO 35G	PCS	$14.00	$18.00	20	24
+8991102023702	FORMULA SP FIT MED	PCS	$14.00	$18.00	25	0
+3619	EM PAPER BAG 5GB-01	PCS	$14.00	$14.00	41	0
+734	IMBUDO 8805 S	PCS	$14.00	$15.00	107	0
+4800131592230	ETHYL ALCOHOL 70% 75ML	PCS	$14.00	$18.00	107	3
+4801958391105	CRISPY FRY SPICY 62G	PCS	$14.00	$18.00	117	0
+4801958393109	CRISPY FRY GARLIC 62G	PCS	$14.00	$18.00	117	0
+4800186004269	GOLDEN OATS VIT. E 35G	PCS	$14.00	$18.00	211	24
+4902430349062	ORAL-B SHINY CLEAN BRUSH	PCS	$14.01	$17.00	70	157
+359	MARGARINE 250G	PCS	$14.05	$18.00	1	0
+4902430785495	DOWNY MYSTQ TRIPID 60ML	PCS	$14.08	$18.00	61	56
+4800011113937	BIODERM COOLNESS 60G	PCS	$14.10	$18.00	40	107
+4800011782737	BIODERM GREEN 60G	PCS	$14.10	$18.00	40	20
+4800011782904	BIODERM GLOW SOAP 60G	PCS	$14.10	$18.00	40	76
+4800216127012	LESLIE'S CHEEZY O-CHEESE 60G	PCS	$14.10	$18.00	20	0
+4807770121388	MONDE MAMON VANILLA CREAM 48G	PCS	$14.17	$18.00	1	114
+4807770121418	MONDE MAMON CHOCO FILL 48G	PCS	$14.17	$18.00	1	124
+4807770121777	MONDE MAMON STRAWJAM 48G	PCS	$14.17	$18.00	1	121
+36	PAPER CLIP 55MM	PCS	$14.20	$18.00	63	20
+8999002665824	EVEREADY AA1	PCS	$14.25	$18.00	86	0
+4806525942490	MR. GULAMAN JELLY POW 25G	PCS	$14.25	$18.00	107	0
+511	MONGO LINAW GREEN 250G	PCS	$14.30	$18.00	84	788
+760	ALPHA AND OMEGA 8 VOL	PCS	$14.40	$9,840.00	20	0
+229181	PONY #33 12S	PCS	$14.40	$18.00	20	0
+4902430424288	DOWNY PASSION 60ML	PCS	$14.40	$18.00	20	63
+4809014155005	TAWAS SNOW FRSH 45G	PCS	$14.40	$18.00	63	0
+4806525940113	BREADCRUMBS 150G	PCS	$14.40	$18.00	84	10
+131	CANISTER #131	PCS	$14.50	$19.00	20	9
+136	HI-TOP LB #136	PCS	$14.50	$19.00	20	0
+48856	FLOWER POT SM	PCS	$14.50	$19.00	20	-5
+4806525943527	PALAMIG MELON 25G	PCS	$14.50	$18.00	20	7
+4806525943534	PALAMIG SAGO GLMN 25G	PCS	$14.50	$18.00	20	0
+4806525943565	PALAMIG BKUE LEMND 25G	PCS	$14.50	$18.00	20	0
+4800602060251	EOC PINEAPPLE 250G	PCS	$14.50	$18.00	211	12
+4801981166152	EOC CALAMANSI 25G	PCS	$14.50	$18.00	211	48
+4801981166381	EOC DALANDAN 250G	PCS	$14.50	$18.00	211	48
+4806507831927	JUICY VOILET DREAMSICLE 25ML	PCS	$14.50	$18.50	222	11
+4806507831934	JUICY PNK ANGEL'S BLISS 25ML	PCS	$14.50	$18.50	222	11
+4806507831941	JUICY ORANGE TWIST 25ML	PCS	$14.50	$18.50	222	6
+4806507831965	JUICY RED SWEET DLGHT 25ML	PCS	$14.50	$18.50	222	10
+4806507831972	JUICY BLUE ICYLICIOUS 25ML	PCS	$14.50	$18.50	222	4
+4806507831989	JUICY SPRIGHTLY SPRINKLE 25ML	PCS	$14.50	$18.50	222	6
+4806507835147	JUICY M.PINK SUGAR FROSTING 25	PCS	$14.50	$18.50	222	4
+4806507835185	JUICY M.BLUE UPUP AWAY 25ML	PCS	$14.50	$18.50	222	4
+4807770101724	BINGO VANILLA 75G	PCS	$14.53	$18.00	1	99
+4807770101748	BINGO DBLCHC 75G	PCS	$14.53	$18.00	1	179
+4807770121593	BINGO ORANGE 75G	PCS	$14.53	$18.00	1	198
+4806025963261	CRICKET LIGHTER MINI	PCS	$14.53	$18.00	117	150
+4800361344937	NSTL TWNPOPS CHCO 75ML	PCS	$14.55	$18.00	32	41
+4800361344951	NSTL TWNPOPS ORANGE 75ML	PCS	$14.55	$18.00	32	47
+4800361387293	NSTL KIMMY CHOCO 44G	PCS	$14.55	$18.00	32	0
+8993417302183	ELLIPS CLGN CHARM 25ML	PCS	$14.55	$19.00	76	7
+4801668500293	DATU PUTI VENIGAR 385ML	PCS	$14.61	$18.00	117	48
+381	AA BLACK 1215	PCS	$14.63	$18.00	86	132
+45445	EVEREADY AA HD 1S	\N	$14.63	$18.00	86	0
+4800216123892	LESLIE'S CHZYPFF CHDRCHZ55G	PCS	$14.65	$18.00	28	0
+4800216123915	LESLIES CHZPUFF SBTTR&CHS 55G	PCS	$14.65	$18.00	28	0
+4800095004190	FAMILY ISO ALCOHOL 60ML	PCS	$14.70	$18.00	54	12
+4800488011484	CHARMEE COTTONY W/O WINGS 8PDS	PCS	$14.72	$19.00	19	34
+4800588091300	JELLY ACE ASSRTED 12'S	PCS	$14.80	$19.00	117	60
+4800194104654	OISHI OATIES MILK 200ML	\N	$14.83	$19.00	10	540
+4800631681953	BIG DADDY NACHO CHEES 90G	PCS	$14.90	$19.00	7	0
+4800216110069	CLOVER CHPS CHEESE 60G	PCS	$14.95	$19.00	28	0
+800131591233	ISOPROPHY ALCOHOL 70% 75ML	PCS	$14.95	$19.00	107	0
+4800194179881	OISHI MARTY'S  PSALTD90G	PCS	$14.96	$19.00	10	0
+4800194179898	OISHI MARTY'S  SPICYVR90G	PCS	$14.96	$19.00	10	0
+4800194179904	OISHI MARTYS VNGR 90G	PCS	$14.96	$19.00	10	0
+4004	WHITE BEANS 250G	PCS	$15.00	$20.00	1	0
+4007	BLACK BEANS 250G	PCS	$15.00	$41.00	1	0
+158	FF CINNAMON ROLL	PCS	$15.00	$19.00	17	23
+376	FF MONAY	PCS	$15.00	$19.00	17	50
+422	FF SPANISH BREAD	PCS	$15.00	$19.00	17	-26
+1660	FF PINAGONG SINGLE	PCS	$15.00	$19.00	17	26
+1786	FF SWEETCORN BREAD	PCS	$15.00	$19.00	17	0
+3002	MONGO ROLLS	\N	$15.00	$19.00	17	9
+242	STRAINER PLASTIC S	PCS	$15.00	$19.00	20	0
+617	SCISSORS BIG 6	PCS	$15.00	$16.00	20	4
+716	HOSE SIZE 1/2	PCS	$15.00	$20.00	20	0
+903	HANGER CLIP CORONA	PCS	$15.00	$19.00	20	0
+1034	SHORT SOCK SS-350	PCS	$15.00	$20.00	20	0
+1110	CLIP #65	PCS	$15.00	$19.00	20	0
+1121	CLIP #66	PCS	$15.00	$19.00	20	0
+1123	BUTTERFLY CLIP #68	PCS	$15.00	$19.00	20	0
+1129	CLIP #73	PCS	$15.00	$19.00	20	0
+1131	CLIP SET #73	PCS	$15.00	$19.00	20	0
+1803	HAIR CLIP #43	PCS	$15.00	$19.00	20	0
+3490	MAGIC CANDLE	PCS	$15.00	$20.00	20	-1
+3521	RIBBON 3	\N	$15.00	$19.00	20	155
+4860	R-BAG S	PCS	$15.00	$10.00	20	0
+4861	R-BAG L	PCS	$15.00	$19.00	20	0
+5341	DLTA FLRSCNT STRTR D-STA2	PCS	$15.00	$19.00	20	0
+6381	HELLO KITTY WALLET	PCS	$15.00	$20.00	20	0
+6493	CLIP FASHION NEW	PCS	$15.00	$19.00	20	0
+9062	MIRROR BETTY BOOP	PCS	$15.00	$19.00	20	17
+9076	PONY GARTER BIG 5S	PCS	$15.00	$19.00	20	48
+9094	HAIRBAND #49	PCS	$15.00	$19.00	20	11
+9153	ID LACE T	PCS	$15.00	$19.00	20	23
+9179	HEADBAND #28	PCS	$15.00	$19.00	20	0
+9571	PONY #1269	PCS	$15.00	$19.00	20	21
+9576	HAIRPIN 10S	PCS	$15.00	$19.00	20	7
+9578	FASHION JEWELRY CLIP RIBBON	PCS	$15.00	$19.00	20	7
+9661	CLAMP #61	PCS	$15.00	$19.00	20	16
+49855	BASO #15	PCS	$15.00	$20.00	20	0
+49858	SOUP BOWL #15	PCS	$15.00	$20.00	20	0
+49866	BOWL #15	PCS	$15.00	$20.00	20	0
+147256	PONY #30	PCS	$15.00	$19.00	20	0
+213148	EVEREADY AAA	PCS	$15.00	$15.00	20	-1
+12587887	CLAMP #61	PCS	$15.00	$19.00	20	0
+20200091	HEADBAND #66	PCS	$15.00	$19.00	20	0
+694511201255	COLORING BOOKNOY	PCS	$15.00	$30.00	20	0
+4806502259597	VICTORY STENO NB	PCS	$15.00	$20.00	20	14
+6924091927906	R-BAG M	PCS	$15.00	$16.00	20	0
+6931651503180	NUMBER CANDLES	PCS	$15.00	$20.00	20	0
+6932124700501	SNOWMAN PUSHPIN 50'S	PCS	$15.00	$19.00	20	34
+3620	EM PAPER BAG 5GB-02	PCS	$15.00	$15.00	41	-1
+4806510050001	KITA CRACKERS 100G	PCS	$15.00	$19.00	53	12
+4809010997371	EGGO BTTR COOKIES 100G	PCS	$15.00	$19.00	53	36
+4809010997388	EGGO CHOCO COOKIES 100G	PCS	$15.00	$19.00	53	24
+4806513820014	BINDER CLIP 1 BOX	PCS	$15.00	$19.00	63	0
+4800631001867	BBAWANG SNACK MIX 85G	PCS	$15.00	$19.00	76	200
+4800631001928	BBAWANG ASSORTED NUTS 85G	PCS	$15.00	$19.00	76	440
+4806506150241	EXTRA PARTY NAPKIN 50S	PCS	$15.00	$19.00	77	24
+1406	CHAMPION SILVER WHISTLE	PCS	$15.00	$19.00	100	50
+2475	CUTTER BIG	PCS	$15.00	$19.00	100	0
+5412	DSIDED 3/4	PCS	$15.00	$19.00	100	0
+4806021302699	JOY SCISSOR STAINLESS 6	PCS	$15.00	$19.00	100	0
+4806021383810	JOY EXCELLENT WB ERASER	PCS	$15.00	$19.00	100	50
+4806028907996	CONSTRUCTION PAPER SET	PCS	$15.00	$19.00	100	0
+4806503874768	SPIRAL HOTS NOTEBOOK	PCS	$15.00	$19.00	100	18
+4806524271089	ARCTIC INTERMEDIATE PAD 80L	PCS	$15.00	$19.00	100	50
+6931717503031	KAI SI TE STCK NOTEPAD 3X3	PCS	$15.00	$19.00	100	27
+396	ELIES BANANA BALLS	PCS	$15.00	$19.00	107	0
+1127	XXL CHUPACHUPS	PCS	$15.00	$19.00	107	0
+1188	MOH VGT SITAW PACK	PCS	$15.00	$19.00	107	0
+1672	HAIR STICK	\N	$15.00	$19.00	107	-1
+2307	BUCAYO	PCS	$15.00	$19.00	107	0
+3443	FELT PAPER	PCS	$15.00	$20.00	107	-4
+4587	JUJUBE PLUS WALNUTS	\N	$15.00	$19.00	107	-32
+9042	VGT COCONUT M	PCS	$15.00	$19.00	107	100
+4806506152009	EXTRA PARTY NAPKIN 50S	\N	$15.00	$19.00	117	0
+4806507832481	SILKA SOAP PAPAYA WHTG 65G	PCS	$15.00	$19.00	222	216
+3555	MAGIC NUTS GRANOLA 20G	\N	$15.00	$19.00	555	-10
+1708	CANTEEN VEGGIE BALLS	\N	$15.00	$15.00	578	-10
+4801668500262	DATUPUTI SOY SAUCE 340ML	PCS	$15.20	$19.00	15	121
+650	NET SPONGE FST	PCS	$15.20	$45.00	20	0
+663	MIRROR NEW	PCS	$15.20	$19.00	20	0
+4804888800440	ZESTO CHOCO POPSCLE	PCS	$15.25	$19.00	67	100
+4800131591233	ETHYL ALCHL BIOG 75ML	PCS	$15.25	$19.00	222	16
+8410128100162	PASCUAL CRMY DLGHT STRAW 100G	\N	$15.26	$19.00	117	72
+8410128100346	PASCUAL CRMY DLGHT MANGO 100G	\N	$15.26	$19.00	117	72
+4804880551111	FRITO PLUS VGT OIL 175ML	PCS	$15.30	$18.00	53	214
+353	FAROLA C. STRACH 500G	PCS	$15.40	$20.00	1	0
+9556121026623	JULIE'S CHCO MORE65G	PCS	$15.40	$19.00	71	72
+9556121026630	JULIE'S DRK CHOCO65G	PCS	$15.40	$19.00	71	72
+9556121028764	JULIES LE-MOND 51G	PCS	$15.40	$19.00	71	72
+9556121028757	JULI'S LEMOND CHDCHZ54G	PCS	$15.40	$19.00	20	102
+4800060201500	KLEENEX TISSUE TRAVEL 2P 40S	PCS	$15.47	$19.00	28	12
+4804880332147	SPRING OIL POUCH 175ML	PCS	$15.48	$18.00	117	96
+4800344001413	SILVER SWAN SSAUCE 350ML	PCS	$15.50	$19.00	19	144
+6096	MONGO RED 250G	\N	$15.50	$20.00	20	105
+95383	TRAY SMALL #9538	PCS	$15.50	$20.00	20	0
+4800310153955	EB FACIAL FOAM 10ML	PCS	$15.52	$20.00	113	0
+1058	RAINBOW HOSE 1/2	PCS	$15.55	$20.00	20	179
+138	FRT LEMON	PCS	$15.57	$19.00	23	554
+4800060080600	PURITY CTTNBDS 90S	PCS	$15.62	$20.00	28	12
+4800237771126	QUEN CHOCO MANI159G	PCS	$15.63	$20.00	53	24
+4800488114772	CHARMEE PL GO GIRL 20'S	PCS	$15.65	$20.00	19	15
+7622300601744	TANG ICED TEA LEMON 25G	PCS	$15.67	$20.00	19	144
+7622300858575	TANG DALANDAN 25G	PCS	$15.67	$20.00	20	0
+4809011681446	BBAWANG GOLDEN SWEETCORN 100G	PCS	$15.75	$20.00	76	360
+1147	EASTER MORNING STICKER LONG	\N	$15.75	$16.00	107	-2
+4800060201708	KLEENEX TISSUE EXPRESS 2P 40S	PCS	$15.76	$20.00	28	12
+4902430750394	OLAY NTRAL WHTE 7.5G PCK	PCS	$15.79	$20.00	20	0
+4800110080390	SNKIST APPLE  235ML	PCS	$15.95	$20.00	92	0
+3295	TUMBLER W/COVER #112	PCS	$16.00	$22.00	20	0
+4351	ABE SWITCH	PCS	$16.00	$20.00	20	-1
+9575	TURBAN HEADBAND #7	PCS	$16.00	$21.00	20	94
+21487	ULING 1KG	PCS	$16.00	$20.00	20	0
+545435	POPSICLE COLORED	PCS	$16.00	$20.00	20	0
+4806011614139	ARMAK 24MM STATIONERY TAPE	PCS	$16.00	$20.00	20	0
+4809010997555	SEEDLESS RAISINS 7G	PCS	$16.00	$20.00	20	0
+48090109975554	SEEDLESS RAISINS 7G	PCS	$16.00	$20.00	20	0
+6925419077969	WAWANG MOSQUITO COIL 10S	PCS	$16.00	$20.00	25	31
+77	EM MEMO MAGNET BM	PCS	$16.00	$20.00	41	0
+3621	EM PAPER BAG 5GB-03	PCS	$16.00	$16.00	41	10
+4800405123467	MARCA PINA SOY SAUC350ML	PCS	$16.00	$20.00	53	48
+4800631000419	BBAWANG NUTS INCREDIBLE 100G	PCS	$16.00	$20.00	76	640
+8993417302121	ELLIPS TEASE 25ML	PCS	$16.00	$20.00	76	5
+8993417302138	ELLIPS PREPPY 25ML	PCS	$16.00	$20.00	76	14
+8993417302145	ELLIPS CLGN PIXIE 25ML	PCS	$16.00	$20.00	76	15
+8993417302152	ELLIPS COLOGNE 25ML	PCS	$16.00	$20.00	76	20
+8993417302176	ELLIPS COLOGNE 25ML	PCS	$16.00	$20.00	76	8
+1029	CLEARBOOK REFILL L	PCS	$16.00	$20.00	100	0
+4809015264249	SEZNO CORRECTION TAPE	PCS	$16.00	$20.00	100	0
+8802203521137	DONG-A MYGEL 0.7 RED	PCS	$16.00	$20.00	100	12
+973	PAPER BAG SM	PCS	$16.00	$20.00	107	0
+4809011168268	SUPEROX BLEACH 500ML	PCS	$16.04	$20.00	117	59
+4806525540283	TENDER LVE BABY WPS 20S	PCS	$16.05	$20.00	54	24
+4806525541396	TENDER LOVE UNSCENTED 20S	PCS	$16.05	$20.00	54	47
+4800237891442	CHOCOMANI BULILIT 140G	PCS	$16.13	$20.00	53	30
+4800092332630	DING-DONG SNCK MIX S&SPCY 100G	PCS	$16.15	$21.00	15	0
+4800047820250	GREEN CROSS ALCOHOL 60ML	PCS	$16.16	$20.00	117	120
+4800011155630	MAMA'S LOVE ABSORBENT COTTON B	PCS	$16.20	$21.00	40	14
+4809010524959	CHEW C APPLE 80G	PCS	$16.20	$21.00	53	0
+48035996	J&J BABY OIL 25ML	PCS	$16.25	$21.00	15	0
+6097	SITAW BEANS 250G	PCS	$16.25	$21.00	20	10
+4895137910874	SNOWMAN CUTTER KNIFE BIG	PCS	$16.25	$21.00	20	0
+4800405123924	MARCA PINA SOYSAUCE 385ML	PCS	$16.25	$20.00	53	24
+4806506318917	SISTERS PANTLNER BUDPCK 20LIN	PCS	$16.25	$20.00	77	136
+4806506318955	SISTERS SILK DAY W/O WINGS 8S	PCS	$16.25	$20.00	77	106
+350	B FLOUR 500G	PCS	$16.30	$20.00	1	84
+4800017994806	RAM IODIZED SALT 500G	PCS	$16.30	$20.00	19	74
+4801010104001	JOHNSON'S PWD MILK 25G	PCS	$16.32	$20.00	117	48
+4806014000342	GOODLIFE VRMICELLI 3.02OZ	PCS	$16.33	$17.00	53	0
+4902430381772	SAFEGUARD IVORY SOAP 60G	PCS	$16.35	$21.00	20	102
+4806534190042	NOBRELI SANDWICH VANILLA  80ML	PCS	$16.36	$20.00	32	68
+4806534190059	NOBRELLI SANDWICH CHOCO 80ML	PCS	$16.36	$20.00	32	67
+4801010120117	JOHNSON'S PWD BEDTIME 25G	PCS	$16.37	$20.00	117	72
+4902430303694	SFGRD LEMON FRESH 60G	PCS	$16.39	$21.00	70	0
+5342	FLRSCNT TUBE 6W	PCS	$16.40	$20.50	20	9
+4800015401007	ROYAL 8FOIL SHRT 1ROLL	PCS	$16.50	$21.00	19	48
+4815	COWBOY BUTTRCUP COOKIES	PCS	$16.50	$21.00	20	0
+5343	CHNDLR SNGL PCK 40W	PCS	$16.50	$21.00	20	0
+9971	#9971 DIPPER/TABO	PCS	$16.50	$21.00	20	0
+48130	GVM5 BUTTER CCNUT 8.5G	PCS	$16.50	$21.00	20	-2
+48133	GIVE ME 5 MARIE	PCS	$16.50	$21.00	20	-2
+48159	COWBOY CHCO VNLLA 7G	PCS	$16.50	$21.00	20	-5
+4800015401009	ROYAL 8 FOIL SHORT ROLL	PCS	$16.50	$21.00	20	0
+6923828830779	POLAR DS TAPE 9MMX10M	PCS	$16.50	$21.00	37	0
+4816	3+2 CHOCO CRUNCH 8.5G	PCS	$16.50	$21.00	76	0
+4817	3+2 BANANA CHIPS 8.5G	PCS	$16.50	$21.00	76	0
+8802203083673	DONG A MYGEL RED 0.5	PCS	$16.50	$21.00	100	0
+4486	SUGO ASSTRD PACK 6GX20	PCS	$16.54	$21.00	53	152
+4806525540924	TENDER LVE PPYA  WPS  20S	PCS	$16.55	$21.00	54	37
+4806525540948	TENDER LVE SWTDLGHT 20S	PCS	$16.55	$21.00	54	41
+4806525543550	TENDER LOVE CW ALOEVERA 20S	PCS	$16.55	$21.00	54	6
+405	CARTOLINA BLACK THICK	PCS	$16.55	$21.00	63	19
+254	CORNSTARCH 500G	PCS	$16.60	$21.00	1	52
+4800011000039	MAMA'S LOVE COTTON BUDS 200TIP	PCS	$16.60	$21.00	40	19
+4902430316774	SAFEGRD TAWAS FRSH 60G	PCS	$16.61	$21.00	70	168
+4902430803694	SAFEGUARD LEMON FRESH 60G	PCS	$16.61	$23.00	70	153
+4902430932417	SAFEGUARD PPYA SOAP 60G	PCS	$16.61	$21.00	70	104
+4902430945554	SAFEGUARD PURE WHTE 60G	PCS	$16.61	$21.00	70	311
+4902430951357	SAFEGUARD PINK 60G	PCS	$16.61	$21.00	70	189
+4902430951371	SAFEGUARD GREEN 60G	PCS	$16.61	$21.00	70	165
+4800361379557	NESTEA LEMON BLEND 25G	PCS	$16.67	$21.00	14	403
+4800361382083	NESTEA APPLE BLND 25G	PCS	$16.67	$21.00	14	443
+7622300559991	TANG ORANGE 25G	PCS	$16.67	$21.00	19	163
+7622300601768	TANG PINEAPPLE 25G	PCS	$16.67	$21.00	19	179
+7622300601782	TANG MANGO 25G	PCS	$16.67	$21.00	19	253
+7622300637996	TANG GRAPE 25G	PCS	$16.67	$21.00	19	157
+7622300638078	TANG STRWBRY 25G	PCS	$16.67	$21.00	19	157
+7622300808365	TANG 4SEASON 25G	PCS	$16.67	$21.00	19	345
+7622300858599	TANG CALAMANSI 25G	PCS	$16.67	$21.00	19	96
+258	FAN COLORED	PCS	$16.67	$21.00	20	0
+4800300990423	CROWN DOUBLE BKNGPWDER 100G	PCS	$16.68	$21.00	104	27
+48033459	JOHNSON'S PWD CLSSC 50G	PCS	$16.72	$21.00	117	65
+8991102020459	SP TRENDY SOFT TOOTHBRUSH	PCS	$16.75	$21.00	25	0
+8991102023658	FORMULA SP FIT SOFT	PCS	$16.75	$21.00	25	0
+8851028002277	VITAMILK ORIG 250ML	PCS	$16.75	$21.00	53	360
+8851028002314	VITAMILK DBLCHC 250ML	PCS	$16.75	$21.00	53	553
+333	MONGO GREEN LABO 250G	PCS	$16.78	$21.00	1	-406
+638	MC CODY GARLIC MINCED 50G	PCS	$16.80	$21.00	89	0
+4800488200116	CHARMEE PANTYLINERS 20S	PCS	$16.81	$21.00	19	41
+4800523223810	MOBY CHOCO 90G	PCS	$16.90	$21.00	15	0
+4800523223827	MOBY CARAMEL PUFFS 90G	PCS	$16.90	$21.00	15	0
+4902430754125	OLAY WHITNG ROSE&MILK 42G	PCS	$16.97	$21.00	70	0
+4800473001223	RED BARON AP MAYO 200ML	PCS	$16.97	$21.50	113	0
+187	DAN ERICS CUP	PCS	$17.00	$21.00	6	338
+143	FF BROWNIES	PCS	$17.00	$20.00	17	20
+371	FF PUTOK	PCS	$17.00	$21.00	17	-25
+715	FF TORTA	PCS	$17.00	$21.00	17	264
+762	FF DINNER ROLL	PCS	$17.00	$21.00	17	24
+1941	FF CINNANMON STICK	PCS	$17.00	$21.00	17	33
+1942	FF KALIHIM	PCS	$17.00	$21.00	17	1
+3474	BALLOON #12	PCS	$17.00	$22.00	20	10
+3477	LONG BALLOONS	PCS	$17.00	$22.00	20	37
+3154145347562	MAPED SHARPENER DOUBLE	PCS	$17.00	$22.00	20	36
+751	KETTLE KORN 165G	PCS	$17.00	$70.00	23	0
+4800216122437	LESLIE'S RD HT CHZY 70G	PCS	$17.00	$22.00	28	0
+4800216125704	LESLIE'S CHZCRN BFWNGS 70G	PCS	$17.00	$21.00	28	0
+3618	EM PAPER BAG 5GB-04	PCS	$17.00	$17.00	41	-3
+4800237521523	POLVOROUND CNDYLINE 240G	PCS	$17.00	$21.00	53	80
+486	INDEX CARD 3X5 100S WHT	PCS	$17.00	$21.00	63	-2
+5661	EVEREADY 3A BLUE WRAPX4PCS	PCS	$17.00	$21.00	86	38
+8802203083659	DONG-A MY GEL PEN 0.5	PCS	$17.00	$22.00	100	60
+8809512720220	MD WHTNNG REPAIR TONER	PCS	$17.00	$21.00	107	0
+4806507832214	SILKA GREEN PPYA 65G	PCS	$17.00	$21.00	222	144
+4800216125735	LESLIE'S CHZY JALAPENO 70G	PCS	$17.00	$22.00	20	0
+4806020497310	SPEED BLUE  BAR 380G	PCS	$17.10	$21.00	20	0
+4800194177863	OISHI PATATA 90G	PCS	$17.13	$21.50	10	0
+4800888143860	PONDS FCMLST WB CRM PINK 12G	PCS	$17.16	$22.00	36	59
+4806502261989	DATA CP 9X12	REAM	$17.20	$22.00	20	12
+140	FRT APPLE S	PCS	$17.20	$22.00	23	519
+9206	FRT GREEN APPLE	PCS	$17.30	$24.00	20	0
+4800092332852	DING DONG MIX NUTS GRLC 100G	PCS	$17.30	$22.00	107	0
+4800092330131	DINGDONG MIXED NTS100G	PCS	$17.30	$22.00	20	0
+4800092331732	DINGDONG SNACK MIX100G	PCS	$17.30	$22.00	20	0
+4800092331909	DINGDONG HOT&SPICY100G	PCS	$17.30	$22.00	20	0
+4800344001420	SILVER SWAN SOY SCAUCE 385ML	PCS	$17.35	$22.00	15	0
+4801668500286	DATU PUTI SOY SAUCE 385ML	PCS	$17.35	$22.00	117	72
+4891228607029	SCHCK EXCTA2 BLADE	PCS	$17.43	$22.00	86	31
+735	SPARTAN RAINCOAT	PCS	$17.50	$250.00	1	0
+4804888901086	ZESTO CHOC-O 250ML	PCS	$17.50	$22.00	7	0
+4809010639813	MARKYS MAMON TOSTADO	PCS	$17.50	$22.00	13	0
+4806503871798	CONSTRUCTION PAPER 20S	PCS	$17.50	$23.00	20	35
+4806525943510	PALAMIG CHOCOLATE 25G	PCS	$17.50	$22.00	20	0
+4800237168162	CHOCO MANI COINS240G	PCS	$17.50	$22.00	53	80
+302	WHITE BEANS 250G	PCS	$17.50	$23.00	84	48
+2906	RED MONNGO 250G	PCS	$17.50	$22.00	84	0
+8851717040016	DUTCHMILL STRAWBERRY 180ML	PCS	$17.52	$22.00	1	520
+8851717040245	DUTCHMILL BLUEBERRY 180ML	PCS	$17.52	$22.00	1	474
+8853002302038	DUTCHMILL SUPERFRUIT 180ML	PCS	$17.52	$22.00	1	612
+212	SNOWMAN COLORED PEN 12S	PCS	$17.55	$22.00	20	0
+4800194178136	OISHI PANCHOS TACO 85G	PCS	$17.58	$22.00	10	0
+4800194178143	OISHI PANCHOS CHSS 85G	PCS	$17.58	$22.00	10	0
+4800194178150	OISHI PANCHOS BBQ 85G	PCS	$17.58	$22.00	10	0
+4800194184083	SMART C LEMON 350ML	PCS	$17.58	$22.00	10	480
+4800194184090	SMART C ORANGE 350ML	PCS	$17.58	$22.00	10	480
+4800194184199	SMART C CLMNSI 350ML	PCS	$17.58	$22.00	10	480
+4800194150965	SMART C DLNDN 350ML	PCS	$17.59	$22.00	10	480
+4800194184106	SMART C POMELO 350ML	PCS	$17.59	$22.00	10	696
+4800194184137	FIBER FRT APPLE 350ML	PCS	$17.59	$22.00	10	480
+4800194184144	FIBER FRT GRAPE 350ML	PCS	$17.59	$22.00	10	480
+4801668100295	PAPA BANANA KTCHP 320G	PCS	$17.60	$22.00	15	5
+4800011718545	ETHYL ALCOHOL 70% 50ML	PCS	$17.60	$22.00	40	20
+4806506150661	EXTRA TISSUE JUMBO 600SHEETS	PCS	$17.60	$22.00	77	0
+4806512308513	CRISTELA SL011	PCS	$17.60	$22.00	107	0
+14285003229	UFC HOT SAUCE 100G	PCS	$17.67	$22.00	19	3
+1940	DELTA FLUORESCENT STARTER	\N	$17.75	$22.00	20	-1
+6090	RAINBOW HOSE 5/8	PCS	$17.78	$23.00	20	29
+4800194107662	OISHI CHC CHUG 250ML	PCS	$17.83	$22.00	10	720
+4800194107655	OISHI OATIES MLK 250ML	PCS	$17.84	$22.00	10	360
+4800194107839	OISHI CHOCO CHUG 250ML	PCS	$17.84	$22.00	10	0
+1993	PINOY PLSTC CUP 8OZ	PCS	$17.84	$23.00	117	0
+357	PEANUT W/ SKIN 250G	PCS	$17.85	$22.00	1	83
+4801234030063	PLEDGE PSTE WAX 90G	PCS	$17.85	$22.00	28	114
+4801234030711	PLEDGE WAX COLORLESS	PCS	$17.85	$22.00	28	80
+4801234031060	PLEDGE PASTE WAX RED	PCS	$17.85	$22.00	28	109
+4806506703904	FROSTY ICEPOP ASSRTD FLVR  720	PCS	$17.86	$23.00	53	0
+4800024555496	DM TOMATO SAUCE 200G	PCS	$17.91	$22.00	29	0
+4800216121720	LESLIE'S NACHO CHSE 100G	PCS	$17.95	$23.00	28	0
+480036138999	MAGNOLIA DRMSTCK CFFCRML 110ML	PCS	$18.00	$23.00	2	0
+480036138992	NSTL DRMSTICK DUO	PCS	$18.00	$23.00	8	0
+4800092331114	MILKEE POLVORON 20S 100G	PCS	$18.00	$23.00	15	0
+309	FOLDER W/PLASTIC LONG	PCS	$18.00	$23.00	20	-17
+646	HAIRCLIP DIANX PAIR	PCS	$18.00	$23.00	20	0
+742	ACURA CORRECTION PEN	PCS	$18.00	$23.00	20	0
+1100	CLIP #61	PCS	$18.00	$23.00	20	0
+1107	CLIP #62	PCS	$18.00	$23.00	20	0
+1122	CLIP #67	PCS	$18.00	$23.00	20	0
+1124	RIBBON CLIP #69	PCS	$18.00	$23.00	20	0
+1125	RIBBON CLIP #70	PCS	$18.00	$23.00	20	0
+3450	PLASTIC COVER #4 HARD	PCS	$18.00	$24.00	20	-14
+9069	PAGANINI HAIR COMB S	PCS	$18.00	$23.00	20	15
+9089	HAIRBAND #47	PCS	$18.00	$23.00	20	8
+9563	PLASTIC FAN	PCS	$18.00	$23.00	20	5
+9569	RIBBON W/NET BLACK	PCS	$18.00	$23.00	20	18
+9663	QICAI HAIRPIN GOLD	PCS	$18.00	$23.00	20	17
+229165	HEADBAND FLORAL	PCS	$18.00	$23.00	20	0
+4988777	HAIR CLIP #6255B	PCS	$18.00	$23.00	20	0
+20200275	TURBAN #45	PCS	$18.00	$23.00	20	0
+4806500070699	NAIL POLISH REMOVER 60ML	\N	$18.00	$24.00	20	0
+6931717503048	STICK NOTE PAD	PCS	$18.00	$25.00	20	0
+6941287410295	HBW MECHANICAL PENCIL MP-500	PCS	$18.00	$24.00	20	0
+434	VGT PUSO	PCS	$18.00	$23.00	23	70.900000000000006
+3615	EM PAPER BAG 5GB-05	PCS	$18.00	$18.00	41	5
+4454225522353	H&Y SOFFE ASSTD W/NATADCOCO	PCS	$18.00	$23.00	53	0
+4806506705458	H&Y SOFFEE ASSTD W/ NATA DECOC	PCS	$18.00	$23.00	53	0
+7890	MASKING TAPE CROCOTAPE 1/2	PCS	$18.00	$23.00	63	-5
+347	ILLUSTRATION BOARD 1/2	PCS	$18.00	$23.00	100	137
+3154144630108	MAPED 12CM/ 43/4	PCS	$18.00	$22.50	100	0
+4800557022045	CRAYOLA CRAYONS 8'S	PCS	$18.00	$19.00	100	5
+4806021316931	JOY BINDER CLIP 1	PCS	$18.00	$23.00	100	10
+4902505084560	PILOT BP-S-F PEN BLACK	PCS	$18.00	$23.00	100	240
+8802203703908	MY GEL TEC CRWN .3MM	PCS	$18.00	$26.00	100	132
+8802203704905	DONG-A MYGEL 0.4 BLACK	PCS	$18.00	$23.00	100	0
+1043	TOTS DSWSHNG LQD 350ML	PCS	$18.00	$23.00	107	41
+1624	AUP HAND FAN	\N	$18.00	$23.00	107	-78
+4800374032135	MIGHTY BND SAKTO 1G	PCS	$18.00	$23.00	135	80
+4800243900732	GLUTA PAPAYA XTRA 60G	PCS	$18.00	$22.00	145	54
+4806526770139	DEL&KATE REGULAR SUPER SOFT	PCS	$18.00	$22.00	145	60
+4800374031633	PIONEER MIGHTYBOND SAKTO	PCS	$18.00	$23.00	324	0
+4800060330903	KORTEX UNSCNTD 8LINERS	PCS	$18.02	$23.00	28	25
+4800060331207	KORTEX SCNTED 8LINERS	PCS	$18.02	$23.00	28	23
+4800017934505	RAM P-CORNSTRCH 200G	PCS	$18.10	$23.00	19	12
+4800086028103	CORNETTO CLS VANILLA PH 110ML	PCS	$18.18	$23.00	9	0
+4800086034670	CORNETTO VANILLA 110ML	PCS	$18.18	$23.00	9	336
+4800086043306	CORNETTO POOH CKS&DRM 110ML	PCS	$18.18	$23.00	9	552
+4800086044303	SLCT CORNTTO UBE LECHFLN 110ML	PCS	$18.18	$23.00	9	0
+4800086044325	SCLT POOH RCKYRD 110ML	PCS	$18.18	$23.00	9	96
+4800086044327	CRNETTO CHOCOLATE 110ML	PCS	$18.18	$23.00	9	576
+4800086045294	SLCT CRNTT HALO2X 100ML	PCS	$18.18	$23.00	9	24
+4800086045492	CORNETTO HALO HALO 110ML	PCS	$18.18	$23.00	9	24
+4800086045942	CORNETTO POOH UBE KESO 110ML	PCS	$18.18	$23.00	9	168
+4800086134325	SLCT CORNETTO CHOCO 110ML	PCS	$18.18	$23.00	9	456
+8851932028103	CORNETTO CLS VANILLA 100ML	PCS	$18.18	$23.00	9	0
+8999999503178	WALLS IC SANDWICH EXP 80ML	PCS	$18.18	$23.00	9	96
+4806534190011	DS UBE CHEESECAKE 100ML	PCS	$18.18	$23.00	32	67
+4800024575432	DM TOMATO SAUCE FIL 250G	PCS	$18.19	$23.00	29	0
+4805358702509	MAGNOLIA CHOCO 110ML	PCS	$18.20	$23.00	2	78
+4805358703506	MAGNOLIA VANILLA 110ML	PCS	$18.20	$23.00	2	54
+4805358736504	MAGNOLIA HAZELNUT 110ML	PCS	$18.20	$23.00	2	0
+4805358737501	MAGNOLIA SPNNRCRML 110ML	PCS	$18.20	$23.00	2	0
+4805358754775	MAGNOLIA COOKIE MNSTRCHC 70ML	PCS	$18.20	$23.00	2	0
+4805358774773	MAGNOLIA CKMNSTR 70ML	PCS	$18.20	$23.00	2	40
+4805358775770	MAGNOLIA COOKIE MNSTR CHC 70ML	PCS	$18.20	$23.00	2	80
+2	EM 7USBMK	PCS	$18.20	$22.75	107	0
+4805358738501	MAGNOLIA SPINNER CRAMEL 110ML	PCS	$18.20	$23.00	115	0
+4800214015045	FRUIT-TELLA STRWBRRY 36G	PCS	$18.21	$23.00	67	98
+387	OMNI PLUG WRP-002	PCS	$18.25	$23.00	20	0
+4806506318887	SISTERS ULTRACOMFRT 245MM	PCS	$18.25	$23.00	77	48
+4800065241006	CRICKET ORIG SIMP	PCS	$18.28	$23.00	86	25
+352	CAKE FLOUR 500G	PCS	$18.30	$23.00	1	75
+4809015264157	POST-IT ACURA 2X3	PCS	$18.30	$23.00	63	0
+4800523440316	TOMI SWEET CORN 110G	PCS	$18.30	$23.00	107	0
+608	CANNON HANDTOWEL	PCS	$18.33	$23.00	20	30
+3446	CANNON HANDTOWEL WHITE	PCS	$18.33	$24.00	20	-17
+5348	ADAPTER 1909-ES	PCS	$18.40	$23.00	20	13
+4809014128399	KOJIE SAN SOAP 45G	PCS	$18.45	$23.00	54	55
+4902430441896	GILLETE RUBIE SHAVER	PCS	$18.48	$23.00	70	90
+684	LUNCH BOX #684	PCS	$18.50	$24.00	20	0
+1508	YELLOW MONNGO	PCS	$18.50	$23.00	20	0
+5002	SPAG SANDOK	PCS	$18.50	$24.00	20	0
+95382	TRAY MED. #9538	PCS	$18.50	$23.00	20	0
+123154	SPAG SANDOK	PCS	$18.50	$24.00	20	0
+4800550019967	INTERMIDIATE EASYWRITE PAD	PCS	$18.50	$24.00	20	19
+8802203083666	MY GEL BLUE	PCS	$18.50	$23.00	20	0
+4800214014048	FRUIT-TELLA ORNGE 36G	PCS	$18.50	$23.00	67	24
+4806506318823	SISTERS SILK FLOSS DAY USE 8'S	PCS	$18.50	$23.00	77	0
+4806506318832	SISTERS SILK DAY USE W/ WINGS	PCS	$18.50	$23.00	77	72
+1209	FRT ORANGE S	PCS	$18.54	$23.00	23	48
+4806517042061	GOYA WHT CHOCO 38G	PCS	$18.56	$23.00	7	48
+4806517042009	GOYA MILK CHOCOLATE 38G	PCS	$18.57	$23.00	7	0
+4806517042153	GOYA ALMOND MILK 35G	PCS	$18.57	$23.00	7	0
+4800310153931	EB WHTNNG CREAM 10ML	PCS	$18.63	$23.00	113	0
+4800310153948	EB AQUA MSE CREAM 10ML	PCS	$18.63	$23.00	113	0
+750	KETTLE KORN 30G	PCS	$18.64	$15.00	23	0
+48035989	JB COLOGNE HEAVEN 25ML	PCS	$18.65	$24.00	69	3
+48042697	JB COLOGNE HAPPY BERRIES 25ML	PCS	$18.65	$24.00	69	0
+4800300990027	CROWN CORN STARCH 200G	PCS	$18.66	$24.00	20	10
+4800047840029	ZONROX BLEACH. ORIGINAL 500ML	PCS	$18.70	$23.00	15	137
+4800300990225	CROWN BAKING SODA 250G	PCS	$18.70	$23.00	104	161
+4806020497327	SPEED BAR WHITENER 380G	PCS	$18.70	$23.00	20	0
+4806020497334	SPEED BAR. KLNMSI 380G	PCS	$18.70	$23.00	20	0
+4806020497341	SPEED BAR. SPECKLED BLUE 380G	PCS	$18.70	$23.00	20	0
+4804888618823	YO! BRRYBLND 200ML	PCS	$18.75	$23.00	7	0
+3469	PEANUT W/SKIN SMALL	PCS	$18.75	$25.00	20	-7
+4806503870319	MATH NOTEBOOK AXIOM	PCS	$18.75	$24.00	63	0
+4800147110084	FARLIN BBY WIPES 10'S	PCS	$18.75	$24.00	77	42
+4804888589093	HANY COINS MILK 150G	PCS	$18.79	$24.00	117	0
+351	A FLOUR 500G	PCS	$18.80	$23.00	1	681
+647	FRT PONKAN MEDIUM	PCS	$18.83	$24.00	23	207
+4800888143839	PONDS WB DTX OILY SKIN 12X12G	PCS	$18.95	$24.00	36	12
+4003	PEANUT SKINLESS 250G	PCS	$19.00	$24.00	1	0
+4806506150449	EXTRA BUDS 200S	PCS	$19.00	$24.00	15	22
+16	NAIL CUTTER S	PCS	$19.00	$25.00	20	6
+60	ORIENTAL S.BASKET #830	PCS	$19.00	$24.00	20	0
+114	TUMBLER W/COVER #114	PCS	$19.00	$26.00	20	0
+3243	ORIENTAL SB #830	PCS	$19.00	$24.00	20	0
+8009	LUNCH BOX #8020	PCS	$19.00	$24.00	20	0
+703	703 BAG M	PCS	$19.00	$25.00	23	0
+6923828839239	POLAR BEAR DBLESIDED 12X10	PCS	$19.00	$24.00	37	0
+49864	DISPOSABLE CUPS 12OZ	PCS	$19.00	$25.00	56	-3
+1634	CROCO PACKING TAPE 2X50	\N	$19.00	$24.00	63	30
+4806503872313	INTERMEDIATE PAPER 80'S	PCS	$19.00	$24.00	63	100
+4800631000624	BBAWANG CHICHACORN CHEESE 100G	PCS	$19.00	$24.00	76	400
+4800631000631	BBAWANG CHICHACORN BBQ 100G	PCS	$19.00	$24.00	76	240
+4809011681439	BBAWANG CHICHACORN GARLIC 100G	PCS	$19.00	$24.00	76	560
+1112	GUITAR STRNG #0 STRUMS	PCS	$19.00	$24.00	107	2
+1113	GUITAR STRNG #1 KANTATA	PCS	$19.00	$24.00	107	4
+4806507836076	SILKA WHTNNG SHEA BUTTER 65G	PCS	$19.00	$24.00	107	120
+4806507836069	SILKA MOST AVOCADO SOAP 65G	PCS	$19.00	$24.00	222	96
+4801668606445	LOCALLY DALANDAN 240ML	PCS	$19.05	$25.00	58	0
+4809010354105	BROWN SUGAR 1/2 KG	PCS	$19.10	$24.00	1	329
+4800010075076	CREAM O VANILLA 90G	PCS	$19.12	$24.00	117	180
+4800010075236	CREAM O CHOCO 90G	PCS	$19.12	$24.00	117	180
+4800488100119	CHARMEE HFNU W/WINGS 8+1	PCS	$19.16	$24.00	19	60
+229	PEANUT SKINLESS 250G	PCS	$19.20	$24.00	1	33
+912	PANG KAYOD	PCS	$19.20	$24.00	20	0
+8851316112022	POSTER PAINT SM RED	PCS	$19.20	$24.00	63	0
+8851316112053	POSTER PAINT SM BLUE	PCS	$19.20	$24.00	63	2
+8851316112060	POSTER PAINT SM ORANGE	PCS	$19.20	$24.00	63	2
+8851316112077	POSTER PAINT SM YELLOW	PCS	$19.20	$24.00	63	1
+8851316112084	POSTER PAINT SM GREEN	PCS	$19.20	$24.00	63	3
+8851316112176	POSTER PAINT SM WHITE	PCS	$19.20	$24.00	63	1
+8851316112015	POSTER PAINT SMALL BLACK	PCS	$19.20	$24.00	107	0
+4806517042085	GOYA DARK CHOCO 38G	PCS	$19.25	$24.00	7	48
+2111	PACKING TAPE 3&2	PCS	$19.30	$25.00	63	0
+750515018303	SKYFLAKES CRACKERS 100G	PCS	$19.36	$24.00	1	39
+4800488011415	CHARMEE COTTONY W/ WINGS 8+1	PCS	$19.40	$24.00	19	93
+4800488101314	CHARMEE DRY NET 8PADS	PCS	$19.40	$24.00	19	92
+4902430278119	TIDE BAR. ORIGINAL SCENT 380G	PCS	$19.40	$24.00	20	16
+4806014097007	JOLLY TOMATO PASTE 150G	PCS	$19.44	$25.00	53	0
+3483	RAISIN DRY 250G	PCS	$19.45	$26.00	20	11
+4902430523240	BONUX BAR KLMANSI 380G	PCS	$19.45	$24.00	107	0
+733586303004	SCRIPTI 76X76MM	PCS	$19.50	$29.00	20	27
+210	OIL BOTTLED	PCS	$19.58	$22.00	55	239.81999999999999
+4800888136749	SURF BAR KALAMANSI 380G	PCS	$19.60	$25.00	36	45
+4800888136800	SURF BAR TAWAS 380G	PCS	$19.60	$25.00	36	22
+4800009000133	DOLE PINE ORANGE 240ML	\N	$19.72	$25.00	7	0
+4800009075667	DOLE FOUR SEASON 240ML	\N	$19.72	$25.00	7	0
+1658	DELTA RECEPTACLE SKS2711	PCS	$19.75	$25.00	25	2
+748485400860	ANGEL EVAPORADA 365ML	PCS	$19.75	$25.00	110	34
+4800361362139	NESTLE MILO RTD 180ML	PCS	$19.79	$25.00	14	384
+4800016138546	GG TORTILLOS CH 100G	PCS	$19.80	$25.00	15	0
+7778	EM MEMO MAGNET GBU	PCS	$19.80	$24.75	107	0
+4800047840210	ZONROX BLEACH FRESH 500ML	PCS	$19.83	$25.00	15	72
+4800047840272	ZONROX LEMON 500ML	PCS	$19.83	$25.00	15	131
+4800047840562	ZONROX BLEACH FLORAL  500ML	PCS	$19.83	$25.00	15	72
+1893	EVEREADY HD 2A RED WRAP 2S	\N	$19.95	$25.00	86	0
+1140	SAGO 250G	PCS	$20.00	$25.00	1	16
+6085	MONGO GREEN 250G	PCS	$20.00	$24.00	1	0
+189	DAN ERICS CONE 110ML	PCS	$20.00	$25.00	6	147
+150	FF TERIN TERIN	PCS	$20.00	$24.00	17	197
+219	FF ENSAYMADA S	PCS	$20.00	$24.00	17	49
+295	FF STICK BREAD	PCS	$20.00	$25.00	17	0
+1398	FF ENSAYMADA W/ MONGO	PCS	$20.00	$25.00	17	-11
+9085	FF TOASTED MAMON	PCS	$20.00	$25.00	17	0
+4800024122865	UFC BANANA CATSUP 320G	PCS	$20.00	$25.00	19	96
+4800024575425	DM TOMATO SAUCE FILIPNO STYLE	\N	$20.00	$25.00	19	0
+91	PLASTIC FAN #21	PCS	$20.00	$25.00	20	0
+234	SPRAY GUN SMALL	PCS	$20.00	$25.00	20	0
+248	DOORMAT PRINTED	PCS	$20.00	$26.00	20	125
+458	GUITAR STRING #5	PCS	$20.00	$48.00	20	0
+459	GUITAR STRING #6	PCS	$20.00	$63.00	20	0
+934	BEADS POUCH	PCS	$20.00	$25.00	20	0
+941	WALIS TING2 NYOG	PCS	$20.00	$26.00	20	7
+1357	TS SCARF	PCS	$20.00	$25.00	20	0
+1950	SNOWMAN STAPLE REMOVER SR-100	\N	$20.00	$25.00	20	0
+1959	BOSTIK RUGBY SM 42ML	PCS	$20.00	$26.00	20	110
+1960	EXCEL RUGBY SM	PCS	$20.00	$25.00	20	0
+2117	SEALER CLOTH WIRE 8	PCS	$20.00	$25.00	20	0
+3493	KM RECEPTACLE #2028	PCS	$20.00	$26.00	20	19
+4448	SAND PAPER	PCS	$20.00	$25.00	20	0
+5050	MONGO YELLOW 250G	PCS	$20.00	$26.00	20	39
+5051	BASONG PINOY CUPS 12OZ	PCS	$20.00	$26.00	20	47
+6093	REF. TOWEL	PCS	$20.00	$26.00	20	21
+9064	HAIRPIN GOLD 2S	PCS	$20.00	$26.00	20	2
+9070	HAIRBRUSH SOFT	PCS	$20.00	$26.00	20	7
+9079	HAIRBAND #43	PCS	$20.00	$26.00	20	0
+9082	HAIRBAND #45	PCS	$20.00	$26.00	20	5
+9171	HAIRBRUSH #17	PCS	$20.00	$25.00	20	0
+9174	HEADBAND #22	PCS	$20.00	$25.00	20	0
+9720	TRASH CAN #9728	PCS	$20.00	$25.00	20	0
+12160	SUNNY WARE #1216	PCS	$20.00	$25.00	20	0
+32363	STRAINER PLASTIC M	PCS	$20.00	$25.00	20	0
+84695	ID LACE 3/4	PCS	$20.00	$25.00	20	0
+123131	BILAO #12	PCS	$20.00	$20.00	20	0
+229221	DOORMAT COTTON	PCS	$20.00	$26.00	20	49
+12661100	FLAMINGO ENVY YELLOW L	PCS	$20.00	$25.00	20	0
+4806502140345	INDEX CARD 3X5 DIV.	PCS	$20.00	$26.00	20	16
+6931707600115	FS HAIRBRUSH #20	PCS	$20.00	$25.00	20	0
+9300995001299	OMNI RECEPTACLE E27-020	PCS	$20.00	$25.00	20	50
+10123	PILLOW CASE NEW	PCS	$20.00	$25.00	21	2
+45888779	EASTER MORNING MAGMINI BKMRK	PCS	$20.00	$20.00	21	0
+670	VGT PATANI	PCS	$20.00	$25.00	23	0
+9256	FRT PINEAPPLE SMALL	PCS	$20.00	$25.00	23	10
+6272	FLAT GARTER	PCS	$20.00	$25.00	26	0
+4800361404754	NSTL COOKIES&CREAM CUP 100ML	PCS	$20.00	$25.00	28	-3
+4800361404792	NSTL DOUBLEDTCH CUP 100ML	PCS	$20.00	$25.00	28	-1
+48040990	NESTLE MANGO CUP 100ML	PCS	$20.00	$25.00	32	-59
+48041003	NESTLE UBE CUP 100ML	PCS	$20.00	$25.00	32	-66
+48041010	NESTLE CHOCO CUP 100ML	PCS	$20.00	$25.00	32	-47
+480048040990	NIC MANGO 100ML	PCS	$20.00	$25.00	32	36
+480048041003	NIC UBE 100ML	PCS	$20.00	$25.00	32	36
+480048041010	NIC CHOCOLATE 100ML	PCS	$20.00	$25.00	32	36
+480048404752	NIC COOKIES & CREAM 100ML	PCS	$20.00	$25.00	32	36
+480048404792	NIC DOUBLE DUTCH 100ML	PCS	$20.00	$25.00	32	36
+4800361138302	NSTL DRMSTCK DUO CHOC&VANLLA	PCS	$20.00	$25.00	32	0
+4800361383066	NSTL DRMSTCK CHCNVLL 110ML	PCS	$20.00	$25.00	32	-30
+4800361389952	NSTL DRMSTCK CFF&CRML 110ML	PCS	$20.00	$25.00	32	-44
+4801278276069	ORIONS NOTEBOOK	\N	$20.00	$25.00	37	0
+980	DSIDED TAPE CROCO 1X 10M	PCS	$20.00	$25.00	63	87
+4809014937342	DEL-C MANGO CALAMANSI 200ML	\N	$20.00	$25.00	75	411
+1246	GUITAR STRING #5	PCS	$20.00	$25.00	79	36
+1247	GUITAR STRING #6	PCS	$20.00	$25.00	79	51
+1887	ENERGIZER MAX 2A SINGLE	\N	$20.00	$25.00	86	0
+1410	EVERLASTING RUBBER BAND #16	PCS	$20.00	$25.00	100	10
+5410	DSIDED TAPE 1	PCS	$20.00	$25.00	100	0
+90030	PENCIL CASE PLASTIC	PCS	$20.00	$25.00	100	0
+4806502258064	MATH NB 685 80L	PCS	$20.00	$25.00	100	33
+736	BAMBOO FLUTE	PCS	$20.00	$13.00	107	0
+756	HEALTH & HOME BOOK	PCS	$20.00	$1,200.00	107	0
+970	MASK CLOTH BLACK	PCS	$20.00	$25.00	107	0
+972	PAPER BAG M	PCS	$20.00	$25.00	107	0
+2046	LA PRIMA SESAME COOKIES	\N	$20.00	$25.00	107	0
+2084	MEGA BWNG ILCS CHICHACORN 60G	\N	$20.00	$25.00	107	0
+2306	SAMPALOC REPACK	PCS	$20.00	$25.00	107	15
+4559	BIKIT MOSQUITO GUARD	\N	$20.00	$25.00	107	0
+4580	VGT PAKO	PCS	$20.00	$25.00	107	40
+4825	NEW OBLONG COIN PURSE	PCS	$20.00	$25.00	107	0
+4895	SWEET CANDIES ASSTD	PCS	$20.00	$25.00	107	0
+6401	EASTER MORNING POSTER	\N	$20.00	$25.00	107	0
+6845	CRISPY PILI TART	PCS	$20.00	$25.00	107	-22
+7532	TANGKAY NG GBI TAKWAY	PCS	$20.00	$25.00	107	8
+20113	TEDALOU KOUSHENG	PCS	$20.00	$25.00	107	0
+20490	XMAS/VALENTINE/BDAY CARD	\N	$20.00	$25.00	107	-10
+94863	ELIE'S BANANA CHIP S	PCS	$20.00	$25.00	107	0
+4800556460244	VALIANT COLUMNAR 6COLUMNS	PCS	$20.00	$25.00	107	0
+4806028905909	FLAMINGO SPECIALTY PAPER S	PCS	$20.00	$26.00	107	0
+4806512308520	CRISTELA SL012	PCS	$20.00	$25.50	107	0
+4809013547436	CHILI SAMPALOC	PCS	$20.00	$25.00	107	0
+4809013547689	SWEET SAMPALOC	PCS	$20.00	$25.00	107	67
+8809459430015	BIKIT MOSQUITO GUARD	\N	$20.00	$25.00	107	0
+1625	CANTEEN BANANAQ BIG	\N	$20.00	$20.00	578	-169
+1852	CANTEEN MIGORING W/O EGG	\N	$20.00	$20.00	578	0
+4801010105107	JB POW BLOSSOMS 50G	PCS	$20.02	$25.00	69	72
+4800060230609	EMPRESS NAPKIN FOLDED 40S	PCS	$20.09	$25.00	28	39
+4800575141100	COWBELL EVAPORADA 370ML	PCS	$20.10	$25.00	19	216
+4809014485362	UNI-CARE WIPES 80S	PCS	$20.10	$25.00	54	110
+4902430387286	TIDE BAR LEMON KAL SAKTO 400G	PCS	$20.12	$25.00	15	24
+4800009000034	DOLE 100% PINE JUICE 240ML	\N	$20.15	$25.00	7	0
+4809011390171	LALA TSKULT MLKCO216G	PCS	$20.35	$26.00	53	0
+4806512308490	SHOELACE BLACK	PCS	$20.40	$25.50	61	0
+4801010109105	JB POW ACTIVE FRESH 50G	PCS	$20.42	$26.00	69	72
+116	TUMBLER  W/COVER #116	PCS	$20.50	$28.00	20	0
+132	CANISTER #132	PCS	$20.50	$27.00	20	8
+228	KIDNEY BEANS 250G	PCS	$20.50	$27.00	20	108
+4806506318856	SISTERS SILK NGHTUSE W/WINGS	PCS	$20.50	$26.00	91	147
+4800243900749	GLUTA KOJIC ACID 60G	PCS	$20.50	$26.00	145	54
+4809010639752	MARKY'S GALETAS DE PATATAS 75G	PCS	$20.75	$26.00	13	54
+6192	TUMBLER #116	PCS	$20.80	$26.00	20	0
+4759	RECEPTACLE EAGLE	PCS	$20.80	$26.00	107	0
+4803925480003	CHEETOS CRUNCHY CHEEZ 66G	PCS	$20.83	$26.00	19	0
+4803925480010	CHEETOS CRUNCHY JALAPENO 66G	PCS	$20.83	$22.00	19	0
+4803925480102	CHEETOS CRUNCHY BBQ 66G	PCS	$20.83	$26.00	19	0
+4800040314428	FIBISCO COOKIES CHCO 80G	PCS	$20.93	$26.00	117	96
+2301	RED BEANS 250G	PCS	$21.00	$50.00	1	0
+424	SNOWMAN WATER COLOR 18S	PCS	$21.00	$26.00	20	12
+707	HANGER #707	PCS	$21.00	$27.00	20	0
+7	THUMBTACKS	PCS	$21.00	$26.00	21	0
+4800147200358	NEW ORCHID LEMON 50G	PCS	$21.00	$26.00	77	18
+4800147200365	NEW ORCHID CHERRY 50G	PCS	$21.00	$27.00	77	6
+4800147200372	ORCHID DEO STRAWBRRY	PCS	$21.00	$26.00	77	12
+4800147200402	NEW ORCHID SAMPAGUITA 50G	PCS	$21.00	$26.00	77	3
+4800147200983	ORCHID DEO REFILL APPLE 50G	PCS	$21.00	$26.00	77	3
+4800147201829	NEW ORCHID MELON 50G	PCS	$21.00	$26.00	77	6
+4800147201867	NEW ORCHID BLUEBERRY 50G	PCS	$21.00	$26.00	77	18
+4800147210920	NEW ORCHID ORANGE 50G	PCS	$21.00	$26.00	77	14
+26000223751	ELMER'S GLUE 40ML	PCS	$21.00	$28.00	100	94
+182	GLOBE PREPAID SIM	PCS	$21.00	$40.00	107	12
+181	TM PREPAID SIM	PCS	$21.00	$39.00	111	42
+8851096020012	PUSH POP CANDY STRIP	PCS	$21.00	$26.50	113	0
+4800024556929	DM TOMATO SAUCE 250G	PCS	$21.04	$26.00	29	113
+4800011186603	WINNER DSHCRM LEMON 200G	PCS	$21.10	$27.00	40	80
+4800011186702	WINNER DSHCRM KLMNSI 200G	PCS	$21.10	$27.00	40	79
+4800011186900	WINNER DSHCRM ORANGE 200G	PCS	$21.10	$27.00	40	91
+4806531300246	NFC H-MLN FRT JLLY 480G	PCS	$21.10	$26.50	76	0
+4800575110151	ALSK EVAP FL MLK154ML	PCS	$21.24	$27.00	19	216
+4806506318849	SISTER NETDRY DAY W/WINGS 8S	PCS	$21.25	$27.00	77	72
+4806014099230	JLLY GRBNZOS CHK PEAS 225G	PCS	$21.27	$27.00	53	6
+4800194107716	OISHI OPUFF MANGO 84G	PCS	$21.42	$27.00	10	120
+4800194107822	OISHI OPUFF CHOCO 84G	PCS	$21.42	$27.00	10	120
+4800488100065	CHARMEE PLINERS UNSCENTED 20'S	PCS	$21.45	$27.00	19	55
+8851028000808	VITAMILK CHOCO SHAKE 300ML	PCS	$21.46	$27.00	19	509
+8851028000945	VITAMILK ORIG 300ML	PCS	$21.46	$27.00	19	508
+11000211900080	PURE C CLAMANSI JUICE 500ML	PCS	$21.50	$27.00	19	168
+16540	DRY PATOLA	PCS	$21.50	$27.00	20	1
+49857	PAPER PLATE 25'S	PCS	$21.50	$28.00	20	9
+4805358606036	MAGNOLIA FULLCRMMLK 200ML	PCS	$21.50	$27.00	900	0
+4809010109828	LAURA'S PASENCIA 90G	PCS	$21.55	$27.00	71	39
+4801981125180	MINUTE MAID PLPY ORNGE 330ML	PCS	$21.58	$27.00	211	24
+4801981125227	MINUTE MAID PLPY 4-SEASON 330M	PCS	$21.58	$27.00	211	48
+4806020497471	SPEED BABAD W/ FABCON 380G	PCS	$21.60	$27.00	20	0
+4806502254288	VICTORY LESSON PLAN BOOK	PCS	$21.60	$27.00	20	0
+1032	VANDA MATH NB	PCS	$21.60	$27.00	100	0
+8851028001614	VITAMILK ENERGY 300ML	PCS	$21.67	$27.00	19	192
+4800314009692	3M SCOTCH BRITE MINI	PCS	$21.67	$28.00	76	204
+9981	FRT PONKAN JUMBO	\N	$21.73	$29.00	23	-25
+4809010639158	MARKY'S JACOBINA 100G	PCS	$21.75	$27.00	13	228
+899	AAA BLACK NO.1212	PCS	$21.75	$27.00	86	68
+4806030202577	JOLLY P.APPLE TIDBITS 225G	PCS	$21.78	$28.00	53	60
+4805358603059	MAGNOLIA CHOCOLAIT 250ML	PCS	$21.90	$28.00	900	0
+4902430408097	OLAY NW RSEAL PINK SHINE 7.5G	PCS	$21.93	$28.00	70	0
+8850007010890	JOHNSONS PWD BEDTIME 50G	PCS	$21.96	$27.00	117	72
+4800047841729	ZONROX CLRSAFE 225ML	PCS	$22.00	$28.00	15	72
+18	NAIL CUTTER B	PCS	$22.00	$29.00	20	12
+665	POMPOM HBAND BIG	PCS	$22.00	$28.00	20	0
+711	MAGGIE HAIR BRUSH	PCS	$22.00	$28.00	20	0
+851	TB-RECT	PCS	$22.00	$28.00	20	0
+1633	FLAT WIRE 0.75MM	\N	$22.00	$28.00	20	0
+2034	ELECTRIC FLAT WIRE 1.25MM	\N	$22.00	$28.00	20	101
+9068	PAGANINI HAIR COMB BIG	PCS	$22.00	$29.00	20	13
+9167	HEADBAND #3	PCS	$22.00	$28.00	20	0
+9172	HAIRBRUSH #18	PCS	$22.00	$28.00	20	0
+9181	PLASTIC FAN #30	PCS	$22.00	$28.00	20	0
+9565	PLASTIC CHARACTER FAN	PCS	$22.00	$29.00	20	36
+9570	RIBBON W/NET XL	PCS	$22.00	$29.00	20	21
+61888	TOILET BRUSH RECT	PCS	$22.00	$28.00	20	46
+95381	TRAY LARGE #9538	PCS	$22.00	$28.00	20	0
+517	VGT MIKI	PCS	$22.00	$28.00	23	57
+4806021313725	JOY PLASTIC PAPER FASTENER	PCS	$22.00	$28.00	43	15
+4800237331252	CHOCO MANI BARS288G	PCS	$22.00	$28.00	53	100
+4809014937458	GANA CALAMANSI DRNK 350ML	PCS	$22.00	$27.00	75	723
+4801278408347	ORION PROTRACTOR #30	PCS	$22.00	$27.50	100	37
+4806021388181	WELLS PLASTIC FASTENER	PCS	$22.00	$28.00	100	10
+4806028902076	VECO STENO NOTEBOOK	PCS	$22.00	$28.00	100	0
+710	SOYA MILK 330ML	PCS	$22.00	$28.00	107	0
+4800131592247	ETHYL ALCOHOL 70% 150ML	PCS	$22.00	$28.00	107	0
+4809011956124	GS DALANDAN JUICE 330ML	PCS	$22.00	$28.00	107	0
+4806507831453	SILKA FACIAL CLNSR PAPAYA 75ML	PCS	$22.00	$27.50	222	11
+4806507831460	SILKA FCIAL CLNSR AVOCADO 75ML	PCS	$22.00	$27.50	222	7
+4806507831477	SILKA FCIAL CLNSR CLEAR 75ML	PCS	$22.00	$27.50	222	6
+4806507831606	SILKA FCIAL CLNSR GRN PPY 75ML	PCS	$22.00	$27.50	222	7
+4806507833112	SILKA FCIAL CLNSR CLMNSI 75ML	PCS	$22.00	$27.50	222	11
+4806507833327	SILKA FCIAL CLNSR CUCUMBR 75ML	PCS	$22.00	$27.50	222	7
+8888826019589	GILLETE BLUEE II	PCS	$22.06	$28.00	70	167
+8851028002505	VITAMILK DBLCSHKE 300ML	PCS	$22.08	$28.00	19	466
+4806030202560	JOLLY P.APPLE CHUNKS 225G	PCS	$22.08	$28.00	53	45
+4800488960201	CHARMEE DRY NET W/ WINGS 8+1	PCS	$22.20	$28.00	19	12
+106	VGT B.BEANS	PCS	$22.22	$28.00	23	57.810000000000002
+4804880214122	BAGUIO OIL SUP 175ML	PCS	$22.31	$26.00	117	120
+4800034040111	DAZZ DISHWSHNG LIQ LIME 200G	PCS	$22.32	$28.00	117	12
+4800034040210	DAZZ DISHWASHNG LIQ LEMON 200G	PCS	$22.32	$28.00	117	12
+4800361331500	NESTLE BBRND STERILIZED 200ML	PCS	$22.33	$28.00	14	411
+73390000127	MENTOS SPRMINT 37.5G	PCS	$22.34	$28.00	67	37
+6921211109723	MENTOS SODA KICK 37.5G	PCS	$22.34	$28.00	67	118
+8935001720386	MENTOS ACTION ROLL 37.8G	PCS	$22.34	$28.00	67	153
+8935001722274	MENTOS STRWBRRY MIX 37.5G	PCS	$22.34	$28.00	67	90
+8990800100012	MENTOS MINT37.5G	PCS	$22.34	$28.00	67	240
+8990800100050	MENTOS FRUIT ROLL 37G	PCS	$22.34	$28.00	67	80
+358	PEANUT SKINLESS 250G	PCS	$22.40	$28.00	1	177
+4800888176875	MASTER ACT WHTNGNG FACIAL SCRB	PCS	$22.40	$28.00	53	0
+4809010109071	LAUR'S BRDSTCK100G	PCS	$22.49	$28.00	71	145
+3039	MIYABI PITCHER #309	PCS	$22.50	$29.00	20	-9
+4800555174159	ADVANCE NOTEBOOK	PCS	$22.50	$28.00	20	0
+4800555174166	ADVANCE NB 8O LVS	PCS	$22.50	$28.00	20	0
+48090105247754	SUGO PNUT GARLIC ADOBO 100G	PCS	$22.50	$28.00	20	0
+4800011000053	MAMA'S LOVE COTTNBUDS 400TIPS	PCS	$22.50	$28.00	40	12
+4800011586151	MAMAS LOVE CTTN 40G	PCS	$22.50	$28.00	40	10
+6921211104353	MENTOS TROPICAL ROLL 37.5G	PCS	$22.50	$29.00	67	112
+4809010109163	LAURA'S BUTTER COOKIES 100G	PCS	$22.50	$28.00	71	84
+4809010109354	LAURA'S EGG CRCKLTS 75G	PCS	$22.50	$28.00	71	120
+4809010109903	LAURA'S PUTO SEKO 100G	PCS	$22.50	$28.00	71	41
+4809010109965	LAURA'S RAISIN COOKIES 100G	PCS	$22.50	$28.00	71	30
+4806506318924	SISTERS PANTLNER 20LINERS	PCS	$22.50	$28.00	77	51
+4806512308438	CRISTELA SL003	PCS	$22.50	$22.50	107	0
+4806527242888	KOJIC SAKURA WHTENNG 45G	PCS	$22.50	$28.00	145	72
+4801234113520	BAYGON FLY PAPER 2SHEETS 13.8G	PCS	$22.60	$28.50	28	56
+4800888136688	SURF FABCON BAR 380G	PCS	$22.60	$28.00	36	60
+4800888136787	SURF FAB. SUN FRESH BAR 380G	PCS	$22.60	$29.00	36	18
+4800888190987	SURF BAR CHRRY BLSSM 380G	PCS	$22.60	$29.00	36	45
+4800888199126	SURF BAR PURPLBLM 380G	PCS	$22.60	$29.00	36	54
+748485400716	ANGEL EVAP CREAMR 410ML	PCS	$22.62	$28.00	76	12
+4902430440042	BONUX BAR LVNDR&LMN TWIST 380G	PCS	$22.66	$28.00	61	0
+4800216110014	LESLIE'S CLVR CHSIER 95G	PCS	$22.70	$29.00	28	0
+4800216122222	LESLIE'S CLVR CHLI-CHS 85G	PCS	$22.70	$29.00	28	0
+4800361373098	NSTL YGURT JLLYSTRWBRY 120G	PCS	$22.72	$29.00	8	37
+4800361376570	NSTL YGURT JELPEACHMNG 120G	PCS	$22.72	$29.00	8	0
+4800086045669	CORNETTO DISC NUTTY CHCO 115ML	PCS	$22.73	$29.00	9	180
+4800086045676	CORNETTO WHITE CHCO 115ML	PCS	$22.73	$29.00	9	192
+4800086045683	CORNETTO MATCHA COOKIES 115ML	PCS	$22.73	$29.00	9	168
+4800361383073	NSTL CRUNCH CHC 60ML	PCS	$22.73	$28.00	32	72
+4800361404778	NSTL MILO ICE CREAM 100ML	PCS	$22.73	$29.00	107	0
+4800086045679	CORNETTO DISC WHT CHC 115ML	PCS	$22.74	$29.00	9	0
+494	DELTA RUBBER PLUG PBR52	PCS	$22.75	$28.00	20	0
+8934868074533	DOMEX PINK POWER BLCH 150ML	PCS	$22.75	$29.00	36	43
+89348680534088	DOMEX BLCH CLSSIC BLUE 150ML	PCS	$22.75	$29.00	36	36
+4800552888059	CHIPS DELIGHT REG 80ML	PCS	$22.88	$29.00	54	48
+9656	FAN ROUND ASSRTED COLOR	PCS	$22.89	$30.00	20	0
+4800888183262	SUNLIGHT KALAMANSI 190ML	PCS	$22.95	$29.00	36	27
+4806514870186	TRASH BAG MEDIUM	PCS	$22.96	$29.00	107	0
+4800361015400	NESTLE CHUCKIE 250ML	PCS	$23.00	$29.00	14	1464
+8935001722809	MENTOS CHEW STRAWBRRY 45G	PCS	$23.00	$29.00	67	58
+8935001722823	MENTOS CHEW GRAPE 45G	PCS	$23.00	$29.00	67	48
+8935001723356	MENTOS CHEW GREEN APPLE 45G	PCS	$23.00	$29.00	67	49
+4809010109644	LAURA'S MANNA BUTTRTOASTS 100G	PCS	$23.00	$29.00	71	80
+4800380070176	CHOCOLATE PNPG CRNCH 60ML	PCS	$23.00	$29.00	99	0
+4800380070275	VANILLA PNPG CRNCH 60ML	PCS	$23.00	$29.00	99	0
+4800380330171	CARAMEL CUP 12'S	PCS	$23.00	$29.00	99	0
+4800380330379	MANTECADO 425ML	PCS	$23.00	$29.00	99	0
+4800380330553	ARCE VANILLA CUP 100ML	PCS	$23.00	$29.00	99	60
+4800380330577	VANILLA CUP 12S	PCS	$23.00	$29.00	99	0
+4800380520275	CHOCOLATE DRUMMIES 10S	PCS	$23.00	$29.00	99	0
+4800380530359	ARCE VANILLA DRUM 110ML	PCS	$23.00	$29.00	99	20
+4806021318942	CORRECTION TAPE JOY	PCS	$23.00	$29.00	100	208
+8802203549315	DONG-A FINETECH GEL PEN	PCS	$23.00	$29.00	100	120
+1855	TENURA ENSAYMADA	PCS	$23.00	$29.00	1847	119
+4807770120473	NISSIN BTTERCOCO 10G	PCS	$23.01	$29.00	1	0
+4809011721616	KENLY'S PANCIT CANTON 200G	PCS	$23.06	$29.00	71	12
+4800888113498	CLOSE UP RED HOT 25ML	\N	$23.09	$29.00	36	180
+4800888113573	CLOSE UP GREEN METHOL FRSH 25M	PCS	$23.10	$29.00	15	158
+22480088811349	CLOSEUP RED HOT 25ML	PCS	$23.10	$29.00	36	22
+4800095001113	FAMILY RBBING ALCHL 180ML	PCS	$23.10	$29.00	54	17
+8888077108308	MEIJI HELLO PANDA 43G	PCS	$23.13	$30.00	20	160
+198	FRT APPLE RED	PCS	$23.14	$30.00	23	8
+432	VGT SAYOTE	PCS	$23.15	$29.00	23	135.40000000000001
+4804880551449	FRITO PLUS PALM OIL SUP 250ML	PCS	$23.21	$27.00	53	166
+4800194115063	OISHI POTATCHP PSALTD60G	PCS	$23.30	$29.00	10	0
+4800194115087	OISHI CHIPS SWET&SPCY 50G	PCS	$23.30	$29.00	10	0
+4800194115421	OISHI RIDGES ONN&GARLC 60G	PCS	$23.30	$29.00	10	0
+4800194115438	OISHI RIDGES CHEESE60G	PCS	$23.30	$29.00	10	0
+4800194115452	OISHI RIDGES BBQ60G	PCS	$23.30	$29.00	10	0
+4800194115957	OISHI POTATO CHIP ONION 60G	PCS	$23.30	$29.00	10	0
+4800011111148	BIODERM TIMELESS SOAP 90G	PCS	$23.30	$29.00	40	49
+4800011113944	BIODERM COOLNESS 90G	PCS	$23.30	$29.00	40	55
+4800011114248	BIODERM FRSH SOAP 90G	PCS	$23.30	$29.00	40	43
+4800011114941	BIODERM GLOW SOAP 90G	PCS	$23.30	$29.00	40	62
+4800011115047	BIODERM SOAP BLM  90G	PCS	$23.30	$29.00	40	49
+4800011115245	BIODERM PRISTINE 90G	PCS	$23.30	$29.00	40	77
+8809273404735	SEAWEED OLIVE 4G	PCS	$23.33	$29.00	11	0
+989	DONG-A 4CLR BALLPEN	PCS	$23.40	$30.00	63	0
+4804888168991	LASAP INSTANT GATA MIX 40G	PCS	$23.42	$30.00	117	48
+9556121026562	JULIE'S OAT25 STRWBRRY 50G	PCS	$23.49	$29.00	71	48
+9556121026579	JULIE'S OAT25 TENGRNS 50G	PCS	$23.49	$29.00	71	41
+4809010354068	WASHED SUGAR 1/2KG	PCS	$23.50	$29.00	1	298
+4806506318863	SISTERS NETDRY NGHT W/WINGS 8S	PCS	$23.50	$28.00	77	168
+4806506318900	SISTER OVERNIGHT LONG 4PADS	PCS	$23.50	$30.00	77	154
+4800042110196	EVEREADY AA2 1015 RGS REDX2	PCS	$23.50	$29.00	86	98
+4806506318894	SISTERS SINGLES SILK FLOSS 12'	PCS	$23.50	$30.00	91	52
+4806512308469	CHRISTIAN OLIVER SHOE LACE	\N	$23.50	$23.50	107	0
+4800024550057	DM PINE CRUSH 240ML	PCS	$23.55	$30.00	29	24
+4800024575487	DM SPAG FILSTYLE 250G	PCS	$23.57	$29.45	19	0
+4800216126732	LESLIE'S FRMR CHDDR&S-C 55G	PCS	$23.60	$30.00	28	0
+4806513820434	SCISSOR ORDINARY UK 6\\7	PCS	$23.60	$30.00	63	0
+4800216126749	FJP SMPLYSLTD 55G	PCS	$23.62	$30.00	28	0
+4809010524034	SUGO SALTED PEANUT 100G	PCS	$23.67	$30.00	53	156
+4809010524201	SUGO HONEY ROASTED 100G	PCS	$23.67	$30.00	53	72
+4809010524539	SUGO PEANUT HOT&SPICY 100G	PCS	$23.67	$30.00	53	114
+4809010524775	SUGO PNUT GRLC ADBO 100G	PCS	$23.67	$30.00	53	96
+4489	FRIED GARLIC 250G	PCS	$23.75	$30.00	20	-67
+4806507831859	JUICY VIOLET DREAMSICLE 50ML	PCS	$23.75	$30.00	222	5
+4800024562692	DM PNAPPLE A-C-E 240ML	PCS	$23.81	$30.00	29	144
+9556121026906	LAURA'S GOLDEN CRACKERS 125G	PCS	$23.89	$30.00	71	52
+9556121026913	JULIE'S BTTRCRCKRS 125G	PCS	$23.89	$30.00	71	32
+9556121026920	LAURA'S SUGAR CRACKERS 125G	PCS	$23.89	$30.00	71	55
+4806506150135	SOFT N WHITE JUMBO PACK 2PLY	PCS	$23.89	$30.00	77	24
+4806506150371	EXTRA ROLL COTTON 50G	PCS	$23.89	$30.00	77	12
+8999999015947	DOVE WHITE BAR 50G	PCS	$23.90	$30.00	36	55
+8999999019174	DOVE PINK BAR 50G	PCS	$23.90	$30.00	36	36
+4902430411509	TIDE BAR. FRESH DOWNY 380G	PCS	$23.90	$30.00	70	27
+4807770100406	NISSIN EGGNOG COOKIES130G	PCS	$23.93	$30.00	1	160
+4807770101717	NISSIN BREADSTIX 130G	PCS	$23.93	$30.00	1	240
+4807770120077	NISSIN BREADSTIX CHEESE 130G	PCS	$23.93	$30.00	1	210
+4800016073335	BLUE CALAMANSI 500ML	PCS	$23.98	$30.00	117	210
+4800016073359	BLUE DRINK ORANGE 500ML	PCS	$23.98	$30.00	117	75
+4800016073588	BLUE LYCHEE 500ML	PCS	$23.98	$30.00	117	210
+4803925051197	T-FRUIT BURST 355ML	PCS	$24.00	$30.00	16	120
+59	DYNA S.BASKET #813	PCS	$24.00	$30.00	20	0
+457	GUITAR STRING #4	PCS	$24.00	$30.00	20	0
+491	DELTA SWITCH N0.738	PCS	$24.00	$30.00	20	0
+493	ITOKI RECEPTACLE NO.E27-2	PCS	$24.00	$29.00	20	89
+1065	RECEPTACLE NO106	PCS	$24.00	$30.00	20	0
+5003	GENIC WARE SANDOK	PCS	$24.00	$30.00	20	0
+5453	DLTA RCC27 E-27	PCS	$24.00	$30.00	20	0
+12554441	LESCO LACQUER THINNER	PCS	$24.00	$30.00	20	28
+6924247423603	CHOSCH MECPENCIL 0.5MM	PCS	$24.00	$30.00	27	0
+4800380320271	CHOCOLATE CUP 12S	PCS	$24.00	$30.00	61	0
+4800380320578	MANGO CUP 12S	PCS	$24.00	$30.00	61	0
+1172	MAP PINS	PCS	$24.00	$30.00	63	0
+1249	GUITAR STRING #4	PCS	$24.00	$30.00	79	12
+4800380320479	COFFEE 12S	PCS	$24.00	$30.00	99	0
+4800380320776	STRAWBERRY CUP 12S	PCS	$24.00	$30.00	99	0
+4800380320851	ARCE UBE CLSSC 100ML	PCS	$24.00	$30.00	99	0
+4800380330157	ARCE CARAMEL CUP 100ML	PCS	$24.00	$30.00	99	24
+4800380330355	ARCE MANTECADO CUP 100ML	PCS	$24.00	$30.00	99	24
+971	PAPER BAG L	PCS	$24.00	$32.00	107	0
+3132	SC88 LAUNDRY DET 25G	PCS	$24.00	$30.00	107	0
+32122	PAPER PLATE 24'S	PCS	$24.00	$30.00	107	0
+8809512720008	MD SPORT COOL GEL	PCS	$24.00	$29.00	107	0
+8809512720183	MD ALOE PEARL WHTNNG CREAM	PCS	$24.00	$30.00	107	0
+8809512720244	MD ALOE FOAM PEARL WHTNG CLNSR	PCS	$24.00	$29.00	107	0
+8809512720497	MD REFRESHING DEODORANT	PCS	$24.00	$29.00	107	0
+4806507830401	DEFINE GEL CLEAR 125ML	PCS	$24.00	$30.00	222	0
+4806507830418	DEFINE GEL YELLOW 125ML	PCS	$24.00	$30.00	222	0
+4806507830425	DEFINE GEL GREEN 125ML	PCS	$24.00	$30.00	222	0
+4800552888608	CHPS DLGHT RNBWCNDYCKSCHCHP 80	PCS	$24.02	$30.00	104	48
+4800037144059	RUBBIE DBL SHCK	PCS	$24.04	$30.00	70	0
+4800037144069	RUBIE DBLE EDGE CLICK	PCS	$24.04	$30.00	70	24
+4800024556899	DM TOMATO PASTE 150G	PCS	$24.07	$30.00	29	82
+4807770100529	NISSIN BUTTER COCO 120G	PCS	$24.16	$30.00	1	72
+4800011010007	MAMA'S LOVE BUDS 200TIPS	PCS	$24.20	$30.00	40	15
+4809010109750	LAUR'S OTP SGRBISCT 100G	PCS	$24.20	$30.00	71	65
+4809010109101	LAUR'S GRLC BRDSTCK100G	PCS	$24.25	$30.00	71	47
+4800060201609	KLEENEX FACIAL TISSUES 120S	PCS	$24.27	$31.00	28	0
+4805358599475	LAPACITA GRHM CHOCO 125G	PCS	$24.30	$31.00	900	0
+4800024576880	DL MONTE PNAPPLE B-S 240ML	PCS	$24.32	$30.00	29	72
+8850006321133	COLGATE ANTICVTY 25ML (37G)	PCS	$24.34	$32.00	20	120
+4800137365319	MAYA HOTCAKE MIX 200G	PCS	$24.38	$31.00	117	96
+8031	VICKS 5G	PCS	$24.41	$31.00	20	22
+4800473001179	ROGERS TRU MAYO 200ML	PCS	$24.43	$31.00	29	24
+4902430184298	SAFEGUARD BAR PINK 90GX3	PCS	$24.45	$31.00	70	36
+4902430159258	SAFEGRD WHTE 90G	PCS	$24.45	$31.00	107	18
+4800024020642	DM PINEAPPPLE CHUNKS 227G	PCS	$24.46	$31.00	28	0
+4987176600769	VICK VAPO RUB 5G	PCS	$24.47	$31.00	70	20
+4800024003652	DEL MNTE CRUSHED PINEAPPLE 227	PCS	$24.49	$31.00	29	38
+4800029012567	MAX MALLOWS 135G	PCS	$24.50	$31.00	15	0
+4800029830703	MELLO TWIST MARSHMALLOW 135G	PCS	$24.50	$31.00	15	0
+62	BASIN HITOP #224	PCS	$24.50	$31.00	20	0
+229226	HITOP BASIN #224	PCS	$24.50	$31.00	20	0
+4800024576972	DMBS ORANGE JUICE DRNK 240ML	PCS	$24.50	$31.00	29	72
+4800084003652	DM CRUSHED 227G	PCS	$24.52	$31.00	28	0
+9556001027252	KITKAT 4F 35G	PCS	$24.55	$31.00	14	667
+4809010639332	EGG CRACKLETS 75G	PCS	$24.75	$31.00	13	80
+4809010639424	MARKY'S PACENCIA 100G	PCS	$24.75	$31.00	13	50
+545	DELTA SOCKET FLAT ARF62	PCS	$24.75	$31.00	20	0
+4806506318795	SISTERS PANTLNER BDGTPACK180MM	PCS	$24.75	$31.00	77	55
+1840	EM-GBU MAGNET	\N	$24.75	$24.75	107	-1
+4800131140813	ISOPROPHYL ALCOHOL 70% 150ML	PCS	$24.75	$31.00	107	17
+4800024550088	DM PINAPPLE ORANGE 240ML	PCS	$24.78	$31.00	29	144
+4800024550927	DEL MNTE SWEND PNPPLE 240ML	PCS	$24.78	$31.00	29	98
+4800024550941	DM SWTND ORANGE 240ML	PCS	$24.78	$31.00	29	24
+4800024558305	DELMONTE FOURSEASNS240ML	PCS	$24.78	$31.00	29	192
+4809010657435	MY EVERYDAY PAPER PLATE 25S	PCS	$24.79	$31.00	117	120
+4058	FEATHERDUSTER S	PCS	$24.80	$31.00	20	0
+4806028905961	FLAMINGO SPECIALTY PAPER 10S	PCS	$24.80	$31.00	20	0
+4800310153054	EB NAT WHTNING 65GX2	PCS	$24.84	$31.00	53	0
+4800818808302	FRUTOS CANDY 50S	PCS	$24.84	$31.00	117	120
+9556040310094	F&N EVAP CREAMER 385ML	PCS	$24.95	$31.00	76	24
+76982812084	MELONA IC BANANA	PCS	$25.00	$31.00	11	125
+769828120801	MELONA HONEY DEW 70ML	PCS	$25.00	$31.00	11	226
+769828120825	MELONA STRAWBRRY 70ML	PCS	$25.00	$31.00	11	154
+8804108010082	SEAWEED 5G DAN 3/30	PCS	$25.00	$31.00	11	1158
+8935217412112	TH TRU YOGURT STRW 180ML	PCS	$25.00	$31.00	11	168
+8935217412211	TH TRU YOGURT BB 180ML	PCS	$25.00	$31.00	11	334
+69024894	SNICKERS CLASSIC 35G	PCS	$25.00	$31.00	15	0
+216	FF HOPIA ONION	PCS	$25.00	$31.00	17	142
+372	FF CAMOTE CHIPS	PCS	$25.00	$31.00	17	55
+783	FF BANANA BREAD S	PCS	$25.00	$30.00	17	-35
+1788	FF MONAY SLICED BREAD	PCS	$25.00	$38.00	17	0
+7181	FF CRINKLES	PCS	$25.00	$32.00	17	0
+8556	FF SESAME THIN	PCS	$25.00	$32.00	17	103
+967000000000	LLANERA SMALL	PCS	$25.00	$31.00	17	0
+664	HEADBAND #35	PCS	$25.00	$31.00	20	0
+1061	BILAO #14	PCS	$25.00	$33.00	20	20
+1198	PLASTIC COVER THICK 1YARD	PCS	$25.00	$31.00	20	50
+3467	TONG LARGE	PCS	$25.00	$33.00	20	5
+4852	PINIPIG 250G	PCS	$25.00	$32.00	20	100
+6050	WALIS AGIW	PCS	$25.00	$32.00	20	0
+6063	CERAMIC UV PLATE	PCS	$25.00	$32.00	20	32
+6088	TOILET BRUSH	PCS	$25.00	$28.00	20	11
+6411	BROOCH #74	PCS	$25.00	$31.00	20	0
+8047	DELTA FLRSCNT 10W	PCS	$25.00	$32.00	20	36
+9067	HAIRBRUSH SMALL	PCS	$25.00	$32.00	20	10
+9081	HEADBAND #44	PCS	$25.00	$32.00	20	21
+9166	HEADBAND #2	PCS	$25.00	$31.00	20	0
+9170	HAIRBRUSH #14,15,16	PCS	$25.00	$31.00	20	0
+9564	PLASTIC FAN PRINTED	PCS	$25.00	$32.00	20	8
+9574	TURBAN HEADBAND #6	PCS	$25.00	$32.00	20	20
+1266553	SPRAY GUN B	PCS	$25.00	$31.00	20	53
+4800380070213	ARCE DAIRY VNLLA PNPIG 60ML	PCS	$25.00	$31.00	20	48
+4806011627061	ARMARK ELECTRICAL TAPE	PCS	$25.00	$31.00	20	0
+4806028906319	NATURE PRINTS PAPER	\N	$25.00	$32.00	20	0
+4806523123228	INDEX CARD 4X6 DIV.	PCS	$25.00	$33.00	20	14
+6953849200053	PONCHO RAINCOAT THIN	PCS	$25.00	$31.00	20	0
+115	VGT TOGE	PCS	$25.00	$31.00	23	1.3799999999999999
+681	FRT OBLONG WATERMELON	PCS	$25.00	$32.00	23	0
+1975	VGT YOUNG CORN	\N	$25.00	$33.00	23	3
+3613	EM PAPER BAG 5GB-07	PCS	$25.00	$25.00	41	-5
+3617	EM PAPER BAG 5GB-08	PCS	$25.00	$25.00	41	-1
+487	INDEX CARD 4X6 100S WHT	PCS	$25.00	$31.00	63	6
+4806503874973	NOTEBOOK UNIVERSITY BIG	PCS	$25.00	$31.00	63	50
+4800631681120	BBAWANG NUTS ENTERTAINMENT 100	PCS	$25.00	$31.00	76	120
+4806525940090	HAPPY FIESTA BREAD CRMBS 230G	PCS	$25.00	$32.00	84	30
+480038070144	CHOCO PINIPIG CRUNCH 12S	PCS	$25.00	$31.00	99	24
+480038070213	VANILLA PNIPIG CRUNCH 12S	PCS	$25.00	$31.00	99	24
+4800380070114	ARCE CHOCO PNIPG 60ML	PCS	$25.00	$31.00	99	48
+4800380320257	ARCE CHOCO CUP 100ML	PCS	$25.00	$31.00	99	60
+4800380320455	ARCE COFFEE CUP 100ML	PCS	$25.00	$31.00	99	48
+4800380320554	ARCE MANGO CUP 100ML	PCS	$25.00	$31.00	99	60
+4800380320752	ARCE STRAWBERRY CUP 100ML	PCS	$25.00	$31.00	99	60
+4800380320875	UBE CUP 12S	PCS	$25.00	$31.00	99	24
+4800380520251	ARCE CHOCOLATE DRUM 110ML	PCS	$25.00	$31.00	99	60
+4800380530309	VANILLA DRUMMIES 10S	PCS	$25.00	$31.00	99	20
+4800380530373	VANILLA DRUMMIES 10S	PCS	$25.00	$31.00	99	20
+4806021306277	JOY STAPLER WIRE #35	PCS	$25.00	$31.25	100	109
+4806021316382	JOY COLORED PENCIL 12'S	PCS	$25.00	$32.00	100	0
+6931717503055	KAILITE STICK NOTE 3X5	PCS	$25.00	$32.00	100	0
+6932272266669	EXCEL STAPLER NO.35	PCS	$25.00	$31.00	100	100
+8802203504314	DONG-A U-KNOCK GEL PEN	PCS	$25.00	$31.00	100	60
+553	COIN PURSE #1	PCS	$25.00	$31.00	107	0
+848	VGT LABONG	PCS	$25.00	$31.00	107	47
+1793	ESCOBIDO'S SPICY PEANUTS	PCS	$25.00	$34.00	107	0
+2030	ROASTED SUNFLOWER SEEDS 50G	\N	$25.00	$32.00	107	-48
+2300	VGT FRESH MUSHROOM PACK	\N	$25.00	$31.00	107	22
+2407	FRT GREEN BANANA	PCS	$25.00	$34.00	107	0
+4478	CRISTELA SL007	\N	$25.00	$31.00	107	-1
+4826	NEW SQUARE COIN PURSE	PCS	$25.00	$31.00	107	0
+6377	AHAVA TURMERIC SEASONING	PCS	$25.00	$31.00	107	0
+6968	AHAVA MLNGAY SSEASONING	PCS	$25.00	$32.00	107	0
+11216	SOAP CASE SC #1216	PCS	$25.00	$31.00	107	0
+44012	SINANTOLAN S	PCS	$25.00	$32.00	107	0
+1254646	DISPOSABLE 16OZ	PCS	$25.00	$31.00	107	220
+454669887	TABLEYA SMALL	PCS	$25.00	$31.00	107	0
+7896785450443	SINGER ALL PURPOSE OIL	PCS	$25.00	$30.00	107	0
+8809512720169	MD WHITE A MINUTE	PCS	$25.00	$30.00	107	0
+8809512720213	MD HYDRO TOTAL REFRESH GEL CRM	PCS	$25.00	$31.00	107	0
+1473	BTL TABLEYA SMALL	PCS	$25.00	$31.00	118	50
+1610	CANTEEN AROZCALDO W/O EGG	\N	$25.00	$25.00	578	-5.9299999999999997
+1851	CANTEEN MIGORING W/ EGG	\N	$25.00	$25.00	578	0
+20145	CANTEEN KARYOKA	\N	$25.00	$25.00	578	0
+4800024574725	FIT'N RIGHT ORANGE 330ML	PCS	$25.05	$31.00	29	56
+4800575140370	ALSK EVAPORADA 370ML	PCS	$25.07	$31.00	19	432
+8935001721680	MILKY STRBRY AND CRM LOLLPP	PCS	$25.13	$31.00	67	0
+4800024562258	DM PA TIDBITS 227G	PCS	$25.23	$32.00	29	32
+4800888143921	PONDS FCLMST WB DETOX 12ML	PCS	$25.25	$32.00	36	24
+4805358599468	LAPACITA GRHM CRM CHEZ 125G	PCS	$25.25	$32.00	900	0
+4800024562616	DM FBER ENRCH PINE JUICE 240ML	PCS	$25.26	$32.00	29	120
+4800818808906	POTCHI STRWBRRY 135G	PCS	$25.33	$32.00	117	160
+1990	PINOY PLSTC CUP 10OZ	PCS	$25.39	$31.00	117	92
+4806534190004	SELCTA DOUBLECHCO VNILLA 100ML	\N	$25.45	$32.00	9	0
+480653419004	DS DOUBLE CHOCO VANILLA 100ML	PCS	$25.45	$32.00	32	32
+4800016489020	LUSH CHOCO CHEWS 175G	PCS	$25.46	$25.00	117	80
+4803925051104	TROPICANA ORANGE 355ML	PCS	$25.49	$32.00	53	120
+4803925051194	TROPICANA FRUIT BURST 355ML	PCS	$25.49	$32.00	53	120
+4803925051142	TROPICANA TWISTER 355ML	\N	$25.49	$32.00	117	0
+1344	CANISTER #134	PCS	$25.50	$33.00	20	2
+6029	DYNA SOAP CASE #813	\N	$25.50	$33.00	20	6
+8520	FRT KIWI	PCS	$25.55	$32.00	23	49
+8935001707387	MENTOS BERRY LIME MINT 27G	PCS	$25.55	$32.00	67	22
+8935001708964	MENTOS WINTERGREEN 27G	PCS	$25.55	$32.00	67	22
+8935001708988	MENTOS FRESH MINT 27G	PCS	$25.55	$32.00	67	22
+2201	X.G COMB	PCS	$25.60	$32.00	20	0
+45403	HBRUSH YONGDANG RBLK	PCS	$25.60	$32.00	20	0
+4809010354020	WHITE SUGAR 1/2	PCS	$25.65	$32.00	1	420
+4800011121512	ETHYL ALCHOL 70%SLUTION 150ML	PCS	$25.65	$32.00	20	15
+4800060075408	PURITY COTTON ROLL 45G	PCS	$25.90	$33.00	28	23
+4800024572981	DEL MNTE PNPPLE H-S 240ML	PCS	$25.99	$32.00	29	96
+40	BASKET COLORED	PCS	$26.00	$33.00	20	12
+55	LUNCH BOX #506	PCS	$26.00	$34.00	20	0
+508	LUNCH BOX #508	PCS	$26.00	$30.00	20	0
+9556031063343	TENDER CARE 80G BLU	PCS	$26.00	$33.00	63	0
+9556031063350	TENDER CARE PINK BLSSM 80G	PCS	$26.00	$33.00	63	0
+4800033133586	DENTAL.B TTHBRSH SOFT	PCS	$26.00	$33.00	77	21
+4800033133685	DENTAL B. TTHBRSH MEDIUM	PCS	$26.00	$33.00	77	19
+4800033133784	DENTAL B. TTHBRSH HARD	PCS	$26.00	$33.00	77	34
+900	CLEARBOOK SHORT ASSORTED	PCS	$26.00	$33.00	100	120
+4902505088193	PILOT MARKER BROAD BLUE	PCS	$26.00	$33.00	100	87
+4800024570000	FIT'N RIGHT APPLE 330ML	PCS	$26.09	$33.00	29	120
+4800024570017	FITNRIGHT PINEAPPLE DRNK 330ML	PCS	$26.09	$33.00	29	77
+4800024570024	FIT N RGHT FOURSEASNS330ML	PCS	$26.09	$33.00	29	98
+4800024570772	FIT N RGHT PNAPPLORNG330ML	PCS	$26.09	$33.00	29	122
+4800024571908	FIT N RGHT WTRMLN 330ML	PCS	$26.09	$33.00	29	120
+4800016644504	J&J PTS CHS 85G	PCS	$26.10	$33.00	15	0
+4800552888103	CHPS DLGHT STRCHCHCKS 70G	PCS	$26.21	$33.00	104	48
+4809010639103	MARKY'S PILIPIT TWSTD100G	PCS	$26.25	$33.00	13	35
+4800011121543	ETHYL ALCOHOL 70% 150ML	PCS	$26.25	$33.00	40	17
+4806507831866	JUICY PNK ANGELS BLISS 50ML	PCS	$26.25	$33.00	222	8
+4806507831873	JUICY ORANGE TWIST 50ML	PCS	$26.25	$33.00	222	6
+4806507831897	JUICY RED SWEET DLGHTS 50ML	PCS	$26.25	$33.00	222	12
+4806507831903	JUICY BLUE ICYLICIOUS 50ML	PCS	$26.25	$33.00	222	6
+4806507831910	JUICY FRN SPRIGHTLY SPNKL 50ML	PCS	$26.25	$33.00	222	6
+4806507835154	JUICY COLOGNE SUGAR FROST 50ML	PCS	$26.25	$33.00	222	3
+4806507835192	JUICY M.BLUE UP UP AWAY 50ML	PCS	$26.25	$33.00	222	3
+4800024555533	DM SPAGHETTI SAUCE 250G	PCS	$26.28	$33.00	19	0
+4800047820243	GREEN CROSS ALCOHOL 150ML	PCS	$26.28	$33.00	117	96
+4804888589680	CHOCNUT KING 200G	PCS	$26.35	$33.00	117	0
+7997	SUNNY WARE LB #506	PCS	$26.40	$33.00	20	0
+4800575130166	ALSK CONDNSADA168ML	PCS	$26.43	$33.00	19	232
+4801668200018	JUFRAN BANNA KETCP320G	PCS	$26.43	$33.00	19	63
+4809011168039	SUPEROX BLEACH 1050ML	PCS	$26.43	$33.00	117	0
+4800094098831	MINOLA OIL POUCH 200ML	PCS	$26.59	$33.00	117	48
+5704025031579	EMBORG U'GO RASPBERRY 100G	PCS	$26.60	$33.00	8	20
+5704025031593	EMBORG U'GO STRAWBRRY 100G	PCS	$26.60	$33.00	8	20
+5704025031609	EMBORG UGO PEACH&PASSION 100G	PCS	$26.60	$33.00	8	20
+4800528456282	HOBE SPCIL BIHON 454G	PCS	$26.62	$33.00	8	24
+4800024574213	DMHS ORANGE JUICE 240ML	PCS	$26.62	$33.00	29	24
+1994	FRT APPLE GREEN	PCS	$26.66	$34.00	23	0
+520	DUSTPAN SMALL #404	PCS	$26.67	$35.00	20	27
+4800016663505	JNJ NOVA MLTIGRAIN CHEDDAR 78G	PCS	$26.70	$33.00	15	-300
+4800011122212	ETHYL ALCHL 70%FEMME 150ML	PCS	$26.70	$34.00	40	25
+4806506318818	SISTERS W/WINGS BDGTPACK 240MM	PCS	$26.75	$33.00	77	56
+5	VITAHERBS GREEN COFFEE	PCS	$26.75	$320.00	20	0
+4800361403344	MILO ACTIV GO 88G	PCS	$26.95	$34.00	15	85
+222	FF COCONUT COOKIES	PCS	$27.00	$34.00	17	81.849999999999994
+232	SPRAY GUN BIG	PCS	$27.00	$35.00	20	-6
+454	GUITAR STRING 0# & #1	PCS	$27.00	$34.00	20	-2
+19929	ESCOBIDO 'S CHICHACORN 95G	PCS	$27.00	$34.00	20	78
+48857	FLOWER POT MED	PCS	$27.00	$35.00	20	12
+1244114	LESCO PAINT THINER	PCS	$27.00	$34.00	20	23
+97	FRT INDIAN MANGO GREEN	PCS	$27.00	$35.00	23	49.539999999999999
+5069	VGT EGGPLANT BILOG VIOLET	PCS	$27.00	$35.00	23	2.79
+4809013300017	KOJIC SAN SOAP SINGLE 135G	PCS	$27.00	$34.00	54	37
+7891	MASKING TAPE CROCO 3/4	PCS	$27.00	$34.00	63	0
+4006381333627	STABILO BOSS YELLOW GRN	PCS	$27.00	$34.00	100	46
+4006381333634	STABILO BOSS BLUE	PCS	$27.00	$34.00	100	36
+4006381333672	STABILO BOSS ORANGE	PCS	$27.00	$34.00	100	30
+4006381333689	STABILO BOSS PINK	PCS	$27.00	$34.00	100	39
+1000	ESCOBIDO'S SWEET CORN  SMALL	PCS	$27.00	$34.00	107	-17
+1001	ESCOBIDO'S ASSORTED GUMMY SMAL	PCS	$27.00	$34.00	107	-12
+1074	ESCOBIDO'S GUMMY RAINBOW SM	PCS	$27.00	$34.00	107	93
+1114	GUITAR STRING #2 HARANA	PCS	$27.00	$34.00	107	3
+1761	ESCOBIDO'S CHOCO STICK	PCS	$27.00	$34.00	107	22
+1765	ESCOBIDO'S GUMMY CANDIES	PCS	$27.00	$34.00	107	0
+2043	GABRIDO'S JUMBO NUTS	\N	$27.00	$34.00	107	0
+1992	PINOY PLSTC CUP 12OZ	PCS	$27.00	$34.00	117	138
+4806503146322	SAVERS PAPER PLATE 25'S	PCS	$27.03	$34.00	117	62
+4806522942943	SAVERS ALUMINUM FOIL	PCS	$27.08	$34.00	117	48
+4806014096017	JOLLY GREEN PEAS 425G	PCS	$27.13	$34.00	53	20
+12366888	EGRET #20	PCS	$27.20	$34.00	20	0
+4808888821221	AXION PASTE KALAMANSI 190G	PCS	$27.20	$34.00	117	96
+4808888822327	AXION DSHWASHNG LIQ LEMON 190G	PCS	$27.20	$34.00	117	96
+4809010639615	MARKY'S SPCL PUTOSEKO 170G	PCS	$27.25	$34.00	13	80
+4809010639721	MARKY'S BARQUIL TP75G	PCS	$27.25	$35.00	13	144
+4800011501086	MAMA'S LOVE COTTON 100'S BALLS	PCS	$27.25	$34.00	40	14
+4800147200471	NEW ORCHID LEMON 50G W/HLDER	PCS	$27.25	$34.00	77	19
+4800147200488	NEW  ORCHID CHERRY 50G	PCS	$27.25	$34.00	77	1
+4800147200495	NEW ORCHID STRWBRRY 50G W/HLDE	PCS	$27.25	$34.00	77	9
+4800147200525	NEW ORCHID SMPAGUITA W/HLDER	PCS	$27.25	$34.00	77	1
+4800147201003	NEW ORCHID APPLE 50G W/HLDER	PCS	$27.25	$34.00	77	11
+4800147201843	NEW ORCHID MELON 50G W/HLDER	PCS	$27.25	$34.00	77	14
+4800147201881	NEW ORCHID BLUEBRRY50G W/HLDER	PCS	$27.25	$34.00	77	22
+4800147210944	NEW ORCHID ORANGE 50G W/HLDER	PCS	$27.25	$34.00	77	23
+4809010639639	MARKY'S UBESPCL PUTOSKO 170G	PCS	$27.25	$35.00	20	0
+4800216127791	LESLIE'S BANANA THN 100G	PCS	$27.30	$34.00	28	500
+4808680021355	LADY'S REAL MAYONSE 80ML	PCS	$27.35	$34.00	36	156
+4800060080709	PURITY COTTON BDS 190S	PCS	$27.45	$34.00	28	12
+58	SOAP CASE DOUBLE	PCS	$27.50	$35.00	20	0
+128	SOAP BASKET #128	PCS	$27.50	$35.00	20	0
+477	HAPPY HOME NEEDLE	PCS	$27.50	$35.00	20	0
+518	JUICE CONT. #518	PCS	$27.50	$35.00	20	0
+85508	SOEN PANTY FOR KIDS	PCS	$27.50	$34.00	20	24
+4902505087509	PILOT MARKER BLUE	PCS	$27.50	$35.00	20	0
+4800147200648	CL MURIATIC ACID C 250ML	PCS	$27.50	$35.00	77	40
+4806507834881	SILKA PAPAYA DEO 25ML	PCS	$27.50	$35.00	222	19
+4806507834904	SILKA GREEN PAPAYA DEO 25ML	PCS	$27.50	$35.00	222	12
+4806507834959	SILKA WHTNG DEO BLUE 25ML	PCS	$27.50	$35.00	222	12
+4800024012326	DM PA SLICES 227G	PCS	$27.52	$34.00	29	49
+4803925062315	G ACTIVE  BERRY FLAVOR 500ML	PCS	$27.58	$35.00	20	0
+4806014001233	GOODLIFE EGGNDDLS 200G	PCS	$27.64	$35.00	53	36
+4902430073899	SAFEGUARD CM 90ML	PCS	$27.68	$35.00	70	50
+4902430495042	SAFEGUARD CB 90G	PCS	$27.68	$35.00	70	38
+4902430495073	SAFEGUARD PW 90G	PCS	$27.68	$35.00	70	60
+4902430495141	SAFEGUARD FPA 90G	PCS	$27.68	$35.00	70	35
+4902430803700	SAFEGUARD LEMON FRSH 90G	PCS	$27.68	$35.00	70	45
+4902430522083	SAFEGUARD GLF 90G	PCS	$27.68	$35.00	20	22
+4800186001312	GOLDEN OATS 200G	PCS	$27.70	$35.00	211	17
+8935001722168	MENTOS FRSHTIME165G	PCS	$27.73	$35.00	67	19
+4806507831170	SILKA PAPAYA 90G	PCS	$27.75	$35.00	15	28
+4809011390157	CLSSC LALA M&CHOCLATE	PCS	$27.75	$35.00	20	0
+107	VGT RADDISH	PCS	$27.77	$35.00	23	-14.34
+433	VGT UPO	PCS	$27.77	$35.00	23	40.460000000000001
+4806512306373	LIFE IN ACTION DOOR MAT	PCS	$27.80	$34.75	61	0
+4800060201807	KLEENEX TISSUE EXPRESS	PCS	$27.89	$35.00	28	24
+4806014000137	JLLY CRM CRN SWT425G	PCS	$27.90	$35.00	53	23
+4806014094228	JOLLY WHOLEKERNEL CORN 425G	PCS	$27.90	$35.00	53	72
+4806014000144	JOLLY WLCORN KERNL425G	PCS	$27.90	$35.00	20	0
+4800473005078	ROGER'S TRUSPREAD AP 200ML	PCS	$27.96	$35.00	113	24
+750515017252	FITA CRACKERS BOX 150G	PCS	$27.99	$35.00	1	15
+221	FF PINEAPPLE COOKIES	PCS	$28.00	$35.00	17	120
+63	PAIL COLOR 4GAL	PCS	$28.00	$37.00	20	3
+68	RUBBER BAND S	PCS	$28.00	$35.00	20	0
+250	APRON	PCS	$28.00	$37.00	20	94
+657	DUST PAN SILVER	PCS	$28.00	$29.00	20	-2
+1259	TULIP TWINE 400G	PCS	$28.00	$37.00	20	0
+3278	GLASS PLATE	PCS	$28.00	$35.00	20	-20
+3475	BALLOON #12 HEART PRNTD	PCS	$28.00	$37.00	20	9
+5349	OPPO SWITCH #738	PCS	$28.00	$35.00	20	0
+6081	DUST PAN METAL MEDIUM	\N	$28.00	$35.00	20	-15
+6557	GRILLER S	PCS	$28.00	$35.00	20	8
+9054	GLOVES DENIM XL	PCS	$28.00	$35.00	20	0
+49867	TOWELHOLDER #25	PCS	$28.00	$35.00	20	9
+4006381333641	STABILO BOSS GREEN	PCS	$28.00	$37.00	20	57
+75	EM KEY RING	PCS	$28.00	$35.00	21	0
+78	AUP KEY RING	PCS	$28.00	$35.00	21	0
+1969	EM KEYCHAIN-S	PCS	$28.00	$35.00	41	0
+3611	EM PAPER BAG 5GB-12	PCS	$28.00	$28.00	41	0
+3612	EM PAPER BAG 5GB-13	PCS	$28.00	$28.00	41	8
+3614	EM PAPER BAG 5GB-10	PCS	$28.00	$28.00	41	-4
+3645	EM 2 MAGNETIC MINI BOOKMARKS	PCS	$28.00	$28.00	41	0
+4800405134517	MARCA PINA SPUTI PROMO 5+1	PCS	$28.00	$35.00	53	5
+2154	CONDOR SITAW	PCS	$28.00	$40.00	60	20
+1635	CROCO PACKING TAPE 3X50	\N	$28.00	$35.00	63	31
+4806028907101	VECO SPECIALTY BOARD 220GSM	PCS	$28.00	$35.00	63	0
+4806028907118	VECO SPECIALTY BOARD 220GSM	PCS	$28.00	$35.00	63	7
+4806028907125	VECO SPECIALTY BOARD 220GSM	PCS	$28.00	$35.00	63	0
+8935001723677	MENTOS CHEW GRAPE&STRWBRRY 87G	PCS	$28.00	$35.00	67	0
+8935001723721	MENTOS FRSH TME 165G-50PCS	PCS	$28.00	$35.00	67	13
+778	GARBAGE BAG M	PCS	$28.00	$36.00	85	0
+1010	TOUCH AND GO CF 15ML	PCS	$28.00	$35.00	100	0
+1030	PLASTIC RULER 24	PCS	$28.00	$35.00	100	35
+1638	STICKER PAPER A4 SET	PCS	$28.00	$34.00	100	-2
+4806021300213	JOY STAPLER NO.10	PCS	$28.00	$35.00	100	6
+4902505088094	PILOT MARKER SC-F FINE	PCS	$28.00	$35.00	100	196
+3231	SOEN KIDS	\N	$28.00	$33.00	107	13
+8809512720190	MD WHITNNG SUN PROTCT CRM	PCS	$28.00	$34.00	107	0
+4806507835758	SLKA WHTNGSOAP SHEA BUTTER 90G	PCS	$28.00	$35.00	222	72
+4806507835970	SLKA MSTURZING SOAP AVCDO 90G	PCS	$28.00	$35.00	222	48
+8996001338063	FRES MINT CANDY BARLEY 150G	PCS	$28.05	$35.00	117	24
+8996001346297	FRES MINT CANDY CHERRY 150G	PCS	$28.05	$35.00	117	24
+8996001346303	FRES MINT CANDY GRAPE 150G	PCS	$28.05	$35.00	117	48
+8996001346365	FRES CANDY APPLE PEACH 150G	PCS	$28.05	$35.00	117	48
+4810	FRT DALANDAN	PCS	$28.08	$35.00	23	9.25
+4800011120614	ETHYL ALCOHOL TRCLOSN 150ML	PCS	$28.10	$36.00	40	15
+8888826016564	CLASSIC ULTRA CLEAN M 1S	PCS	$28.24	$36.00	70	0
+4806011812047	SUPER Q GOLDEN BIHON	PCS	$28.50	$36.00	1	65
+4806011813044	SUPER Q SPCL PLBOK 500G	PCS	$28.50	$36.00	1	46
+4809010639608	MARKY'S TURRONES100G	PCS	$28.50	$36.00	13	100
+440	SOAP CASE #440	PCS	$28.50	$37.00	20	20
+4800011146300	CASINO SANTIZER SPRY 30ML	PCS	$28.50	$36.00	107	21
+4806014099926	JOLLY CLARO PALM OIL 250ML	PCS	$28.61	$33.00	53	144
+4800631000488	BBAWANG MIXED NUTS 100G	PCS	$28.62	$36.00	76	600
+4800017999801	RAM WHOLE KERNEL CORN 410G	PCS	$28.67	$36.00	19	73
+4800103220505	JUDGE SPEARMINT CHEWGUM 55S	PCS	$28.70	$36.00	15	0
+4806517042191	GOYA PROMO BUY2+1	PCS	$28.80	$36.00	7	0
+4809013300093	KOJIC SAN LGTHNNG SOAP 65G	PCS	$28.80	$36.00	54	48
+8850006321546	COLGATE TRIPLE ACTN 25ML	PCS	$28.80	$36.00	63	0
+4800060202200	KLEENEX FACIAL TISSUE 50'S	PCS	$28.82	$36.00	28	2
+4800040352314	FIBISCO CHCO MALLOWS 100G	PCS	$28.88	$36.00	15	288
+4806014098059	JOLYCW CNDNSADA390G	PCS	$28.89	$36.00	53	43
+4800060804756	KOTEX NONWING 8PADS	PCS	$28.95	$36.00	28	24
+2680	ALBUM SMALL	PCS	$29.00	$33.00	20	14
+3552	FOOD KEEPER #355-2	PCS	$29.00	$37.00	20	0
+4800556460183	VALIANT JOURNAL NOTEBOOK	PCS	$29.00	$29.00	20	0
+4800556460206	VALIANT JOURNAL NOTEBOOK	PCS	$29.00	$29.00	20	160
+5354	MALAGKIT R-5 RICE 500G	PCS	$29.08	$32.00	107	-12
+48036214	STAR MARGRN CLASC100G	PCS	$29.10	$36.00	117	4
+48037433	STAR MARGRN SWT BLND100G	PCS	$29.10	$36.00	117	13
+8850006330012	COLGATE XTRACLEAN TOOTHBRSH	PCS	$29.13	$37.00	117	0
+4800575370302	COWBELL CONDENSADA 300ML	PCS	$29.16	$36.00	19	139
+4806014001424	JLLY MSHROOM PCS & STEMS 198G	PCS	$29.17	$37.00	53	84
+9555684646712	FABER CASTELL 0.5 #1423	PCS	$29.25	$37.00	63	0
+5662	EVEREADY 2A 1215 RGP BLACK	PCS	$29.25	$37.00	86	-3
+4800552169141	GALINCO ARROZ CALDO 113G	PCS	$29.25	$37.00	104	0
+4800552169127	GALINCO CHAMPORADO MIX 113.5G	PCS	$29.35	$37.00	104	0
+4487	TRASH BAG SM	PCS	$29.50	$37.00	42	482
+4805358601055	MAGNOLIA FRESH MILKL 250ML	PCS	$29.50	$37.00	900	0
+8852	DELTA PLUG PBR102	PCS	$29.58	$37.00	20	4
+4800024550194	DM SWEETND MANGO JDRNK 240ML	PCS	$29.64	$37.00	29	96
+386	DELTA RECEPTACLE SWR2711	PCS	$29.73	$38.00	20	3
+4806506313974	CHERUB BABY WIPES 20'S	PCS	$29.75	$37.00	77	6
+4806506318788	SISTERS PANTLNER  20PADS	PCS	$29.75	$37.00	77	74
+4800003439540	ESKINOL CLSSIC WHITE 75ML	PCS	$29.85	$38.00	36	7
+4808680020754	LADY'S SANDWCH SPRD 80ML	PCS	$29.90	$37.00	36	127
+4902430093057	SAFEGUARD BAR PAPAYA 90G	PCS	$29.92	$38.00	70	65
+4800888196231	ESKINOL MILD FOR TEENS 75ML	PCS	$29.95	$38.00	36	0
+4800024578686	DM J&C PINEPOMELO 350ML	PCS	$29.97	$38.00	28	5
+4800024578693	DM J&C PINE LYCHE 350ML	PCS	$29.97	$38.00	28	6
+4800024578709	DM J&C PINE STRWBRRY 350ML	PCS	$29.97	$38.00	28	0
+4800024578716	DM J&C BBERRY 350ML	PCS	$29.97	$38.00	28	0
+8850389100684	MOGU MOGU LYCHEE 320ML	PCS	$30.00	$38.00	7	777
+8850389100691	MOGU MOGU STRAWBERRY 320ML	PCS	$30.00	$38.00	7	365
+8850389101391	MOGU MOGU GRAPE 320ML	PCS	$30.00	$38.00	7	415
+8850389106273	MOGU MOGU COCONUT 320ML	PCS	$30.00	$38.00	7	637
+8850389113004	MOGU MOGU MELON 320ML	PCS	$30.00	$38.00	7	240
+4800361067546	NSTLE YGRT BRRY MIX 125G	PCS	$30.00	$38.00	8	56
+4800361067584	NSTLE YGRT MANGO 125G	PCS	$30.00	$38.00	8	58
+4800361067621	NSTLE CRMY YGRT 125G	PCS	$30.00	$38.00	8	23
+4800361071376	NSTLE YGRT D-BUCO NTA 125G	PCS	$30.00	$38.00	8	45
+4800361363068	NSTL RASPBRRY APPLE125G	PCS	$30.00	$38.00	8	52
+4800361363822	NSTLE YUGRT MLN NATA 125G	PCS	$30.00	$38.00	8	50
+4809010639134	MARKY'S OTAP 150G	PCS	$30.00	$38.00	13	0
+4800818809880	VFRESH WINTERCOOL GUM 50S	PCS	$30.00	$38.00	15	0
+156	FF PINAGONG 2'S	PCS	$30.00	$37.00	17	34
+784	FF BANANA BREAD B	PCS	$30.00	$36.00	17	76
+968	 LLANERA SQUARE	PCS	$30.00	$38.00	17	0
+5558	FF TOASTED BREAD	PCS	$30.00	$38.00	17	0
+240	STRAINER PLASTIC L	PCS	$30.00	$38.00	20	0
+300	GARBANZOS 250G	PCS	$30.00	$39.00	20	19
+373	GARBAGE BAG L	PCS	$30.00	$36.00	20	0
+435	CR PUMP	PCS	$30.00	$39.00	20	86
+653	BASIN HITOP #308	PCS	$30.00	$38.00	20	0
+740	OVAL PLATE #30	PCS	$30.00	$38.00	20	0
+807	BRUSH #201	PCS	$30.00	$38.00	20	0
+1057	RAINBOW HOSE 3/4	PCS	$30.00	$39.00	20	52
+1160	PASTELLE SPCIAL PPR	PCS	$30.00	$37.00	20	39
+2118	SEALER CLOTH WIRE 12	PCS	$30.00	$38.00	20	0
+3455	POPPERS 30CM	PCS	$30.00	$39.00	20	0
+4062	BILAO #16	PCS	$30.00	$39.00	20	13
+4506	LINEAR 5 COLUMNAR BOOK	PCS	$30.00	$45.00	20	62
+4561	DUSTPAN BIG NO.505	PCS	$30.00	$39.00	20	12
+6287	STRAINER PLASTIC L	PCS	$30.00	$38.00	20	0
+6505	HEADBAND METAL W/STONE	PCS	$30.00	$38.00	20	0
+8015	516 LUNCH BOX	PCS	$30.00	$38.00	20	0
+8154	STANLEY BISAGRA	PCS	$30.00	$38.00	20	8
+9063	JIAJING HAIRPIN GOLD 2S	PCS	$30.00	$39.00	20	7
+9065	HAIR BRUSH ASSORTED	PCS	$30.00	$39.00	20	15
+9165	HEADBAND #1	PCS	$30.00	$38.00	20	0
+49859	OVAL PLATE #30	PCS	$30.00	$38.00	20	0
+229173	HAIR CLIP #26	PCS	$30.00	$30.00	20	0
+6926341889118	GLUE GLITTERS	PCS	$30.00	$39.00	20	0
+3008	CANTEEN CHEESE STICK	\N	$30.00	$30.00	21	-13
+466	VGT FRESH MUSHROOM	PCS	$30.00	$37.00	23	67
+604	LUMPIA WRAPPER M	PCS	$30.00	$30.00	23	75
+752	FRT WATERMELON OBLONG	PCS	$30.00	$38.00	23	-13.75
+4481	VGT KAMOTENG KAHOY/BALINGHOY	PCS	$30.00	$38.00	23	15.279999999999999
+8402	FRT AVOCADO FOR SHAKE	PCS	$30.00	$30.00	23	40
+9591	VGT PAPAYA GREEN	PCS	$30.00	$39.00	23	17.66
+4800216125919	LESLIE'S CHEEZY CHS 150G	PCS	$30.00	$38.00	28	0
+4800216126725	LESLIE'S CHEEZY REDHOT 150G	PCS	$30.00	$38.00	28	0
+8850389109229	MOGU MOGU YOGURT 320ML	PCS	$30.00	$38.00	53	240
+8850389112991	MOGU MOGU PINK GUAVA 320ML	PCS	$30.00	$38.00	53	422
+3369	CONDOR MUSTARD	PCS	$30.00	$30.00	60	0
+5489	CONDOR KANGKONG	PCS	$30.00	$40.00	60	0
+46171016	MENTOS CHOCO CARAMEL 38G	PCS	$30.00	$38.00	67	8
+6921211113638	MENTOS CHOCO WHTE 38G	PCS	$30.00	$38.00	67	45
+9150	EVEREADY AA BLUE NO.915	PCS	$30.00	$38.00	86	71
+8850389100677	MOGU MOGU ORANGE 320ML	PCS	$30.00	$38.00	104	380
+8850389100769	MOGU MOGU MANGO 320ML	PCS	$30.00	$38.00	104	335
+770	PEANUT BUTTER 250G	PCS	$30.00	$38.00	107	0
+1056	VGT KAMOTENG KAHOY	PCS	$30.00	$38.00	107	7.4400000000000004
+1877	GARLANDS	PCS	$30.00	$37.00	107	48
+1998	FARU'S SEACHRON ASSRTED  50G	PCS	$30.00	$37.00	107	27
+2044	SIMPLY SOY MILK ASSORTED	\N	$30.00	$38.00	107	0
+2045	LA PRIMA SPECIAL OTAP	\N	$30.00	$38.00	107	0
+3499	PANCIT BATO MALUNGGAY 100G	\N	$30.00	$38.00	107	-19
+4588	BIKIT MONSTER MOSQUITO GUARD	\N	$30.00	$38.00	107	0
+6084	VGT ORGANIC LETTUCE 150G	\N	$30.00	$37.00	107	1
+8894	HONEY LOU 'S PEANUT REPACK	\N	$30.00	$38.00	107	4
+80165	SUN SIM CARD	PCS	$30.00	$30.00	107	0
+4806512308568	CRISTELA SL015	PCS	$30.00	$30.00	107	0
+4991348042424	VERBATIM 2HD FLOPPY DISK	PCS	$30.00	$50.00	107	0
+8809317282084	3W CLNC MASK ALOE	PCS	$30.00	$36.00	107	0
+8809317282114	3W CLNC MASK GREENTEA	PCS	$30.00	$36.00	107	0
+8809317282121	3W CLNC MASK COALLAGEN	PCS	$30.00	$36.00	107	0
+8809317282138	3W CLNC MSK ROYALJELLY	PCS	$30.00	$36.00	107	0
+8809317282145	3W CLINC MSK CUCUMBER	PCS	$30.00	$36.00	107	0
+8809317282176	3W CLNC MASK WHITE	PCS	$30.00	$36.00	107	0
+8809317282411	3W CLINIC MASK SNAIL	PCS	$30.00	$36.00	107	0
+8809396173624	MD QUEENS CC CREAM 5G	PCS	$30.00	$38.00	107	0
+8809459430251	BIKIT MONSTER MOSQUITO GUARD	\N	$30.00	$38.00	107	0
+8809469774864	3W CLINC MASK CHARCOAL	PCS	$30.00	$36.00	107	0
+4806522101128	TNT PREPAID SIM	PCS	$30.00	$30.00	108	77
+4809011849433	EBS EGG CRACKLETS 160G	PCS	$30.00	$38.00	116	0
+21460	D'R TARO CHIPS 65G	PCS	$30.00	$38.00	500	0
+21461	D'R POTATO CHIPS 50G	PCS	$30.00	$38.00	500	0
+21462	D'R BANANA CHIPS 100G	PCS	$30.00	$38.00	500	0
+1709	CANTEEN SIOPAO	\N	$30.00	$30.00	578	-134
+1712	CANTEEN FRIES	\N	$30.00	$30.00	578	-105
+1828	CANTEEN HOT SOY COFFEE	\N	$30.00	$30.00	578	-3
+4809013300239	KOJIC ACID SOAP135G	PCS	$30.00	$38.00	20	20
+4800361067560	NSTL YGURT STRWBRRY 125G	PCS	$30.01	$38.00	8	65
+4800361343619	NSTL YGURTDRNK STRWB 200ML	PCS	$30.01	$38.00	8	0
+4800361343633	NSTL YGURTDRNK MNGO 200ML	PCS	$30.01	$38.00	8	0
+4801668100240	DATU PUTI SPICED VNGAR 350ML	PCS	$30.01	$37.00	117	24
+4806789445607	FISSAN FOOT DEO 25G	PCS	$30.15	$38.00	36	12
+4800194151504	OISHI POTATO CHPS SLTD EGG 60G	PCS	$30.20	$38.00	10	0
+750515018235	SKYFLAKES CRACKERS 200G	PCS	$30.23	$38.00	1	24
+4806507831521	SILKA GREEN PPYA SOAP 90G	PCS	$30.25	$38.00	222	53
+4902430693097	OLAY WHTNG ROSE&MILK 60G	PCS	$30.28	$38.00	36	0
+4800103343372	JUDGESTICKSSPEARMINT	PCS	$30.40	$38.00	15	0
+49860	CHOPPING BOARD #30	PCS	$30.40	$38.00	20	0
+4713389118100	DINO BRUSH	PCS	$30.40	$38.00	20	2
+4808680022017	LADY'S  CHCKN SPRD 80ML	PCS	$30.40	$38.00	36	198
+4808680651026	LADY'S TUNA SPREAD 80ML	PCS	$30.40	$38.00	36	133
+4806518330525	BELO WHTNNG BAR 65G	PCS	$30.40	$38.00	107	0
+8801382127925	WOONGJIN MANDARINE JUICE 180ML	PCS	$30.42	$38.00	11	0
+2086	FRT APPLE GREEN	\N	$30.50	$30.50	23	94
+8935001721925	MENTOS COOLER LEMONADE 27G	PCS	$30.67	$38.00	67	10
+4800314000118	HD SCRUB TRIAL C	PCS	$30.71	$39.00	76	92
+4801010120124	JB COLOGNE SLIDE 50ML	PCS	$30.75	$39.00	69	0
+4801010123224	JB COLOGNE FOREVER MINE 50ML	PCS	$30.75	$39.00	69	0
+4801010127215	JB COLOGNE HEAVEN 50ML	PCS	$30.75	$39.00	69	0
+1888	EVEREADY D-SIZE R20S BLUE 2PCS	\N	$30.75	$38.00	86	0
+83	SOEN PANTY BCI S,M,L	PCS	$30.83	$40.00	20	24
+4800361015172	NESTLE LOW-FAT MILK 250ML	PCS	$30.84	$39.00	14	0
+4800110068947	ROYAL MACARONI CURL 200G	PCS	$30.88	$39.00	1	0
+731126104166	NAGARAYA GARLIC 160G	PCS	$30.90	$39.00	15	0
+731126105163	NAGARAYA HOT& SPCY 160G	PCS	$30.90	$39.00	15	0
+731126102162	NAGARAYA  ABOBO 160G	PCS	$30.90	$39.00	20	0
+4800361071239	NSTLE YGRT STRWBRRY 125G	PCS	$30.91	$39.00	8	0
+4800361072007	NSTL YGURT 0% MANGO 125G	PCS	$30.91	$39.00	8	0
+3038	RO-10  FAS PACK	PCS	$31.00	$40.00	20	1
+9653	DISPOSABLE CUPS 4 CANTEEN	PCS	$31.00	$31.00	20	300
+3148	VER NEL WILD ROSE 35G	PCS	$31.00	$39.00	54	0
+4806507831057	SILKA PAPAYA LOTN WHTNNG 50ML	PCS	$31.00	$39.00	107	7
+4809011849112	EBS BUTTER COOKIES 200G	PCS	$31.00	$39.00	116	0
+4800131592254	EHTYL ACHL BIOG 200ML	PCS	$31.00	$39.00	222	11
+769	VGT PATOLA	PCS	$31.11	$39.00	23	55.640000000000001
+4800024578426	F&RGHT BLBRRY GRPE 500ML	PCS	$31.17	$39.00	29	48
+4806516820547	KETTLE CORN CHEESE 120G	PCS	$31.19	$39.00	19	6
+4806516820660	KETTLE CORN SALTED CRML 120G	PCS	$31.19	$39.00	19	6
+2132400	EM PENCIL CASE	PCS	$31.20	$39.00	107	0
+14285000075	UFC BANANA CTSUP 550G	PCS	$31.21	$39.00	117	0
+141	FRT PONKAN B	PCS	$31.25	$39.00	23	443
+4806014001196	GOOD LIFE BRD CRMBS 230G	PCS	$31.31	$39.00	20	8
+4800528456367	HOBE PNCT CANTON 227G	PCS	$31.40	$39.00	8	0
+48038140	ESKINOL CLSR OILCNTRL LEM 75ML	PCS	$31.40	$39.50	36	1
+4800095001137	FAMILY ISO ALCOHOL 180ML	PCS	$31.50	$39.00	54	6
+4800030270307	AUSTRALIA HRVST QUICKOATS 250G	PCS	$31.50	$40.00	104	0
+195	VGT CUCUMBER G	PCS	$31.57	$39.00	23	116.51000000000001
+4803925061134	G LEMON LIME 500ML	PCS	$31.67	$40.00	20	104
+48034050	ESKNOL PMPLE DP CLNSER 75ML	PCS	$31.70	$40.00	36	2
+48038164	ESKINOL CLSRSPOTLSWHTCAL 75ML	PCS	$31.70	$40.00	36	0
+4800003439571	ESKNOL CLSSC WHTE 75ML	PCS	$31.70	$40.00	36	6
+4806789442170	ESKINOL PPAYA DP CLNSER 75ML	PCS	$31.70	$40.00	36	5
+31600000	EM 2QM W/ HANGER	PCS	$31.80	$39.75	20	0
+564510	ICH-ID USB HOLDER	\N	$31.80	$39.75	41	-2
+4806512308308	CRISTELA PH-002	PCS	$31.80	$39.75	107	0
+9556040030060	F&N CONDNSADA 300ML	PCS	$31.81	$40.00	20	0
+4800361405423	DS BLACK 110ML	PCS	$31.82	$40.00	32	0
+4800361409445	DS GOLD 100ML	PCS	$31.82	$40.00	32	42
+4806534190028	DS MIDNIGHT ALMOND FUDGE 100ML	PCS	$31.82	$40.00	32	48
+4806534190035	DS RED VELVET FUDGES 100ML	PCS	$31.82	$40.00	32	28
+4800473001131	ROGER'S TRU-MAYO AP 225ML	PCS	$31.89	$40.00	113	24
+4800217160018	COOK BRAND SOY SAUCE 350ML	PCS	$31.92	$40.00	29	19
+3390	BLOSSOMS SPECIAL PAPER 80GSM	\N	$32.00	$40.00	20	-2
+49861	HASAAN #30	PCS	$32.00	$40.00	20	0
+6935034600213	OIL PASTEL 16'S	PCS	$32.00	$42.00	20	17
+103	VGT CABBAGE	PCS	$32.00	$41.00	23	191.53
+2116	VGT LABANOS	\N	$32.00	$40.00	23	45.409999999999997
+6959355196620	POLAR CORRECTION TAPE	PCS	$32.00	$40.00	37	0
+346	ILLUSTRATION BOARD 1WHOLE	PCS	$32.00	$40.00	100	28
+1799	PILOT MECHANICAL PENCIL 0.5MM	PCS	$32.00	$40.00	100	-5
+4902505154645	PILOT SUPERGRIP BPGP-10R-F BLA	PCS	$32.00	$40.00	100	36
+4800030280306	AUSTRALIA HRVSTINSTNTOATS 250G	PCS	$32.00	$40.00	104	0
+1035	VGT CUCUMBER WHT	PCS	$32.00	$42.00	107	4.4100000000000001
+16762	CHARM DSHWASHING YELLOW 1L	PCS	$32.00	$40.00	107	0
+4805622713781	CHARM DISHWASHING BLUE 1L	PCS	$32.00	$40.00	107	0
+721	VGT GABI LAMAN	PCS	$32.00	$42.00	117	1.0600000000000001
+4805623713780	CHARM DISHWASHING LQUID 1L	PCS	$32.00	$40.00	20	36
+4800194114462	OISHI PILLOWS CHCO 150G	PCS	$32.25	$40.00	10	120
+139	FRT APPLE B	PCS	$32.25	$40.00	23	231
+1211	FRT ORANGE B	PCS	$32.35	$40.00	23	77
+4806020400198	SELECT S.SAUCE 1000ML	PCS	$32.40	$41.00	53	0
+74923405013	PIKNIK ORIGINAL 50G	PCS	$32.41	$41.00	117	80
+4800024578419	F&RGHT MXD BRRIES 500ML	PCS	$32.45	$41.00	29	123
+4800300990034	CROWN CORN STARCH 400G	PCS	$32.46	$41.00	20	5
+4800024013477	DM ORIG KETCHP 320G	PCS	$32.47	$41.00	29	39
+4800024555052	DM SWEETBLEND KETCHUP 320G	PCS	$32.47	$41.00	29	33
+750515021204	HANDY HONEY GRAHAM 250G	PCS	$32.48	$41.00	1	3
+600	PITCHER #600	PCS	$32.50	$41.00	20	0
+4800631000600	B&BWNG LTTLE GNT 200G	PCS	$32.50	$41.00	20	0
+4902430746984	PAMPERS BBY DRY MEDIUM	PCS	$32.61	$41.00	107	0
+4800361390033	NSTL DRMSTICK BTTR PECAN 110ML	PCS	$32.72	$41.00	8	0
+4800047840012	ZONROX ORIG 1000ML	PCS	$32.74	$41.00	15	72
+492	DELTA 2WAY RCPTCL N0.SCPF2711	PCS	$32.75	$41.00	20	0
+11194301224	S&W WHOLE KERNEL CORN 250G	PCS	$32.76	$41.00	28	0
+4806014000786	JOLLY MUSHR WHL198G	PCS	$32.79	$41.00	53	36
+229175	HAIRCLIP3FLWR	PCS	$32.80	$41.00	20	0
+4800344004629	SILVER SWAN SUKNG PTI1L	PCS	$32.88	$41.00	19	63
+4809010639226	MARKY'S ROSQUILLOS EGGCKS 150G	PCS	$33.00	$41.00	13	0
+4809010639899	MARKY'S BUTTR TOST150G	PCS	$33.00	$41.00	13	28
+385	HANGER W/CLIP #2016	PCS	$33.00	$41.00	20	0
+3412	FOOD KEEPER #341-2	PCS	$33.00	$42.00	20	0
+8021	BMC-08 JUICER BENGAR	PCS	$33.00	$42.00	20	0
+3609	EM PAPER BAG 5GB-18	PCS	$33.00	$33.00	41	7
+3610	EM PAPER BAG 5GB-11	PCS	$33.00	$33.00	41	-2
+3646	EM 8 USBBMK	PCS	$33.00	$33.00	41	89
+3822	EM PAPER BAG 5GB-16	PCS	$33.00	$33.00	41	8
+3823	EM PAPER BAG 5GB-20	PCS	$33.00	$33.00	41	3
+3825	EM PAPER BAG GB-15	PCS	$33.00	$33.00	41	8
+3826	EM PAPER BAG 5GB-17	PCS	$33.00	$33.00	41	7
+65659888	WELLROX 1L	PCS	$33.00	$41.00	42	0
+1400	DDJK ASRTD COATED PEANUT 150G	PCS	$33.00	$41.00	107	-25
+2085	MEGA BWNG ILCS CHICHACORN 100G	\N	$33.00	$42.00	107	0
+400441	SYNER-GEX DISH LIQ 250ML	PCS	$33.00	$41.00	107	0
+4806526770146	DEL&KATE HEAVY FLOW 4'S	PCS	$33.00	$41.00	145	96
+4800186001251	GOLDEN WLGRAIN200G	PCS	$33.00	$41.00	211	24
+4800067642573	APOLLO PETROLEUM JELLY 25G	PCS	$33.00	$41.00	324	5
+4800024128096	DM HOT&SPICY KTCHP 335G	PCS	$33.03	$41.00	29	24
+4800361397605	BEARBRAND POWDR MILK 99G	PCS	$33.05	$41.00	15	0
+4800011179049	DR.WONG'S SLFR SOUP 80G	PCS	$33.10	$42.00	15	37
+9556121028771	JULIE'S HRSHYS HZLNT CKIES 52G	PCS	$33.20	$41.00	71	24
+9556121028795	LAURA'S HRSHYCHCWFLS 42G	PCS	$33.20	$41.00	71	28
+4800405123757	MARCA PINA SUKNG PTI1L	PCS	$33.25	$42.00	53	24
+4801668100141	DATU PUTI VINGAR 1L	PCS	$33.29	$42.00	107	87
+7401	FRT AVOCADO	PCS	$33.33	$42.00	23	35.920000000000002
+8850007371397	MODESS C.SOFT NON-WINGS 8S	PCS	$33.58	$42.00	117	96
+8850007371403	MODESS C.SOFT W/WINGS 8S	PCS	$33.58	$42.00	117	96
+648897	EGRET #25	PCS	$33.60	$42.00	20	0
+6901668062093	CHIPS AHOY 85.5G	PCS	$33.60	$42.00	20	0
+4801234111069	BAYGON MLTI LIQ 100ML	PCS	$33.60	$42.00	28	7
+4801234111755	BAYGON MLTI LIQ 100ML	PCS	$33.60	$42.00	28	5
+5580	HEADBAND LXSP	PCS	$33.60	$42.00	107	0
+4800024558701	DM SWEET CHLI SAUCE 330G	PCS	$33.68	$42.00	29	36
+4800361050081	MAGGI SAUCE CLSIC LIQ130ML	PCS	$33.68	$42.00	20	0
+4800282000110	GOLDEN VALLEY WHLCRN KERNEL 42	PCS	$33.73	$42.00	104	72
+4800047841712	ZONROX COLORSAFE 450ML	PCS	$33.75	$43.00	15	115
+1831	TUBE PURE ICE 3KG BAG	PCS	$33.75	$42.00	33	221.19999999999999
+4806506150517	EXTRA COTTON BUDS 400TIPS	PCS	$33.75	$42.00	77	30
+4891228607036	SCHCK EXACTA2 BLADE	PCS	$33.83	$42.50	20	32
+3616	EM PAPER BAG 5GB-14	PCS	$34.00	$34.00	41	-1
+3824	EM PAPER BAG 5GB-22	PCS	$34.00	$34.00	41	6
+893500172229	MENTOS STRAWBERRY 50S	\N	$34.00	$43.00	67	-3
+4800214061271	MENTOS MINT148.5G	PCS	$34.00	$43.00	67	16
+8935001711063	MENTOS AIR ACTION 50PCS	PCS	$34.00	$43.00	67	10
+8935001720126	MENTOS TRPICL MIX135G	PCS	$34.00	$43.00	67	16
+8935001721697	MENTOS FRUIT 135G	PCS	$34.00	$43.00	67	13
+8935001722298	MENTOS STWBBRY MIX148.5G	PCS	$34.00	$43.00	67	5
+8990800010120	MENTOS SPRMINT135G	PCS	$34.00	$43.00	67	13
+8990800017235	MENTOS MIX SODA KICK 50PCS	PCS	$34.00	$43.00	67	22
+21467	ESCOBIDO'S RBOWBELT	PCS	$34.00	$34.00	107	0
+8850007011132	JB POW REG 100G	PCS	$34.15	$43.00	69	48
+84	SOEN PANTY BBS S,M,L	PCS	$34.17	$43.00	20	0
+4800060018214	KLEENEX F/TISS MINI EXPRESSION	\N	$34.22	$43.00	28	0
+3225	SOEN BBC S,M,L	PCS	$34.40	$43.00	20	1
+4800552999618	SMILEY STRAWBERRY BLST 200G	PCS	$34.40	$43.00	104	0
+4809010639042	MARKY'S PUTO SEKO SPCL 200GMS	PCS	$34.50	$43.00	13	108
+4809010639844	MARKY'S PRMBKE PUTOSKO 200G	PCS	$34.50	$43.00	13	0
+1718	TRASH BAG LARGE	PCS	$34.50	$45.00	42	165
+4806507831484	SILKA FCIAL CLNSR PAPAYA 150ML	PCS	$34.50	$43.00	222	9
+4806507831491	SILKA FCL CLNSR AVOCADO 150ML	PCS	$34.50	$43.00	222	7
+4806507831613	SILKA FCL CLNSR GRN PPY 150ML	PCS	$34.50	$43.00	222	5
+4806507833129	SILKA FCL CLNSR CLAMNSI 150ML	PCS	$34.50	$43.00	222	6
+4806507833334	SILKA FCL CLNSR CUCUMBER 150ML	PCS	$34.50	$43.00	222	6
+4800361015103	NESTLE FRESH MILK 250ML	PCS	$34.74	$43.00	14	360
+14285000945	GOLDEN FIESTA OIL 250ML	PCS	$34.75	$40.00	15	16
+48038614	MASTER OIL CNTRL CLNSER 70ML	PCS	$34.75	$44.00	36	24
+48038621	MASTER ANTI PMPLE CLNSER 70ML	PCS	$34.75	$44.00	36	22
+4806789446826	MASTER ZEROIL DP CLNSR 70ML	PCS	$34.75	$43.00	36	17
+4806507831088	SILKA PPYA SOAP 135G	PCS	$34.75	$44.00	222	27
+4902430293426	WHISPER COTTNY CLEAN 8PADS	PCS	$34.86	$44.00	70	15
+4806014099247	JOLLY GARBANZOS 425G	PCS	$34.88	$44.00	76	6
+144	FF HOPIA UBE	PCS	$35.00	$44.00	17	136
+145	FF CINNAMON DELIGHT	PCS	$35.00	$44.00	17	107
+149	FF PANDESIOSA	PCS	$35.00	$44.00	17	76
+159	FF SESAME BUNS	PCS	$35.00	$44.00	17	785
+217	FF HOPIA MONGGO	PCS	$35.00	$44.00	17	121
+220	FF MONGGO DELIGHT	PCS	$35.00	$42.00	17	3
+1787	FF ALI BREAD	PCS	$35.00	$44.00	17	136
+239	STRAINER PLASTIC XL	PCS	$35.00	$44.00	20	0
+241	WHOLE WHEAT 1/2KG	PCS	$35.00	$44.00	20	0
+243	BTL CORN FOUR 500G	PCS	$35.00	$44.00	20	0
+246	FOOT BRUSH	PCS	$35.00	$44.00	20	0
+529	ROPE #12	PCS	$35.00	$44.00	20	0
+637	PAGANI HAIR BRUSH	PCS	$35.00	$44.00	20	0
+651	HAND GLOVES COTTON	PCS	$35.00	$44.00	20	28
+1377	RIBBON W/NET #82	PCS	$35.00	$44.00	20	0
+1719	ACIDERA'S CHILI LIKE PWDR 50G	PCS	$35.00	$44.00	20	18
+3033	GI WIRE #16	\N	$35.00	$46.00	20	0
+3479	HAND PUMP	PCS	$35.00	$46.00	20	0
+6082	DUST PAN METAL BIG	\N	$35.00	$44.00	20	-2
+9257	FRT PINEAPPLE LARGE	PCS	$35.00	$44.00	20	0
+9568	XINGCHEN BROOCH	PCS	$35.00	$45.00	20	6
+89456	EM-BALLER MEDIUM	PCS	$35.00	$40.00	20	0
+4565659	STRAINER PLASTIC XL	PCS	$35.00	$44.00	20	10
+51066464	BROOCH W/BEADS	PCS	$35.00	$44.00	20	24
+8651040505	ONE-TRIP GRIP	PCS	$35.00	$44.00	20	0
+4800555174098	SPRING LEAF NB	PCS	$35.00	$45.00	20	0
+4800556410010	VALIANT RECORD BOOK 150P	PCS	$35.00	$44.00	20	11
+4806523123235	INDEX CARD 5X8 DIV.	PCS	$35.00	$46.00	20	6
+4809012516532	HAND GUARD DISPOSABLE	PCS	$35.00	$46.00	20	182
+4902505084812	PILOT RETRACTABLE BP145	PCS	$35.00	$46.00	20	0
+123	VGT SILI LABUYO	PCS	$35.00	$44.00	23	10.16
+193	VGT EGGPLANT	PCS	$35.00	$44.00	23	134.96000000000001
+4800011111162	BIODERM TIMELESS 135G	PCS	$35.00	$44.00	40	41
+4800011113968	BIODERM COOLNESS 135G	PCS	$35.00	$44.00	40	45
+4800011114262	BIODERM SOAP FRESH 135G	PCS	$35.00	$44.00	40	60
+4800011114965	BIODERM SOAP GLOW 135G	PCS	$35.00	$44.00	40	44
+4800011115061	BIODERM BLOOM 135G	PCS	$35.00	$44.00	40	66
+4800011115269	BIODERM PRISTINE 135G	PCS	$35.00	$44.00	40	32
+4809014937472	DG CLMNSI DRNK 500ML	PCS	$35.00	$44.00	75	645
+4809015790083	BABY ANNE WIPES 80'S	PCS	$35.00	$44.00	77	6
+1031	CROCO PACKING TAPE TAN 2X100	PCS	$35.00	$44.00	100	83
+3154140183103	MAPED CUTTER #018310 18MM	PCS	$35.00	$44.00	100	50
+4007817213582	LEAD .5 STAEDTLER	PCS	$35.00	$44.00	100	0
+4806021389690	JOY CUTTER L SK-426	PCS	$35.00	$44.00	100	0
+4902505084836	PILOT BP-145-F-L BLUE	PCS	$35.00	$44.00	100	0
+4902505373442	PILOT MECHANICAL PENCIL 0.7MM	PCS	$35.00	$44.00	100	36
+4974052854569	ARTLNE WB-MARKER 2.0MM 500A	PCS	$35.00	$44.00	100	60
+439	LAURELS ROASTED PEANUT 200G	PCS	$35.00	$44.00	107	0
+538	WALIS TING2X KAONG	PCS	$35.00	$44.00	107	-17
+540	BTL WHITE RICE 500G	PCS	$35.00	$44.00	107	0
+550	BAG SLING STRW	PCS	$35.00	$44.00	107	0
+810	AHAVA EPSON SALT	PCS	$35.00	$44.00	107	0
+1002	ESCOBIDO'S POLVORON	PCS	$35.00	$44.00	107	0
+1042	TOTS DSWSHNG LQD 1L	PCS	$35.00	$44.00	107	7
+1073	ESCOBIDO'S SWEET BEANS SM	PCS	$35.00	$44.00	107	0
+1185	BTL SOYA MILK	PCS	$35.00	$44.00	107	0
+1186	BTL ROASTED PEANUT	PCS	$35.00	$44.00	107	0
+1762	ESCOBIDO'SCHICHARO	PCS	$35.00	$44.00	107	0
+1763	ESCOBIDO'S CRACKER NUTS	PCS	$35.00	$44.00	107	0
+1952	ANMER 'S PEANUT SUGAR COATED	PCS	$35.00	$44.00	107	0
+2076	BABY HAT STRIPE	\N	$35.00	$44.00	107	26
+3124	CARANZA BANANA CHIPS SMALL	PCS	$35.00	$44.00	107	0
+3232	SOEN BCI	\N	$35.00	$44.00	107	8
+4401	FRT RAMBUTAN	PCS	$35.00	$55.00	107	0
+4824	NEW FLAT POUCH	PCS	$35.00	$44.00	107	0
+9306	SAMPALOK BALLS	PCS	$35.00	$44.00	107	0
+16768	CHARM FABCON COMFORT 1L	PCS	$35.00	$44.00	107	0
+19927	RAW MUSCOVADO 500G	\N	$35.00	$44.00	107	-18
+6922748503015	LS BL CREAM 7G	PCS	$35.00	$44.00	107	20
+8806199441196	NEW FACE MASK	PCS	$35.00	$44.00	107	0
+8806199441219	NEW FACE MASK	PCS	$35.00	$44.00	107	0
+1189	BT CORN FLOUR 500G	PCS	$35.00	$44.00	118	16
+4806531670035	APPLS DSHWSHNG LMN250ML	PCS	$35.00	$44.00	200	96
+4800131291690	BIOGENIC ISOPROPYL 250ML	PCS	$35.00	$44.00	222	18
+1601	CANTEEN AROZCALDO	\N	$35.00	$35.00	578	-152
+1705	CANTEEN VEGGIE BURGER	\N	$35.00	$35.00	578	-88
+1707	CANTEEN EGG SANDWICH	\N	$35.00	$35.00	578	-96
+4806506150401	EXTRA COTTON BALLS 150BALLS	PCS	$35.18	$44.00	91	24
+4	PONY RIBBON	PCS	$35.20	$44.00	20	0
+133255	BAMBOO SM FAN	PCS	$35.20	$44.00	20	0
+4800011178745	SULFR ALOE VERA SOAP 80G	PCS	$35.20	$44.00	40	51
+2292447	EVEREADY SIZE D 1.5V	PCS	$35.20	$44.00	86	76
+111211	COCONUT CARAMEL	PCS	$35.20	$44.00	107	0
+4800060231002	EMPRESS NAPKIN FLAT 100 'S	PCS	$35.39	$44.00	28	12
+4800047840203	ZONROX FRESH 1000ML	PCS	$35.43	$44.00	15	78
+4800047840265	ZONROX BLEACH. LEMON  1000ML	PCS	$35.43	$44.00	15	76
+4800047840579	ZONROX FLORAL 1000ML	PCS	$35.43	$44.00	46	48
+4809010657480	MY EVERYDAY PAPER CUP 120Z	PCS	$35.46	$45.00	117	120
+67	SLIPPER SMART	PCS	$35.50	$45.00	20	1
+4800216110045	LESLIE'S CLVR CHSIER 165G	PCS	$35.50	$45.00	28	0
+329	VGT KALABASA	PCS	$35.55	$44.00	23	106.20999999999999
+4800110060729	FIESTA SPGETTI PSTA 450G	PCS	$35.58	$45.00	19	16
+4803925061103	GATORADE T-FRUIT 500ML	PCS	$35.66	$45.00	16	481
+4803925061110	GATORADE GRAPE 500ML	PCS	$35.66	$45.00	16	514
+4803925061127	GATORADE O-CHILL 500ML	PCS	$35.66	$45.00	16	456
+4803925061141	GATORADE BLUEBLT 500ML	PCS	$35.66	$45.00	16	879
+4803925062339	GATORADE ACTIVE LEMON 500ML	PCS	$35.66	$45.00	16	168
+74	EM KEY HOLDER	PCS	$35.75	$45.00	21	0
+4902430293402	WHISPER 8PADS 23CM W-WNGS	PCS	$35.84	$45.00	70	18
+4800473005030	ROGER'S TRU-SPRD 225ML	PCS	$35.84	$45.00	113	0
+4806525540276	TENDER LOVE BABY WIPES 80S	PCS	$35.85	$45.00	54	35
+4806525541389	TENDER LOVE UNSCENTED 80'S	PCS	$35.85	$45.00	54	32
+8888056813131	KOKA STIRFRY 85G	PCS	$36.00	$45.00	11	437
+8888056813162	KOKA SPICY SNGPRE 85G	PCS	$36.00	$45.00	11	425
+6914973600362	SNICKERS CLSSC SINGLS 51G	PCS	$36.00	$45.00	15	0
+66	SLIPPER BALILITE LADIES	PCS	$36.00	$61.00	20	0
+304	STOOL #304	PCS	$36.00	$45.00	20	0
+950	SLIPPER COMBAT S6	PCS	$36.00	$47.00	20	-2
+1216	CLEARBOOK LONG	PCS	$36.00	$45.00	20	2
+3418	SANDUGO SLIPPER M	PCS	$36.00	$47.00	20	6
+3421	BEN 10 SLIPPER S	PCS	$36.00	$47.00	20	10
+3480	PLASTIC COVER #8 HARD	PCS	$36.00	$47.00	20	-13
+6556	GRILLER B	PCS	$36.00	$45.00	20	1
+4806502140321	INDEX CARD 5X8	PCS	$36.00	$45.00	20	0
+4806517042214	GOYA CRMWHT CHCLTE 2+1	PCS	$36.00	$45.00	20	0
+4902505088117	PILOT FINE BLUE	PCS	$36.00	$45.00	20	0
+3628	EM SQUARE COIN PURSE	PCS	$36.00	$36.00	41	9
+7893	MASKING TAPE CROCO 1	PCS	$36.00	$45.00	63	0
+6075	EVEREADY AA 1215 BP2 BLCK	PCS	$36.00	$45.00	86	19
+4800042112138	EVEREADY AA2 SUPER HEVY DUTY	PCS	$36.00	$45.00	86	44
+1626	AUP STRING BAG	\N	$36.00	$54.00	107	-3
+4850	AUP BALLPEN @100	PCS	$36.00	$45.00	107	4
+9048	VGT PAPAYA RIPE	PCS	$36.00	$45.00	107	2
+4805358206045	BUTTERCUP SALTED 200G	PCS	$36.05	$45.00	107	0
+4902430184311	SAFEGRD HBCL PINK AL 135G	PCS	$36.12	$135.00	70	12
+4801668605332	LOCALLY MANGOSTEN 350ML	PCS	$36.13	$45.00	19	0
+4801668605349	LOCALLY GYBNO 350ML	PCS	$36.15	$46.00	19	0
+4801668606933	JUFRAN HOT SAUCE 165G	PCS	$36.19	$45.00	19	48
+748485400808	ANGEL CONDESADA 380G	PCS	$36.19	$45.00	76	34
+4809013191653	SPCY SMPALOC 6'S	PCS	$36.20	$45.00	105	0
+4809013191677	SALTED SMPALOC 6'S	PCS	$36.20	$45.00	105	0
+4809013191691	SWT SMPALOC 6'S	PCS	$36.20	$45.00	105	0
+4800011121550	CASINO FEMME 250ML	PCS	$36.25	$45.00	107	16
+4809010109330	LAUR'S EGG CRCKLT150G	PCS	$36.30	$45.00	71	110
+4800314007926	SCOTCH BRITE STAINLESS STEEL R	PCS	$36.31	$46.00	28	288
+7622300136055	OREO STWBRRY CRM137G	PCS	$36.32	$45.00	19	54
+8992760221028	OREO VANILLA 137G	PCS	$36.32	$45.00	19	168
+8992760223015	OREO CHCOCRM137G	PCS	$36.32	$45.00	19	221
+4809011721883	KENLY'S PANCIT CANTON 400G	PCS	$36.33	$46.00	71	6
+4806516213028	SWEET BABY PREM WIPES 30S	PCS	$36.50	$46.00	76	29
+4800575120167	ALSK CONDNS FLMLK168ML	PCS	$36.65	$46.00	19	123
+85502	SOEN SMP L	PCS	$36.67	$48.00	20	12
+4800888176882	MASTER ZEROIL DP CLNSR 70ML	PCS	$36.70	$46.00	36	29
+4800060906184	PURITY COTTONBUDS 300S	PCS	$36.80	$46.00	20	14
+4800361344777	NSTL DRMSTCK  CHCLMNDVNLL 110M	PCS	$36.80	$46.00	21	-1
+4800361395205	NSTL DRMSTCK DUO CHCBRWN 110ML	PCS	$36.80	$46.00	32	-1
+9084	VGT PAPAYA RIPE	PCS	$36.84	$46.00	23	8.1099999999999994
+2035	VGT EGGPLANT GREEN	PCS	$36.84	$46.00	107	48.82
+4806014093092	JOLLY PCS & STEMS M.ROOM 284G	PCS	$36.87	$46.00	53	24
+4806525540917	TENDER LOVE PPY WIPES 80S	PCS	$36.95	$46.00	54	20
+4806525540931	TENDER LOVE SWTDLT WIPES 80S	PCS	$36.95	$46.00	54	20
+4800473000516	ROGER'S SALAD DRESSING 225ML	PCS	$36.96	$46.50	113	0
+3036	RO-16 FAS PACK	PCS	$37.00	$48.00	20	1
+4713389119527	DINO RUBBER GLOVES	PCS	$37.00	$48.00	20	44
+4713389119763	DINO FLOOR PAD	PCS	$37.00	$46.00	20	0
+4809015059012	MAXGLOW DL LEMON  1L	PCS	$37.00	$46.00	42	129
+4809015059135	MAXGLOW DL ORANGE 1L	PCS	$37.00	$46.00	42	144
+4809015059142	MAXGLOW DL ANTIBAC 1L	PCS	$37.00	$46.00	42	144
+4800147210968	NEW ORCHID ORANGE 100ML	PCS	$37.00	$46.00	78	0
+26000223720	ELMRS G-ALL 130G	PCS	$37.00	$46.00	100	7
+4800557022014	CRAYOLA CRAYONS 16'S	PCS	$37.00	$46.00	100	21
+1036	MAXGLOW TNT BOWL CLNR 1L	PCS	$37.00	$46.00	107	0
+1089	ELI'S SUNFLOWER SEEDS	PCS	$37.00	$46.00	107	0
+3000	RICE MASA IMPORTED 1KG	PCS	$37.00	$41.00	517	196.40000000000001
+4809015059067	MAXGLOW FCON 1L	PCS	$37.00	$46.00	20	1
+8850007372561	MODESS DRY MAX NON-WINGS 8S	PCS	$37.10	$47.00	117	96
+748485400617	ANGEL EVAP FILLD MLK 410ML	PCS	$37.14	$47.00	110	13
+4809010639851	MARKY'S BTTR CKS 200G	PCS	$37.25	$47.00	13	119
+4800237522353	QUEEN MANI 318G	PCS	$37.25	$47.00	53	100
+873	VECO NOTEBOOK ORDNRY SPIRAL	PCS	$37.30	$47.00	63	7
+4806506150500	EXTRA COTTON BUDS KIDDY 200TPS	PCS	$37.49	$47.00	77	18
+4809010639820	MARKY'S MAMOMTOST150G	PCS	$37.50	$47.00	13	72
+4803925480119	CHEETOS CRUNCHY CHEEZ 140G	PCS	$37.50	$47.00	19	0
+4803925480126	CHEETOS CRUNCHY JALAPENO 140G	PCS	$37.50	$47.00	19	0
+4803925480133	CHEETOS CRUNCHY BBQ 140G	PCS	$37.50	$47.00	19	0
+3032	GI WIRE #18	\N	$37.50	$49.00	20	9
+4805358373037	DAILY QUEZO 165G	PCS	$37.52	$47.00	900	0
+4800405134623	PARCA PINA 5+1	PCS	$37.70	$47.00	53	3
+4806030202584	JOLLY P.APPLE TIDBITS 432G	PCS	$37.74	$47.00	53	0
+4806030202591	JOLLY PAPPLE CHUNKS 432G	PCS	$37.74	$47.00	53	0
+4800274020010	QUAKE INSTANT OATS 200G	PCS	$37.75	$48.00	15	14
+194	VGT OKRA	PCS	$37.77	$47.00	23	68.939999999999998
+4800040211222	RICOA FLAT TOPS 150G	PCS	$37.86	$48.00	117	168
+4809010354099	BROWN SUGAR 1KG	PCS	$38.00	$47.00	1	250
+4809010639325	MARKY'S EGG CRKLTS GAL150G	PCS	$38.00	$47.00	13	40
+340	SLIPPPER HELLO KITTY S	PCS	$38.00	$50.00	20	-2
+805	SLIPPER BEN10 M	PCS	$38.00	$50.00	20	-1
+3419	FROZEN SLIPPER M	PCS	$38.00	$50.00	20	5
+3424	SANDUGO LADIES SLIPPER	PCS	$38.00	$50.00	20	1
+4713389119787	DINO BRUSH 206	PCS	$38.00	$48.00	20	0
+4808680220901	KNORR CRMCHICKNSOUP 70G	PCS	$38.00	$48.00	36	47
+4808680221007	KNORR CRMCORNSOUP 80G	PCS	$38.00	$48.00	36	45
+4808680221250	KNORR CRMMUSHRMSOUP 70G	PCS	$38.00	$48.00	36	135
+2115	MAXGLOW HAND SOAP 1L	PCS	$38.00	$48.00	42	11
+4806518640228	MRSCHSE FIL STYLSPAG SCE 500G	PCS	$38.00	$48.00	53	0
+1636	CROCO PACKING TAPE 2X100	\N	$38.00	$47.00	63	17
+5658	SPECAIL MIKI LCBN S	PCS	$38.00	$48.00	107	0
+8046	DELTA FLRSCNT 18W	PCS	$38.00	$48.00	107	18
+4809011038486	PIAYA CLSC 190G	PCS	$38.00	$48.00	107	0
+4809011042018	PIAYA UBE 190G	PCS	$38.00	$48.00	107	0
+4806526770047	DEL&KATE SUPER SOFT 10PADS	PCS	$38.00	$48.00	113	48
+4806526770061	DEL&KATE PNTYLNRS ANION 10LNR	PCS	$38.00	$48.00	113	72
+4806507831538	SILKA PAPAYA GREEN 135G	PCS	$38.00	$47.00	222	37
+4804888815345	TOBI SQUASH SEEDS 100G	PCS	$38.01	$48.00	104	10
+4800174062509	BESUTO ONION&GRLIC 250G	PCS	$38.07	$48.00	117	120
+4800575110373	ALASKA EVAPORATED 370ML	PCS	$38.09	$48.00	19	624
+4800047820199	GREEN CROSS ALCOHOL 250ML	PCS	$38.13	$48.00	117	96
+4801010105206	JOHNSONS PWD BLOSSM 100G	PCS	$38.14	$48.00	117	48
+946	SLIPPER BASIC LADIES	PCS	$38.17	$48.00	20	0
+8850007014478	JB POW ACTIVE FRESH 100G	PCS	$38.25	$48.00	69	0
+945	SLIPPER BALILITE MEN	PCS	$38.33	$48.00	20	0
+4902430522090	SAFEGRD GUAVA SANDMAN 135G	PCS	$38.33	$48.00	70	36
+4902430803724	SAFEGRD HBCL BAR 135G	PCS	$38.33	$48.00	70	25
+4902430934800	SAFEGUARD PW 135G	PCS	$38.33	$48.00	70	48
+4902430935647	SAFEGUARD CM 135G	PCS	$38.33	$48.00	70	33
+4902430935999	SAFEGUARD CB 135G	PCS	$38.33	$48.00	70	27
+4902430316798	SAFEGUARD TF 135G	PCS	$38.33	$48.00	20	0
+4808680221151	KNORR CRMASPRGUSSOUP 70G	PCS	$38.40	$48.00	36	1
+5435	EM KEYCHAIN-L	PCS	$38.40	$48.00	41	0
+4902430381765	SAFEGUARD IVW 135G	PCS	$38.41	$48.00	20	10
+4800034011340	HAPEE TP FWHITE	PCS	$38.50	$48.00	15	10
+4800034011548	HAPEE TPASTE SRGE	PCS	$38.50	$48.00	15	0
+109	CANISTER SET BIG #f109	PCS	$38.50	$49.00	20	0
+450	CATLEYA FILLER S	PCS	$38.50	$50.00	20	92
+4902430935616	SAFEGRD BAR PINK 135G	PCS	$38.53	$48.00	70	55
+898999000022	VITA COCO WATER 330ML	PCS	$38.56	$48.00	110	27
+4800040211130	RICOA CURLY TOPS 150G	PCS	$38.57	$48.00	117	96
+4002	SESAME SEED 250G	PCS	$38.75	$50.00	20	-14
+4800011120621	CASINO ACTIVE 250ML	PCS	$38.90	$47.00	40	9
+4809010639417	MARKY'S PCNCIA 210G	PCS	$39.00	$49.00	13	172
+4800011186917	WINNER ORANGE 400G	PCS	$39.00	$50.00	15	27
+4800016079559	HELLO CHOCO 15G	PCS	$39.00	$49.00	15	0
+4800016079573	HELLO VNILLA 15G	PCS	$39.00	$49.00	15	0
+6160	CERAMIC HTT BOWL	PCS	$39.00	$39.00	20	12
+4902870766290	MAX STAPLE NO.35-5M	PCS	$39.00	$51.00	20	96
+9556089003384	FABER CASTELL PERMANENT MARKER	PCS	$39.00	$49.00	20	0
+4800011186610	WINNER DSHCRM LEMON 400G	PCS	$39.00	$49.00	40	32
+4800011186719	WINNER DSHCRM KALAMANSI 400G	PCS	$39.00	$49.00	40	21
+1598	RICE SINANDOMENG HARVEST FIEST	PCS	$39.00	$44.00	55	-502.99000000000001
+4800147200419	NEW ORCHID LEMON 100G	PCS	$39.00	$49.00	78	0
+8070	JOURNAL PAPER CARBONLESS	PCS	$39.00	$49.00	112	0
+4801668300039	DM JUFRAN SWTCHLSCE 355G	PCS	$39.05	$49.00	19	60
+9556121029921	JULIE'S DARK CHCO 84G	PCS	$39.06	$55.00	71	0
+9556001227539	KITKAT 4F GREEN TEA	PCS	$39.13	$49.00	14	0
+4806506150234	SOFT N WHITE BOX 140'S	PCS	$39.15	$49.00	77	12
+85503	SOEN SMP XL	PCS	$39.17	$51.00	20	12
+1500	EM MAGNET REF	PCS	$39.20	$49.00	41	0
+4490	EM POUCH KIT	PCS	$39.20	$49.00	107	0
+8555	POS STRIPS	PCS	$39.20	$49.00	107	0
+8850007371434	MODESS DRY MAX W/WINGS 8S	PCS	$39.33	$49.00	117	96
+4800060255107	JOY HI-SAVE 2PLY 4ROLLS	PCS	$39.44	$50.00	28	12
+8850298205005	GLUTINOUS R- FLOUR 500G	PCS	$39.50	$49.00	1	150
+4800033142281	DENTAL B TBRUSH BRSTLE SOFT	PCS	$39.61	$50.00	77	24
+4800033142380	DENTAL B TBRUSH BRSTLE MEDIUM	PCS	$39.61	$50.00	77	24
+170	RICE SUPER ANGELICA 1KG	PCS	$39.80	$45.00	55	1827.5599999999999
+4806514654021	LONGKOU VERMICELLI 250G	PCS	$39.83	$50.00	53	0
+4807770120213	NISSIN WAFER 20S 240G	PCS	$39.88	$50.00	1	130
+4807770120237	NISSIN WAFER BUTTER 240G	PCS	$39.88	$50.00	1	7
+4807770120244	NISSIN WAFER VANILLA 12G	PCS	$39.88	$50.00	1	10
+4807770120251	NISSIN WAFER VANILLA 240G	PCS	$39.88	$50.00	1	46
+213	CVI FROZEN LUNCHEON MEAT 250G	PCS	$40.00	$50.00	4	51
+4806526380017	STELLINA'S LEMONADE 400ML	PCS	$40.00	$50.00	8	168
+4806526380024	STELLINA'S PINK LEMONADE 400ML	PCS	$40.00	$50.00	8	144
+469	CHILI SAUSE	PCS	$40.00	$50.00	11	0
+1509	LOLY'S ACT. CHARCOAL 50G	PCS	$40.00	$50.00	11	17
+8801043022705	NOGNSHIM RAMYUN PCK 112G	PCS	$40.00	$50.00	11	1333
+8801043028127	NONGSHIM VEGGIE CUP 67G	PCS	$40.00	$50.00	11	2049
+147	FF LRT WHEAT HALF	PCS	$40.00	$50.00	17	19
+154	FF UBE DELIGHT	PCS	$40.00	$48.00	17	33
+218	FF ENSAYMADA L	PCS	$40.00	$50.00	17	0
+355	FF LRT W/ WHOLE WHEAT	PCS	$40.00	$50.00	17	79
+64	SLIPPER HELLO KITTY	PCS	$40.00	$52.00	20	12
+81	CHRISTINA PANTY 6'S	PCS	$40.00	$225.00	20	0
+808	BRUSH #206	PCS	$40.00	$50.00	20	0
+1062	BILAO #18	PCS	$40.00	$52.00	20	23
+1378	RIBBON W/NET THICK	PCS	$40.00	$52.00	20	23
+1795	GABRIDO SUNFLOWER SEED SMALL	PCS	$40.00	$50.00	20	-8
+4059	FEATHER DUSTER M	PCS	$40.00	$50.00	20	17
+4805	SLIPPER FOR KIDS	\N	$40.00	$50.00	20	1
+5046	HAND GRIP SLEEVE	PCS	$40.00	$50.00	20	0
+6027	SPORTS WATER BOTTLE SB1	\N	$40.00	$52.00	20	7
+6028	SPORTS WATER BOTTLE SB2	\N	$40.00	$52.00	20	8
+6080	RAINSHOE COVER	\N	$40.00	$55.00	20	-1
+6262	STYRO FOAM 1/2	PCS	$40.00	$50.00	20	0
+8014	9711 STOOL	PCS	$40.00	$52.00	20	-7
+9066	HAIR BRUSH BIG	PCS	$40.00	$52.00	20	12
+9185	FAN #39	PCS	$40.00	$50.00	20	0
+9660	CLIP 3-IN-1 SET	PCS	$40.00	$52.00	20	8
+48858	FLOWER POT LRGE	PCS	$40.00	$52.00	20	12
+354354	HAIRBRUSH COL BIG	PCS	$40.00	$50.00	20	0
+6546540	BAMBOO BIG FAN	PCS	$40.00	$50.00	20	0
+4806524580020	CARE COTTON BALLS	PCS	$40.00	$40.00	20	0
+4902505088933	WHTBOARD MARKER PILOT BLK BRD	PCS	$40.00	$50.00	20	0
+6945809702080	SHUMEI COMB SET	PCS	$40.00	$50.00	20	0
+100	FRT GUYABANO	PCS	$40.00	$50.00	23	4.29
+474	FRT TURDAN	PCS	$40.00	$50.00	23	178.38999999999999
+2150	VGT GABI LAMAN	PCS	$40.00	$50.00	23	7.2699999999999996
+9255	FRT PINEAPPLE MEDIUM	PCS	$40.00	$50.00	23	-6
+4809010997012	CHOYO WAFER STCK 380G	PCS	$40.00	$50.00	53	56
+4809010997937	CHOYO WAFER STCK STRWBRY 380G	\N	$40.00	$50.00	53	0
+2155	CONDOR OKRA	PCS	$40.00	$40.00	60	4
+6152	CONDOR CARROTS	PCS	$40.00	$40.00	60	22
+6154	CONDOR PECHAY BB	PCS	$40.00	$40.00	60	-0.23999999999999999
+6155	CONDOR UPO	PCS	$40.00	$40.00	60	4
+6171	CONDOR LETTUCE	PCS	$40.00	$40.00	60	1
+1343468800	CONDOR RADDISH	PCS	$40.00	$40.00	60	15
+4806512306380	LIFE IN ACT DOOR MAT	PCS	$40.00	$49.75	61	0
+15456421531	TBC FRESH SCENT 1L	PCS	$40.00	$50.00	75	0
+4086	LANGKA RTD 350ML	PCS	$40.00	$50.00	93	-15
+4087	GUYABANO RTD 350ML	PCS	$40.00	$50.00	93	-17
+5095	METAL RULER 12	PCS	$40.00	$50.00	100	0
+3154144680103	MAPED SCISSOR 17CM/ 63/4	PCS	$40.00	$50.00	100	50
+380	VGT YELLOW/WHITE CORN	PCS	$40.00	$50.00	107	52.189999999999998
+526	GAB PEANUT GARLIC	PCS	$40.00	$50.00	107	0
+551	BAG SLING BLUE	PCS	$40.00	$50.00	107	0
+1038	HQ FABCON 1L	PCS	$40.00	$50.00	107	0
+1678	GREEN PEARL DW LIQ 1000ML	\N	$40.00	$50.00	107	-8
+1768	ESCOBIDO'S HOT PEANUT	PCS	$40.00	$50.00	107	0
+2047	LA PRIMA PINAGONG	\N	$40.00	$50.00	107	0
+2060	BABY CAP	\N	$40.00	$50.00	107	0
+3146	GABRIDO PEANUT GARLIC	\N	$40.00	$50.00	107	0
+4409	SPORT SHIRT SALE	PCS	$40.00	$50.00	107	0
+4756	ESCOBIDO'S BANANA CHIPS MEDIUM	PCS	$40.00	$50.00	107	0
+5011	BONNET KIDDIE	PCS	$40.00	$50.00	107	20
+24597	SUPER LILIW LADIES	PCS	$40.00	$50.00	107	0
+48504	STEEL BRUSH SM	PCS	$40.00	$50.00	107	96
+201118	COATED SMALL PEANUT SMALL	\N	$40.00	$50.00	107	0
+489945	PEANUT BRITTLE S	PCS	$40.00	$50.00	107	0
+154682468751	P DISHWASHING LIQ 1000ML	PCS	$40.00	$50.00	107	0
+154682468755	GP FABCON BLUE 1000ML	PCS	$40.00	$50.00	107	0
+1542682468752	GP FABCON WHITE 1000ML	PCS	$40.00	$50.00	107	0
+4805621713782	DISHWASHING GREEN 1L	PCS	$40.00	$50.00	107	0
+6935304678980	KDMR TOOTHBRUSH	PCS	$40.00	$50.00	107	18
+6935304688620	KDMR EMBOSS JADE TBRUSH	PCS	$40.00	$50.00	107	27
+6949034189494	BEAYAR TOOTHBRUSH	PCS	$40.00	$50.00	107	9
+4806522101185	SMART PREPAID SIM	PCS	$40.00	$40.00	108	95
+6902482003453	PREM VERMICELLI STNGHN 250GMS	PCS	$40.00	$50.00	114	39
+1606	CANTEEN MAIS CON YELLOW	\N	$40.00	$40.00	578	0
+1706	CANTEEN EGG BURGER	\N	$40.00	$40.00	578	-348
+1711	CANTEEN PALABOK	\N	$40.00	$40.00	578	-25.5
+1713	CANTEEN SPAGHETTI	\N	$40.00	$40.00	578	-394
+1714	CANTEEN CARBONARA	\N	$40.00	$40.00	578	-149
+1829	CANTEEN SOY COFFE W/PANDESAL	\N	$40.00	$40.00	578	0
+8992775321966	GERY CHOCO WAFER ROLL 160G	PCS	$40.02	$50.00	76	24
+8992775349007	GERY DARK CHOCO WAFR ROLL 160G	PCS	$40.02	$50.00	76	24
+4902430026420	WHISPER SUPR CLEAN & DRY 8PADS	PCS	$40.19	$52.00	70	15
+4893049130007	OREO DBLSTUF152.4G	PCS	$40.23	$51.00	19	96
+4968306479653	KIWI BLCK SHOE PLSH 17.5ML	PCS	$40.30	$50.00	28	43
+142	FRT PEAR B	PCS	$40.50	$51.00	23	130
+54028367911	YAKULT 80MLX5	PCS	$40.50	$51.00	30	-606
+4902430688437	WHISPER CTTNY LNG 8S	PCS	$40.67	$51.00	70	44
+111110	CVI FROZEN BOPIS	PCS	$40.80	$51.00	4	0
+82	SOEN FIBER PANTY	PCS	$40.83	$51.00	20	0
+4800147110091	FARLIN BBY WET WIPES 30S	PCS	$40.85	$51.00	77	56
+4902430154147	JOYDSHLQD LEMON 200ML	PCS	$40.92	$51.00	70	42
+4902430154154	JOYDSHLQD KALAMANSI 200ML	PCS	$40.94	$51.00	70	60
+4804888815123	HONEY ROASTED PEANUTS 120G	PCS	$40.95	$51.00	104	10
+4804888815918	SUNRCH PNTCRUNCH 120G	PCS	$40.95	$51.00	104	10
+4809010639509	MARKY'S BROAS100G	PCS	$41.00	$51.00	13	78
+52	ORIENTAL BASIN 33.5	PCS	$41.00	$52.00	20	0
+676	BASIN #335	PCS	$41.00	$52.00	20	0
+6362	EM WORD WITH HANGER	\N	$41.00	$51.25	20	0
+8991	#8991 DIPPER/TABO	PCS	$41.00	$51.50	20	6
+4800888112958	DOMEX MULTIPURPOSE 250ML	PCS	$41.00	$51.00	36	46
+4806018401596	LS INIPIT CUSTARD230G	PCS	$41.00	$51.00	79	30
+4806018401619	LS INIPIT CHOCO230G	PCS	$41.00	$41.00	79	33
+4806018402319	LS INIPIT ASSRTD 230G	PCS	$41.00	$51.00	79	50
+1115	GUITAR STRING #3 HARANA	PCS	$41.00	$52.00	107	3
+4442	CLASS RECORD K12	PCS	$41.00	$41.00	107	35
+4800473001513	ROGER'S SANDWISH SPRD 225ML	PCS	$41.00	$51.00	113	24
+6061	RICE SUPER ANGELICA IMPORTED	PCS	$41.00	$45.00	300	104.95999999999999
+4800575130302	ALSK CONDENSADA300ML	PCS	$41.03	$51.00	19	168
+4806014093290	JOLLY WHOLE MUSHROOM 284G	PCS	$41.11	$52.00	53	12
+4902430954280	WHISPER 8PDS W-WNGS 23CM	PCS	$41.17	$52.00	70	35
+6153	CONDOR SWEET CORN	PCS	$41.25	$55.00	60	27
+4800060331306	KOTEX REG SCNTED 20S BREATBLE	PCS	$41.28	$52.00	28	12
+4801668500224	DATU PUTI SOY SAUCE 1L	PCS	$41.37	$52.00	19	12
+4809010639059	MARKY'S JACOBINA 200G	PCS	$41.50	$52.00	13	90
+4800016081132	MAGIC FLAKES CHEESE 280G	PCS	$41.52	$52.00	117	80
+4800344001628	SILVER SWAN SOY SAUC1L	PCS	$41.56	$52.00	19	102
+4800888181534	SURF PWDR KALAMANSI 500G	PCS	$41.60	$52.00	36	150
+1254	EVEREADY D-SIZE 1050 RED 2PCS	\N	$41.75	$52.00	86	0
+14800925173	MOTTS APPLE JUICE 340ML	PCS	$41.76	$52.00	53	24
+4806521410696	MONREO PEANUT 285G	PCS	$41.86	$53.00	53	0
+4902430688093	JOY HD LIQ 200ML	PCS	$41.87	$52.00	70	5
+4805358003040	MAGNOLIA CHEEZE BUY1GETFREE	PCS	$41.90	$53.00	900	61
+4805358317031	MAGNOLIA CHEEZEE REG 165G	PCS	$41.90	$53.00	900	0
+7622210708434	OREO D&W SLUG 137G	PCS	$42.00	$52.50	15	0
+512	SLIPPER ADIDAS M	PCS	$42.00	$55.00	20	2
+627	SLIPPER HAVANA MEN	PCS	$42.00	$55.00	20	0
+3454	HAVAIANAS SLIPPER PLAIN	PCS	$42.00	$55.00	20	14
+6454	HITOP TRSHCAN #2014	PCS	$42.00	$53.00	20	0
+4800011010038	MAMA'S LOVE BUDS 400TPS CAN	PCS	$42.00	$53.00	40	12
+4809015059081	MAX GLOW POWDER 1KL	PCS	$42.00	$53.00	42	182
+4800405123559	MARCA PINA SOY SAUCE 1L	PCS	$42.00	$53.00	53	54
+4800095001380	LOVELY LOOK HAIRSPRAY 50ML	PCS	$42.00	$53.00	54	12
+4800147200655	CL MURIATIC ACID C 500ML	PCS	$42.00	$53.00	77	41
+4800147200693	ZIM LQD ZOSA 250ML	PCS	$42.00	$53.00	77	18
+4806506311079	SISTERS SFDU/NSNU PROMO PCK	PCS	$42.00	$53.00	91	0
+2066	ROMERO'S CHICHA POP	PCS	$42.00	$53.00	107	1
+3560	FRT APPLE JUMBO	PCS	$42.18	$53.00	23	65
+901	FRT SINGKAMAS	PCS	$42.22	$53.00	23	-2.3399999999999999
+4809014247960	CANDLE #17	PCS	$42.25	$53.00	49	0
+4800282000288	GV YOUNG CORN 425G	PCS	$42.28	$53.00	20	22
+4800282001346	GOLDEN VALLEY MSHRM PCS&STM400	PCS	$42.28	$53.00	76	60
+4809013300437	BEVI KOJI SAN SOAP 140G	PCS	$42.30	$53.00	54	12
+4800016082924	MAGIC FLAKES ONION 28GX10	PCS	$42.35	$45.00	15	125
+4902430597968	WHISPER CTTNY XX-LONG WNGS	PCS	$42.36	$53.00	107	0
+4809013293999	SNOW LIME EXTRCT SOAP 125G	PCS	$42.40	$53.00	107	29
+4804888815062	TOBI DRY ROSTDPNT 120G	PCS	$42.42	$53.00	104	10
+4800060084806	PURITY COTTONBALLS 140S	PCS	$42.43	$53.00	20	0
+1206	GREEN PEAS 250G	PCS	$42.50	$53.00	23	13
+8521	FRT CHICO SMALL	PCS	$42.50	$54.00	23	0
+4800473002015	ROGER'S PREM SNDWCHSPRD 225ML	PCS	$42.56	$53.50	113	0
+67238891183	DOVE BAR PNK FBX 100G	PCS	$42.70	$54.00	36	4
+8717644190494	DOVE WHITE 100G	PCS	$42.70	$54.00	36	73
+8717644190555	DOVE GO FRESH 100G	PCS	$42.70	$54.00	36	16
+4808680230764	KNORR LIQ SEASNING ORIG130ML	PCS	$42.80	$54.00	36	24
+4800417060460	BENCH FIX PROF 25G	PCS	$42.93	$54.00	117	5
+4800216125179	FJP POTATO CHIPS SALTED 90G	PCS	$42.95	$54.00	76	0
+394	SLIPPER SEAGULL X	PCS	$43.00	$78.00	20	1
+906	ALLPURPOSE DISP GLOVES	PCS	$43.00	$54.00	20	0
+3422	PANAMA LADIES SLIPPER	PCS	$43.00	$56.00	20	1
+4902505088179	PLOT MRKR- B	PCS	$43.00	$54.00	20	314
+171	RICE SINANDOMENG 1KG	PCS	$43.00	$49.00	55	54.369999999999997
+4902505088827	PILOT WB-MARKER WBMK-M	PCS	$43.00	$54.00	100	300
+4809011849426	EBS EGG CRACKLETS 260G	PCS	$43.00	$54.00	116	0
+4808680027159	BEST FOODS MAYO DOY 220ML	PCS	$43.05	$54.00	117	72
+4902430755993	REJOICE SHMP PERFUME SMTH 70ML	PCS	$43.10	$54.00	70	4
+8993417322129	INTENSE SC POWER 75ML	PCS	$43.18	$54.00	76	5
+4800274332007	QUAKER OATS CHCO 200G	PCS	$43.31	$54.00	117	7
+87	OMNI BIKINI S,M,L	PCS	$43.33	$54.00	20	0
+4800888113566	CLOSEUP INTENSE 50ML	PCS	$43.35	$54.00	36	14
+4800888113481	CLOSE UP REDHOT 50ML	PCS	$43.45	$55.00	36	119
+9556121026982	LE-MOND (CHEDDAR CHEESE) 90G	PCS	$43.45	$54.00	71	28
+3154146817101	MAPED UNIV. SCISSOR	PCS	$43.50	$55.00	37	0
+748485401386	ANGEL AP CREAMER 370ML	PCS	$43.60	$55.00	110	22
+4800473000080	ROGER'S MAYONNAISE 200ML	PCS	$43.63	$55.00	113	24
+172	RICE MAHARLIKA 1KG	PCS	$43.68	$48.00	98	0
+8850007010852	JJ POWDER BEDTIME 100G	PCS	$43.72	$55.00	117	13
+4804888322270	CVI VEGETOCINO 200G	PCS	$43.75	$55.00	4	116
+4809010639745	LAURA'S GALLTS D PATTS150G	PCS	$43.75	$55.00	13	56
+9556121029938	JULIE'S HRSHYS DRK CHC VNL 84G	PCS	$43.75	$55.00	71	20
+4806018405938	COOKIESAYS 300G	PCS	$43.75	$55.00	79	5
+4806018406010	LS COOKIE MANGO 300G	PCS	$43.75	$55.00	79	5
+4806018406034	LS COOKIE STRAWBRRY 300G	PCS	$43.75	$55.00	79	16
+5475	ICHTHUS ENV XSHORT	PCS	$43.80	$54.75	107	0
+4800552888080	CHIPS DELGHT MINI 130G	PCS	$43.88	$55.00	54	24
+806	SONGR LADIES SANDAL/SLIPPER	PCS	$44.00	$55.00	20	1
+942	COIN PURSE DENIM	PCS	$44.00	$55.00	20	0
+3430	HAVAIANAS LADIES SLIPPER	PCS	$44.00	$57.00	20	-1
+3440	SUPREME LADIES SLIPPER	PCS	$44.00	$57.00	20	1
+213441	TIGER PLSTC CLIPBOARD	PCS	$44.00	$55.00	20	0
+4800030013690	IDEAL TWIST	PCS	$44.00	$55.00	20	0
+1780	VT YELLOW SINANDOMENG 1KLG	PCS	$44.00	$47.00	98	112.2
+695	BROWN SUGAR 1KL	PCS	$44.00	$45.00	107	0
+4804888815000	TOBI GREASELESS  LITE 100G	PCS	$44.10	$55.00	104	10
+6078	PHOTO FRAME YY-8008 6X8	PCS	$44.10	$55.00	778	0
+4800040314213	CHC CHIP CKS 200G	PCS	$44.26	$55.00	117	36
+4800092111822	REBISCO CRACKERS 330G	PCS	$44.30	$55.00	117	120
+4805358503069	NUTRI-OIL PALM OLEIN 475ML	PCS	$44.30	$51.00	900	0
+4800024015884	DM PINEAPPLE TIDBITS 432G	PCS	$44.32	$55.00	29	24
+4800024015976	DM PINEAPPLE CHUNKS 432G	PCS	$44.32	$55.00	29	24
+4806014000021	JLLY YNG CORN WHLE230G	PCS	$44.41	$56.00	20	4
+117	VGT CAMOTE W	PCS	$44.44	$56.00	23	-31.469999999999999
+4805358324022	MAGNOLIA CHEEZ SPRD PLN 120G	PCS	$44.50	$56.00	900	0
+4800361399159	NSTLE YGRT GREEK 125G	PCS	$44.54	$56.00	8	39
+4800361409704	OREO CONE 110ML	PCS	$44.54	$56.00	32	42
+4800361391207	KITKAT CHCO 100ML	PCS	$44.55	$56.00	32	42
+856	ROPE #14	PCS	$44.80	$56.00	20	0
+1236665	DUSTER M	PCS	$44.80	$56.00	20	40
+4806014000779	JLLY MSHROOM PCS & STMS 400G	PCS	$44.88	$56.00	53	36
+8934868058168	SURF DSHLQD LEMON 250ML	PCS	$44.95	$56.00	36	40
+4806516210614	HARMONY T-NPKN 128MM X 140MM	PCS	$44.95	$56.00	76	20
+4005	GARBANZOS 250G	PCS	$45.00	$50.00	1	0
+4804888322256	CVI VEGELNCHNMEAT 200G	PCS	$45.00	$57.00	4	251
+215	FF WHITE RAISIN LOAF	PCS	$45.00	$62.00	17	0
+392	FF RAISIN BREAD	PCS	$45.00	$65.00	17	20
+4567	FF UBE LOAF	PCS	$45.00	$50.00	17	0
+71	BAMBOO FAN BIG	PCS	$45.00	$57.00	20	0
+489	OMNI ADAPTER WUA-002	PCS	$45.00	$59.00	20	-15
+949	SLIPPER HAVANA LADIES	PCS	$45.00	$59.00	20	-1
+1081	SLING BAG GONZAGA	PCS	$45.00	$56.00	20	0
+1486	CARANZA CASSAVA CHIPS ASSRTD 5	PCS	$45.00	$56.00	20	32
+3037	RO-30 FAS PACK	PCS	$45.00	$59.00	20	3
+3426	CONVERSE MEN SLIPPER	PCS	$45.00	$59.00	20	0
+3466	GLOVES RUBBER BLACK	PCS	$45.00	$59.00	20	51
+4806021381854	JOY PHOTOPAPER 20S	PCS	$45.00	$56.00	20	0
+6925419060107	WAWANG MOUSE TRAP	PCS	$45.00	$56.00	20	0
+1210	VGT ONION M LARGE	PCS	$45.00	$56.00	23	228.97999999999999
+4800011179063	SULFUR SOAP 135G	PCS	$45.00	$56.00	40	24
+3831	EM 02 QM POSTER W/ HANGER	PCS	$45.00	$45.00	41	19
+4806514650023	BUENAS NATA RED 12OZ	PCS	$45.00	$56.00	53	5
+1153	CLIPBOARD SHRT	PCS	$45.00	$56.00	100	25
+4806018680724	MINI STAPLER W WIRE	PCS	$45.00	$56.00	100	0
+4806021300282	JOY TAPE DISPENSER SMALL	PCS	$45.00	$56.00	100	10
+6921734967930	DELI DESK PEN W/ STAND	PCS	$45.00	$56.00	100	20
+6926341820005	HBW BALL PEN 1DOZ. BLCK	PCS	$45.00	$56.00	100	10
+541	BTL GLUTINOUS FLOUR 500G	PCS	$45.00	$56.00	107	0
+562	ROASTED PEANUT 250G	PCS	$45.00	$57.00	107	0
+565	KARE-KARE MIX 250G	PCS	$45.00	$57.00	107	0
+3121	CARANZA CASSAVA NACHOS 150G	PCS	$45.00	$56.00	107	-61
+4493	TURMERIC WHEATSTICK 130G	\N	$45.00	$56.00	107	0
+4702	ROMERO'S PASTILLAS DE LECHE	PCS	$45.00	$56.00	107	0
+4703	ROMERO'S TOASTED PASTILLAS	PCS	$45.00	$56.00	107	0
+4705	ROMERO'S CRSPY OATMEAL BROWNIE	PCS	$45.00	$56.00	107	0
+5313	MALAGKIT SUNG2X 500G	PCS	$45.00	$49.00	107	-52
+7806	PAPAYA PICKLES	PCS	$45.00	$56.00	107	-5
+4809011197114	GLORI'S MAYONNAISE 250G	PCS	$45.00	$56.00	107	0
+4809111973274	GLORI'S SANDWICH SPREAD 250G	PCS	$45.00	$56.00	107	0
+719	PATELLE PAPER 1S	PCS	$45.00	$6.00	117	0
+720	COCO WHEATSTICK 130G	PCS	$45.00	$57.00	117	0
+722	HOME BASIC BSHEET 36X78	PCS	$45.00	$238.00	117	9
+1617	CANTEEN TACO	\N	$45.00	$45.00	578	-39
+4804888815109	TOBI ONIONGRLC PNT 120G	PCS	$45.05	$57.00	104	10
+4800888142672	REXONA PASSION DEODRANT 25ML	PCS	$45.15	$57.00	36	30
+4800888143365	REXONA ICE COOL DEDORNT 25ML	PCS	$45.15	$57.00	36	6
+4800888144256	REXONA QUANTUM DRY 25ML	PCS	$45.15	$57.00	36	6
+4800888150622	REXONA SHWR CLEAN 25ML	PCS	$45.15	$56.00	36	25
+4800888158925	REXONA PWDR DRY DEODRNT 25ML	PCS	$45.15	$57.00	36	30
+4809010109651	LAURA'S MANNABTTRDSTCK 200G	PCS	$45.20	$56.00	71	83
+4806514651556	BUENAS BANANA CHIPS 100G	PCS	$45.28	$57.00	53	24
+4800024556103	DM SPAGHETTI 400G	PCS	$45.33	$57.00	29	13
+5010238015375	NSTL OREO STICK 110ML	\N	$45.45	$57.00	8	37
+4800086044365	SLCT IH BDAY BASO UBE 400ML	PCS	$45.45	$57.00	9	44
+4800086044372	SCLT BASO CHOC 400ML	PCS	$45.45	$57.00	9	70
+4800086044389	SLCT IH BIRTHDAY KESO 400ML	PCS	$45.45	$57.00	9	61
+4806506150456	EXTRA CBUDS CAN 400 TIPS	PCS	$45.45	$57.00	77	11
+4807770101502	NISSIN BREADSTIX 200G	PCS	$45.49	$57.00	1	0
+4807770121197	NSSN STCK CHC 22G	PCS	$45.50	$57.00	20	0
+21653000	CHARCOAL POWDER 100G	PCS	$45.60	$57.00	107	0
+4806506150388	EXTRA ROLL COTTN 100G	PCS	$45.62	$57.00	77	15
+4800030064722	SUNMAC SPAG 1KG	PCS	$45.68	$57.00	53	0
+4800024015969	DM SLICED ELS 432G	PCS	$45.70	$57.00	29	8
+4809014247915	VIGIL CANDLE 1X12	PCS	$45.75	$57.20	49	0
+4800300990324	CROWN HOTCAKE MIX 400G	PCS	$45.90	$57.00	104	0
+4902430396653	REJOICE RICH SMOOTH 70ML	PCS	$45.97	$58.00	70	10
+4804888322263	CVI SLICED TOCINO 200G	PCS	$46.00	$58.00	4	412
+8993175537131	RICHEESE CHEESE WAFER 240G	PCS	$46.00	$58.00	7	60
+8993175539906	RICHOCO CHOCO WAFER 240G	\N	$46.00	$58.00	7	60
+8993175542166	RICHOCO WHITE 240G	\N	$46.00	$58.00	7	80
+4806523421133	MARKY'S PABORITA C 200G	PCS	$46.00	$58.00	13	119
+683	FF CHIPS AHOY 6S	PCS	$46.00	$58.00	17	0
+940	FF CINNAMON LOAF	PCS	$46.00	$58.00	17	151
+9980	FF CHOCO LOAF	PCS	$46.00	$57.00	17	2068
+5811	SB11 JUICE BOTTLE	PCS	$46.00	$60.00	20	-1
+733586152466	SCRIPTI NOTE 38X51MM	PCS	$46.00	$58.00	20	0
+6925847162572	HOUSEHOLD GLOVES MEDIUM	\N	$46.00	$58.00	20	9
+1197	#1197 BASKET COL.	PCS	$46.00	$60.00	36	0
+1717	TRASH BAG XL	PCS	$46.00	$58.00	42	183
+1150	CLIPBOARD PLASTIC LONG	PCS	$46.00	$57.00	63	17
+9012	PLASTIC GLOVES	PCS	$46.00	$58.00	63	7
+168	RICE VT SINANDOMENG 1KG	PCS	$46.00	$52.00	98	3179.4699999999998
+1096	POLYSTER ASSORTED PASTILLAS	\N	$46.00	$58.00	107	-3
+4809011849136	EBS OTAP 250G	PCS	$46.00	$58.00	116	0
+4800231007306	GLUTA KOJIC ACID 90G	PCS	$46.00	$57.00	145	24
+4800243004294	GLUTA PAPAYA XTRA WHITE 90G	PCS	$46.00	$57.00	145	24
+4800557022021	CRAYOLA 24-PCS NONTOXIC	PCS	$46.00	$62.00	20	33
+4806506151149	SOFT'N WHTE HAND TOWEL 175 SHT	PCS	$46.04	$58.00	77	60
+3014260821852	ORAL B CLSSIC 12/2'S	PCS	$46.18	$58.00	117	0
+4800095001120	FAMILY RUBBNG COMPND 473ML	PCS	$46.20	$58.00	54	30
+8850006320518	COLGATE REG. 50ML	PCS	$46.21	$60.00	20	72
+753	GILLITTE RUBIE BLADE 1S	PCS	$46.36	$14.00	21	0
+888	RICE UNPOLISHED MINDORO	PCS	$46.36	$51.00	107	0
+4902430154239	JOY SAFEGUARD ANTIBAC 200ML	PCS	$46.38	$58.00	15	15
+4902430784269	WHISPER CTTNY CLN	PCS	$46.39	$58.00	70	12
+4800092110023	HANSEL MOCHA 10S 310G	PCS	$46.40	$58.00	15	160
+4800092110528	HANSEL CHOCO 10S	PCS	$46.40	$58.00	15	122
+4805358327023	MAGNOLIA CHEZ SPRD PTO 120G	PCS	$46.45	$58.00	900	0
+4809010109668	LAURA'S MANNABAG 36'S	PCS	$46.50	$58.00	71	42
+4800067644843	APOLLO PETROLEUM JLLY 50G	PCS	$46.50	$58.00	86	1
+9556121026968	LAURA'S LEMOND PUFF SWICH 85G	PCS	$46.59	$58.00	71	47
+88	OMNI BIKINI XL	PCS	$46.66	$59.00	20	0
+101	VGT AMPALAYA	PCS	$46.66	$58.00	23	70.640000000000001
+527	SOTTO'S SWT SAMPALOK 50S	PCS	$46.73	$59.00	107	0
+4806507831781	JUICY COLOGNE VIOLET 125ML	PCS	$46.75	$59.00	20	5
+4806507831804	JUICY ORANGE TWIST 125ML	PCS	$46.75	$59.00	222	3
+4806507831828	JUICY RED SWEET DLGHT 125ML	PCS	$46.75	$59.00	222	3
+4806507831842	JUICY GREEN SPRNKL 125ML	PCS	$46.75	$59.00	222	5
+4902430935654	SAFEGUARD BAR PAPAYA 135G	PCS	$46.81	$59.00	70	27
+951	SLIPPER EW-8 L	PCS	$46.88	$59.00	20	0
+8712561277372	DOVE BAR COCONUT 100G	PCS	$46.91	$59.00	36	33
+4809010508898	MILCU UNDERARM&FOOT POW 40G	PCS	$46.92	$59.00	117	96
+8000700000227	DOVE SENSITIVE 100G	PCS	$46.95	$59.00	36	9
+8690637647420	DOVE BAR SHEA BUTTER 100G	PCS	$46.95	$59.00	36	27
+8717644190524	DOVE GNTL EXF 100G	PCS	$46.95	$59.00	36	31
+694	WHITE SUGAR 1KL	PCS	$47.00	$59.00	1	98
+4809010354051	WASHED SUGAR 1KL	PCS	$47.00	$59.00	1	150
+4800374032005	PIONEER MIGHTY BOND 3G	PCS	$47.00	$59.00	20	50
+120	VGT ONION WHITE	PCS	$47.00	$59.00	23	65.170000000000002
+121	VGT ONION R	PCS	$47.00	$59.00	23	-138.71000000000001
+4800888158994	AXE DEO AP DARKTEMP 25ML	PCS	$47.00	$60.00	36	13
+4800135001462	PH CARE PASSION BLOOM 50ML	PCS	$47.00	$59.00	117	24
+4800186001220	GOLDEN OATS ORGC GRNLD200G	PCS	$47.00	$59.00	211	12
+9556121001859	JULIE'S PNTBUTR SDWCH 135G	PCS	$47.00	$59.00	20	28
+4800282000578	GOLDEN VALLEY MSHRM WHL400G	PCS	$47.03	$59.00	76	82
+4902430412667	TIDE POW KALAMANSI 475G	PCS	$47.17	$59.00	15	4
+4902430413312	TIDE POW ORIG 475G	PCS	$47.17	$59.00	15	0
+4902430532426	TIDE DWNY GRDN BLM425G	PCS	$47.17	$59.00	20	0
+4800010075595	PRESTO CREAM VANILLA	PCS	$47.20	$59.00	15	1
+4800010075601	PRESTO CREAM CHOCO 300G	PCS	$47.20	$62.00	15	0
+909	EARTHWALK SLIPPER	PCS	$47.20	$59.00	20	0
+4809010639127	MARKY'S OTAP 200G	PCS	$47.25	$59.00	13	48
+4809014247823	CANDLE 2X6	PCS	$47.25	$59.05	49	0
+9556121027040	JULIE'S FNGRLMN SDWCH 126G	PCS	$47.25	$59.00	20	29
+750515017863	FITA SPREADZ TUNA 250G	PCS	$47.32	$59.00	1	0
+1857	VGT POTATO MARBLE	\N	$47.36	$59.00	23	7.5099999999999998
+4806518330044	BELO MSTRZNG 90G	PCS	$47.49	$60.00	107	0
+4485	TRASH BAG MEDIUM	PCS	$47.50	$60.00	42	145
+4800033222389	DENTAL B.VOYAGER TOOTHBRUSH	PCS	$47.50	$60.00	77	7
+776	GARBAGE BAG XL	PCS	$47.50	$60.00	85	7
+4800194173032	HONEY CRIMPIES 180G	PCS	$47.52	$60.00	10	0
+672	MICROFIBER WIPES ASSRTD CLRD	PCS	$47.53	$60.00	56	0
+4807770120770	MONDE SUMO COOKIE200G	PCS	$47.61	$60.00	1	38
+4800361381086	NESTLE BEARBRAND 150G	PCS	$47.62	$60.00	14	108
+14285003885	GOLDEN FIESTA PALM OIL 500ML	PCS	$47.67	$60.00	15	42
+4800888140821	SUNSILK DAMGE SHMPO 90ML	PCS	$47.70	$60.00	36	10
+4800888140852	SUNSILK MNGEBLE SHMPO 90ML	PCS	$47.70	$60.00	36	4
+4800888156280	SSILK SHA S&LONG 90ML	PCS	$47.70	$60.00	36	9
+4807770121203	NISSIN STICK WAFER CHOCO 220G	PCS	$47.77	$60.00	1	54
+4807770121227	NISSN STCKWFR STRW 220G	PCS	$47.77	$60.00	1	45
+4807770122170	NISSIN BUTTER COCONUT 250G	PCS	$47.77	$60.00	1	88
+4807770122262	NISSIN KING WAFER CHOCO 220G	PCS	$47.77	$60.00	1	118
+4807770122385	NISSIN WAFER CHEESE 220G	PCS	$47.77	$60.00	1	30
+4807770122408	NISSIN WAFER PBUTTER 220G	PCS	$47.77	$60.00	1	25
+4800060202408	KLENEX FACIAL TISUE 200S 2PLY	\N	$47.80	$60.00	28	0
+4800060202101	KLEENEX FACIAL TISSUE 100'S	PCS	$47.83	$60.00	28	17
+323	VARONA VEG BOPIS PCK	PCS	$48.00	$60.00	18	104
+496	TULIP TWINE 1K	PCS	$48.00	$60.00	20	0
+1076	ANGLICA BRN RICE RGB10060 1KG	PCS	$48.00	$55.00	20	0
+3409	CURRY POWDER 150G	PCS	$48.00	$60.00	20	-1
+3427	HAVAIANAS MEN TUSCHO	PCS	$48.00	$63.00	20	-2
+6030	OROCAN TRASH  CAN 8801	PCS	$48.00	$63.00	20	6
+9186	HAIR NET #40 12S	PCS	$48.00	$62.00	20	8
+4902505088834	PILOT WYTEBRD MARKER RED	\N	$48.00	$60.00	20	0
+6935034600107	OIL PASTEL 24'S	PCS	$48.00	$63.00	20	32
+2223	FRT ATIS	PCS	$48.00	$60.00	21	0
+1520120000128	JEDNUTS MINI PASTLLAS 60S	PCS	$48.00	$60.00	49	0
+1520120000135	JEDNUTS PASTILLAS TOWER 12S	PCS	$48.00	$60.00	49	0
+1520120000142	JEDNUTS SPECIAL YEMA 60S	PCS	$48.00	$60.00	49	0
+1520170000017	JEDNUTS UBE/WHT PASTILLAS 60S	PCS	$48.00	$60.00	49	0
+1782016000012	JEDNUTS PASTILLAS PLAIN 60S	PCS	$48.00	$60.00	49	0
+1782016000050	JEDNUTS PASTILLAS MARBLE 60S	PCS	$48.00	$60.00	49	0
+1782016000067	JEDNUTS PASTILLAS CLRD 60S	PCS	$48.00	$60.00	49	0
+1020167000247	JEDNUTS YEMA TOWER 12S	PCS	$48.00	$60.00	61	0
+468	RICE MILAGROSA	PCS	$48.00	$54.00	95	800.13
+4902505163104	PILOT G-2 0.5 BL-G2-5	PCS	$48.00	$60.00	100	120
+6933577800091	SMITH BINDER CLIP 2	PCS	$48.00	$60.00	100	10
+747	PRIFOOD SUP DLGHT BKD GOODIES	PCS	$48.00	$60.00	107	0
+910	CHOCO VRON BROWNIES 200G	PCS	$48.00	$60.00	107	0
+4704	ROMERO'S YEMANI	PCS	$48.00	$60.00	107	0
+6060	MINDORO SINANDOMENG RICE 1KG	PCS	$48.00	$53.00	107	-329.44999999999999
+4806527242864	KOJIC SAKURA WHTENING 90G	PCS	$48.00	$60.00	145	36
+4806014000762	JLLY MSHROOM WHLE 400G	PCS	$48.04	$60.00	53	12
+4807770100536	BINGO ORANGE 280G	PCS	$48.07	$60.00	1	85
+4807770100611	BINGO DOUBLE CHOCO 280G	PCS	$48.07	$60.00	1	81
+4807770100697	BINGO VANILLA 280G	PCS	$48.07	$60.00	1	53
+750515017450	FITA CRACKERS 300G	PCS	$48.08	$60.00	1	12
+750515018402	SKYFLAKES CRCK 25G	PCS	$48.08	$60.00	1	46
+750515018501	SKYFLAKES CRACKERS 250G	PCS	$48.08	$60.00	1	0
+750515031517	SKYFLAKES TSOKOLATE 300G	PCS	$48.08	$60.00	1	8
+750515031531	SKYFLAKES CONDENSADA 300G	PCS	$48.08	$60.00	1	6
+750515031555	SKYFLAKES SWT MANTIKILYA 300G	PCS	$48.08	$60.00	1	2
+4800024562494	DM SPAG SAUCE FIL STYLE 560G	PCS	$48.10	$60.00	28	0
+4809010639837	MARKY'S MAMON TOSTADO SLICE 15	PCS	$48.25	$60.00	13	72
+4800888154873	REXONA MEN SD 25ML	PCS	$48.25	$60.00	36	33
+4800888166234	REXONA WMN WHTNING PH 25ML	PCS	$48.25	$60.00	36	24
+4800186001121	GOLDEN OATS QUICK CK400G	PCS	$48.25	$61.00	211	10
+4800011178769	SULFUR SOAP MSTRZR 135G	PCS	$48.30	$61.00	40	49
+4804888815024	TOBI GARLICPEANUTS 120G	PCS	$48.30	$61.00	104	10
+4800166142325	STIK-O CHOCO WAFER STICK 380G	PCS	$48.38	$61.00	117	312
+1996	FRT ORANGE BIG JUMBO	\N	$48.39	$63.00	23	-18
+4800045310289	PRIDE POWDER AP 500G	PCS	$48.50	$61.00	15	0
+4800092110115	REBISCO BRAVO 10S	PCS	$48.50	$61.00	15	0
+4800092110511	HANSEL MILK 10S	PCS	$48.50	$61.00	15	0
+4800092111945	HANSEL BUTTER 10S	PCS	$48.50	$61.00	15	0
+4800092112041	FROTEES GRAPES 30G	PCS	$48.50	$61.00	15	0
+4800092112782	REBISCO COMBI TRPL CHOC 10S	PCS	$48.50	$61.00	15	0
+4800092115677	REBISCO HONEY BUTTER	PCS	$48.50	$61.00	15	0
+4800092116490	COMBI C/CRACKR WFER SW	PCS	$48.50	$52.00	107	0
+4800092111792	FROOTEES STRWJAM 320G	PCS	$48.50	$61.00	20	0
+4809010639066	MARKY'S PILIPIT TWSTD200G	PCS	$48.50	$61.00	20	0
+9556121003419	JULIE'S DRKCHCO SNDWCH 145G	PCS	$48.51	$61.00	71	24
+4800060202705	KLEENEX TISSUE SPACK 2P 100S	PCS	$48.55	$61.00	28	24
+4800060075507	PURITY COTTON ROLLS 90G	PCS	$48.62	$61.00	28	26
+4809010109088	LAUR'S BRD STCK250G	PCS	$48.70	$61.00	71	69
+4809010354013	REFINED SUGAR 1KG	PCS	$48.80	$54.00	1	92
+4800092114731	COMBI CREAMY MILK	PCS	$48.80	$61.00	15	0
+4800166142608	STIK-O BUKO PANDAN 380G	PCS	$48.84	$61.00	15	132
+4800575480254	ALSK CRM ALL PRPS250ML	PCS	$48.85	$61.00	19	48
+4902430575805	SFEGRD BAR DRMA SNSTV 90G	PCS	$48.85	$61.00	107	0
+4902430575850	SAFEGRD DERMA ACNE 90G	PCS	$48.85	$61.00	107	21
+49024430575850	SAFEGRD BAR DRMA SNSE ACNE 90G	PCS	$48.85	$61.00	107	0
+4800092110535	SUPERSTIX CHOCO 352G	PCS	$48.94	$61.00	117	0
+175	RICE VT PINAWA BROWNRICE	PCS	$48.98	$54.00	107	0
+4800040341639	FBSCO JOLLY 10S	PCS	$49.00	$61.00	15	0
+4808888413594	POSH NAT MOISTURE PNK 90ML	PCS	$49.00	$62.00	15	0
+393	ZOEY SF HOLDER #397	PCS	$49.00	$61.00	20	0
+1052	VEGAN MULBERRY LEAF TEA	PCS	$49.00	$49.00	20	0
+2666	HITOP TRSHCAN #2016	PCS	$49.00	$61.00	20	0
+13254564	WASHINGBRD P	PCS	$49.00	$49.00	20	7
+3636	EM ALL PURPOSE BLINGBLING	PCS	$49.00	$49.00	41	-5
+930	JEDNUTS PASTILLAS DE YEMA 12S	PCS	$49.00	$62.00	49	0
+4809010109767	LAURA'S OTAP 210G	PCS	$49.00	$61.00	71	43
+693	WASHED SUGAR 1KL	PCS	$49.00	$63.00	107	0
+1251000000593	03WAM WALLET 3F	PCS	$49.00	$49.00	107	0
+4800135001134	PH CARE COOL WIND 50ML	PCS	$49.00	$61.00	117	24
+4902505042812	PILOT WHITEBOARD MARKER RED	PCS	$49.15	$62.00	63	0
+490243076991	PAMPERS BBY DRY XL	PCS	$49.17	$61.00	107	0
+4902430746991	PAMPERS XL	PCS	$49.17	$62.00	107	0
+4806014000397	JOLLY CREAM MSHROOM 298G	PCS	$49.19	$62.00	53	6
+4808647020094	EDEN CHEESE  ORG 165G	PCS	$49.20	$61.00	19	476
+4800552888004	CHPS DLGHT CHCHPCKS 200G	PCS	$49.30	$62.00	104	72
+4800110006727	WK CLASSIC HOTCAKE 400G	PCS	$49.40	$62.00	92	31
+4800888158031	CLOSEUP FIREFREZE 50ML	PCS	$49.50	$62.00	36	0
+1870	EVEREADY 3A R012 BLACK 2PCS	\N	$49.50	$62.00	86	-4
+4806014099216	GL PREM VERMICELLI 250G	PCS	$49.57	$62.00	53	9
+4902430414418	HEAD & SHLDRS MNTHL 70ML	PCS	$49.69	$62.00	61	8
+4902430414432	H&S APPLE FRSH 70ML	PCS	$49.69	$62.00	70	25
+4902430430883	HEAD&SHLDER SMTH&SLK 70ML	PCS	$49.69	$62.00	20	14
+1661	DELTA OUTLET SODU2	PCS	$49.75	$62.00	20	0
+4809010109842	PASENCIA BROWN LOOSE 250G	PCS	$49.75	$62.00	71	0
+4800110068893	ROYAL PRMM SPGHTT 450G	PCS	$49.87	$62.00	92	66
+4805358246041	MAGNOLIA DARI CRM CLSSC 200G	PCS	$49.95	$63.00	900	0
+4806014099629	JOLLY CLARO PALM SUP500ML	PCS	$49.98	$57.00	53	36
+9557062331104	MR. POTATO CHEESE 100G	PCS	$50.00	$63.00	7	0
+9557062331128	MR. POTATO ORIG 100G	PCS	$50.00	$63.00	7	0
+9557062331135	MR. POTATO SOUR CREAM 100G	PCS	$50.00	$63.00	7	0
+544	CHICKBOY PAKYAW RINGS	PCS	$50.00	$63.00	8	0
+4800361402354	NSTL GREEK BLBRRYCHSCK 125G	PCS	$50.00	$63.00	8	0
+8999999005610	MAGNUM ALMND NEW 90ML	PCS	$50.00	$63.00	9	120
+8999999005689	MAGNUM CLSSC NEW 90ML	PCS	$50.00	$63.00	9	0
+8999999045555	MAGNUM WHITE ALMOND NSP 80ML	PCS	$50.00	$63.00	9	48
+89999990005689	MAGNUM CLSSC AMBER 90ML\\	PCS	$50.00	$63.00	9	72
+9092	FF HOPIA ONION BOX	PCS	$50.00	$63.00	17	0
+1630	VARONA VEGE TOCINO 250G	PCS	$50.00	$62.00	18	3
+1631	VARONA VEGE TAPA 250G	PCS	$50.00	$62.00	18	29
+3333	VARONA GLUTEN TOCINO 250G	PCS	$50.00	$62.00	18	13
+249	ADIDAS FLAT HANGER	PCS	$50.00	$63.00	20	0
+377	RE-FASTPACK	PCS	$50.00	$60.00	20	0
+782	ROPE #16	PCS	$50.00	$63.00	20	0
+948	SLIPPER SEAGULL PLAIN	PCS	$50.00	$65.00	20	0
+4470	PAPER CUP 12 OZ	\N	$50.00	$63.00	20	0
+4504	TOILET BRUSH W/CASE L	PCS	$50.00	$65.00	20	-12
+5347	OHAYO HOSE NOZZLE	PCS	$50.00	$63.00	20	1
+6179	DUSTPAN WITH BRUSH	PCS	$50.00	$65.00	20	-20
+6279	VETO SWITCH SET	PCS	$50.00	$63.00	20	-1
+6510	BROOCH #76	PCS	$50.00	$63.00	20	0
+8066	FILLER KNIFE	PCS	$50.00	$63.00	20	0
+9567	DIONX BROOCH	PCS	$50.00	$65.00	20	3
+9654	SHOPPING BAG WHITE	PCS	$50.00	$65.00	20	50
+85504	SOEN SPANDEX S	PCS	$50.00	$65.00	20	16
+85507	SOEN SPANDEX L	PCS	$50.00	$65.00	20	5
+186579650034	MINI DUSTPAN L	PCS	$50.00	$63.00	20	0
+4800556410034	VALIANT RECORD 300 PAGES	\N	$50.00	$63.00	20	3
+4800556410508	VALIANT SEC LOGBOOK 300P	PCS	$50.00	$63.00	20	1
+4892861871747	WALL DECOR 1018	PCS	$50.00	$63.00	20	0
+12	BOTTLE OPENER	PCS	$50.00	$63.00	21	0
+1345	CANTEEN MANGO SHAKE	\N	$50.00	$50.00	21	-98
+8851316130071	COLLEEN POSTER COLOR SMALL	PCS	$50.00	$63.00	21	0
+197	FRT MELON	PCS	$50.00	$75.00	23	55.520000000000003
+5060	MANGO FOR CANTEEN	PCS	$50.00	$62.00	23	196.5
+9080	FRT MELON FOR CANTEEN	PCS	$50.00	$50.00	23	40
+9982	FRT CHICO BIG	\N	$50.00	$65.00	23	0
+4800361409469	OREO SANDWICH 110ML	PCS	$50.00	$62.00	32	117
+1782016000081	JEDNUTS GUMMY WORM 60S	PCS	$50.00	$63.00	49	0
+4809013300215	KOJIE SAN SOAP 65G 2S	PCS	$50.00	$63.00	54	37
+45698898	DALIA HYAND SANITIZER	PCS	$50.00	$63.00	96	0
+4806502256220	VICTORY YELLOW PAD 90L	PCS	$50.00	$63.00	100	297
+561	ROASTED PEANUT W/ GARLIC	PCS	$50.00	$63.00	107	0
+631	POUCH TRIANGLE	PCS	$50.00	$63.00	107	0
+677	UP BROWN RICE 1KG	PCS	$50.00	$55.00	107	-30.010000000000002
+974	SLIPPER FOR GIRLS	PCS	$50.00	$63.00	107	9
+977	CORNICK ASSTRD	PCS	$50.00	$63.00	107	0
+1037	PO CHARCOAL 250G	PCS	$50.00	$63.00	107	0
+1045	LONG GRAIN RICE 1KG	PCS	$50.00	$55.00	107	0
+1077	DNRADO BRN RICE SPBR100218M 1K	PCS	$50.00	$57.50	107	0
+1094	FRT JACKFRUIT	PCS	$50.00	$62.00	107	5.5
+1116	GUITAR STRING # 4 HARANA	PCS	$50.00	$62.00	107	8
+1477	SULTANA GOLDEN RAISINS 100G	\N	$50.00	$63.00	107	0
+1485	CARANZA POTATO CHIPS	PCS	$50.00	$63.00	107	27
+2024	SPECIAL SINANDOMENG 1KG	PCS	$50.00	$55.00	107	-12
+2053	3A'S SPICY VINEGAR S	\N	$50.00	$63.00	107	0
+2406	SINANTOLAN	PCS	$50.00	$63.00	107	0
+4378	VALENTINE BALLOON	PCS	$50.00	$63.00	107	0
+4586	JUICE STRAINER	\N	$50.00	$63.00	107	-1
+4706	ROMERO'S RED VELVET 100G	PCS	$50.00	$63.00	107	0
+4823	NEW SMALL WALLET POUCH	PCS	$50.00	$63.00	107	0
+4827	NEW SOCKS	PCS	$50.00	$63.00	107	-6
+5315	GARLIC CORNICHICHA CORN	PCS	$50.00	$63.00	107	0
+12665588	TABLEYA BIG	PCS	$50.00	$63.00	107	0
+4800310140566	EB SQUARE LATEX SPONGE	PCS	$50.00	$63.00	107	0
+4800365881087	PRIFOOD SUPER DELIGHT	PCS	$50.00	$63.00	107	179
+4800365881186	PRIFOOD BUTTERSCOTCH BITES	PCS	$50.00	$63.00	107	0
+4806503780212	ICE TOOTHPASTE 150ML	PCS	$50.00	$63.00	107	0
+4809011416109	LLOYD'S BISCOCHO 120G	\N	$50.00	$63.00	107	30
+9917080200194	SOLID CORR PANCIT CANTN 200G	\N	$50.00	$63.00	107	10
+4806526770054	DEL&KATE HEAVY FLOW 8PADS	PCS	$50.00	$62.00	113	48
+112234	BTL PANCAKE 500G	\N	$50.00	$63.00	118	-5
+3016	SW CHICHACORN	PCS	$50.00	$62.00	228	3
+2023	MAGIC NUTS GRANOLA 150G	PCS	$50.00	$63.00	555	26
+1608	CANTEEN CHOCO SHAKE	\N	$50.00	$50.00	578	-32
+1619	CANTEEN SOY MILKY MINE	\N	$50.00	$50.00	578	-33
+1621	CANTEEN SOY COFFE YOURS	\N	$50.00	$50.00	578	-10
+1704	CANTEEN NORI BURGER	\N	$50.00	$50.00	578	-3
+1979	CANTEEN AVOCADO SHAKE	\N	$50.00	$50.00	578	-62
+1980	CANTEEN MELON SHAKE	\N	$50.00	$50.00	578	-25
+1981	CANTEEN GUYABANO SHAKE	\N	$50.00	$50.00	578	0
+1982	CANTEEN BANANA SHAKE	\N	$50.00	$50.00	578	-11
+1983	CANTEEN STRAWBRRY SHAKE	\N	$50.00	$50.00	578	-152
+1984	CANTEEN PEAR SHAKE	\N	$50.00	$50.00	578	0
+1985	CANTEEN DAIRY SHAKE	\N	$50.00	$50.00	578	0
+4902505399213	PLOT FRIXION-PNT 0.5	PCS	$50.00	$63.00	20	0
+750515021242	GRAHAM HONEY SNGLE 250G	PCS	$50.14	$63.00	1	-4
+750515030206	SKYFLAKES GARLIC 250G	PCS	$50.14	$63.00	1	1
+750515030251	SKYFLAKES ONION 250G	PCS	$50.14	$63.00	1	5
+750515030312	MY SAN SKYFLAKES CHEZ250G	PCS	$50.14	$63.00	1	8
+4902430750530	SAFEGUARD FG 180G	PCS	$50.17	$63.00	70	46
+4800888139399	CREAM SILK DMGE CNTRL 90ML	PCS	$50.20	$62.00	36	12
+4800888139405	CREAM SLK DEFENSE 90ML	PCS	$50.20	$60.00	36	14
+4800888139429	CSILK STNDOUT&STRGHT 90ML	PCS	$50.20	$63.00	36	15
+4800888180117	CSILK DRYRESCUE 90ML	\N	$50.20	$63.00	36	4
+4800024013392	DM KETCHUP ORIG 567G	PCS	$50.29	$63.00	29	19
+4800024555069	DLDM SWEET BLND KETCP567G	PCS	$50.29	$63.00	29	17
+4800888181558	SURF POW FABCON BLOSSOM 550G	PCS	$50.35	$63.00	36	89
+4806517320244	GOLDEN SILK PANCIT CNTN 500G	PCS	$50.35	$63.00	113	0
+26000005234	ELMERS WASHABLE GLUE STICK 22G	PCS	$50.40	$63.00	20	0
+8850389115992	MOGU2X LYCHEE&STRAW 320ML	PCS	$50.40	$63.00	53	108
+4804888815086	TOBI MXCANSTYL PNT 120G	PCS	$50.40	$63.00	104	10
+1675	RED PEPPER 100G	\N	$50.40	$63.00	107	-2
+4806512306151	CRISTELA 32003D	PCS	$50.40	$63.00	107	0
+4800024556257	DM ELBOW MACARONI 200G	PCS	$50.41	$63.00	29	0
+4800024556127	ELBOW MACARONI 400G	PCS	$50.42	$63.00	29	13
+4809010639110	MARKY'S OTAP 250G	PCS	$50.50	$63.00	13	100
+126	VGT SITAW	KILO	$50.52	$63.00	23	133.34999999999999
+8445	VGT CAMOTE V	PCS	$50.52	$63.00	23	11.24
+4800014161812	CREAMY DLGHT YGRT STRAW 100G	PCS	$50.59	$63.00	117	0
+4800014161836	CREAMY DELIGHT YGRT MANGO 100G	PCS	$50.59	$63.00	117	0
+750515017641	FITA SPREAD CHEESE 250G	PCS	$50.63	$63.00	1	4
+169	RICE VT DINURADO 1KG	PCS	$50.80	$58.00	98	3954.8600000000001
+4902430837408	PANTENE TOTAL DAMAGE 11 GET 1	PCS	$50.84	$64.00	70	18
+4000	HITOP BOTTLE 400ML	PCS	$51.00	$64.00	20	0
+6315	OROCAN PAIL 10L	PCS	$51.00	$65.00	20	0
+8011	RE-500 FASTPACK	PCS	$51.00	$66.00	20	5
+9556121002344	JULIE'S CHCOMRE SDWCH 160G	PCS	$51.00	$64.00	71	37
+9556121024025	JULIE'S CHS SNDWCH 125G	PCS	$51.00	$64.00	71	37
+1599	RICE RED SINANDOMENG	PCS	$51.02	$56.00	55	0
+1782	VT BROWN RICE 1KG	KILO	$51.02	$56.00	98	-69.239999999999995
+1802	RICE SINANDOMENG UNPOLISHED BR	PCS	$51.02	$56.50	107	0
+4807770120442	VOICE CMBO CHOC 300G	PCS	$51.10	$64.00	1	63
+4807770120794	VOICE STRAWBERRY 250G	PCS	$51.10	$51.00	1	54
+4807770121296	VOICE OVERLOAD 250G	PCS	$51.10	$64.00	1	74
+4807770121692	VOICE CAFE MOCHA 250G	PCS	$51.10	$51.00	1	59
+7622300742171	TIGER ENERGY CHOCO 210G	PCS	$51.10	$64.00	15	0
+7622300743048	TIGER ENERGY VANILLA	PCS	$51.10	$64.00	15	0
+748485401225	ANGEL KREMDENSADA 410ML	PCS	$51.10	$64.00	110	18
+5413	RICE ANGELICA UNPOLISHED 1KL	PCS	$51.14	$56.50	107	-6
+4806512880088	ELLIPS PIXIE 100ML	PCS	$51.25	$64.00	76	3
+4806512881696	ELLIPS CLGN CHARM 100ML	PCS	$51.25	$64.00	76	5
+4806512881719	ELLIPS COLOGNE TEASE 100ML	PCS	$51.25	$64.00	76	5
+739	CERAMIC HTT BOWL	PCS	$51.28	$32.00	107	0
+75051502126	GRAHAM CHOCO 250G	PCS	$51.31	$64.00	1	24
+750515021280	MYSAN GRAHAM CHC 250G	PCS	$51.31	$64.00	1	-21
+4806014001240	GOODLIFE EGG NOODLES 400G	PCS	$51.36	$64.00	53	29
+4804888815147	TOBI MIX-NUTS 120G	PCS	$51.45	$65.00	104	10
+4806512880095	ELIPS COLOGNE 100L	PCS	$51.59	$65.00	76	8
+4806512880101	ELLIPS CLGN PREEPY 100ML	PCS	$51.59	$65.00	76	7
+173	RICE SPECIAL DINURADO 1KG	PCS	$51.60	$58.00	55	-485.25999999999999
+4806020400839	SELECT PARTNER PACK 1L	PCS	$51.65	$65.00	53	0
+2056	HANGER FLAT CLEAR	PCS	$51.67	$67.00	20	66
+4806514870162	TRASH BAG XL	PCS	$51.70	$65.00	107	0
+4806507831798	JUICY PINK ANGELS BLISS 125ML	PCS	$51.75	$65.00	222	3
+4806507835178	JUICY M.PINK SGR FRSTNG 125ML	PCS	$51.75	$65.00	222	3
+4806507835215	JUICY M.BLUE UUAWAY 125ML	PCS	$51.75	$65.00	222	3
+4804880553436	MARCA LEON CANOLA OIL SUP 500M	PCS	$51.79	$60.00	53	60
+4806018401718	LS DREAM DCHOCO350G	PCS	$51.90	$65.00	79	12
+152	FF WHOLEWHEAT BREAD	PCS	$52.00	$65.00	17	393
+155	FF MONGGO LOAF	PCS	$52.00	$65.00	17	0
+1785	FF CHEESE BAR LOAF	PCS	$52.00	$65.00	17	104
+374	WHITE RAG/ ASSRTD	PCS	$52.00	$67.00	20	20
+402	SLIPPER NIKE	PCS	$52.00	$60.00	20	2
+2069	NEW SEASON PAIL	\N	$52.00	$65.00	20	0
+3432	LOGIC SLIPPER W/FLOWER	PCS	$52.00	$68.00	20	-2
+3433	LOGIC LADIES SLIPPER PLAIN	PCS	$52.00	$68.00	20	2
+4456	CI-AK FOR CANTEEN	PCS	$52.00	$52.00	20	0
+4902430399333	PNTNE SHMP DMGE CRE 70ML	PCS	$52.00	$65.00	70	7
+4902430401142	PANTENE SHMPO 70ML	PCS	$52.00	$65.00	70	17
+944	BLUE C4/C3	PCS	$52.00	$65.00	100	0
+758	RICE CLAA BROWN RICE 1KL	PCS	$52.00	$57.00	106	188.41999999999999
+4806501690667	BIG OVEN BROWNIES	PCS	$52.00	$65.00	107	106
+4800166142370	JUNIOR STIK-O STRWBERRY WAFER	PCS	$52.00	$65.00	20	0
+4806506150722	EXTRA PAPER TOWEL2PLY JUMBO	PCS	$52.10	$65.00	77	9
+4809010109170	LAURA'S BUTTER COOKIES 250G	PCS	$52.15	$65.00	71	46
+4809010109972	LAUR'S RAISN CKIES 250G	PCS	$52.24	$65.00	71	19
+4806018400988	LS ASSRTD CUPCAKE 10X12	PCS	$52.25	$52.00	79	66
+4809010626332	LS CHEESECAKE300G	PCS	$52.25	$65.00	79	81
+4800186001329	GOLDEN OATS 400G	PCS	$52.35	$66.00	211	9
+4800024123152	DM FSTA FRT CTAIL432G	PCS	$52.38	$66.00	29	2
+4806030200764	JOLLY COCONUT MILK 400ML	PCS	$52.38	$66.00	53	12
+4902505166457	PILOT G TTECH BLK 0.3	PCS	$52.50	$68.00	20	41
+786	FRT INDIAN MANGO	PCS	$52.50	$66.00	107	77.560000000000002
+4806512305208	CRISTELA 32002B	PCS	$52.50	$68.50	107	0
+4805358651050	MAGNOLIA ALL PRPOSE CRM 250ML	PCS	$52.58	$66.00	117	24
+4800888205919	DOVE BAR WHITE+TOWEL 135G	PCS	$52.65	$66.00	36	0
+845	RICE SUPER DINURADO	PCS	$52.65	$58.00	55	625
+4806501705033	CHAMPION POW SUPRA CLEAN 500G	PCS	$52.75	$66.00	15	72
+4806501705330	CHAMPION POW CTRUS FRSH 500G	PCS	$52.75	$66.00	15	48
+8850006322949	COLGATE SPICY FRESH 50ML	PCS	$52.80	$66.00	63	0
+8850006325049	COLGATE TRPLE ACTN 50ML	PCS	$52.80	$66.00	63	0
+4800137365326	MAYA HOTCAKE MIX ORIG 500G	PCS	$52.81	$66.00	117	24
+4806014096024	JOLLY PAPPLE TIDBITS 567G	PCS	$52.84	$66.00	20	11
+4806014096338	JOLLY PINEAPPLE CHNKS 567G	PCS	$52.84	$66.00	53	13
+316	HI-TOP BASIN #316	PCS	$53.00	$66.00	20	0
+20118	UP BROWN RICE-ORGANIC 1KG	\N	$53.00	$59.00	120	8.9600000000000009
+4800888205902	DOVE BAR PINK+TOWEL 135G	PCS	$53.20	$67.00	36	0
+8717163616444	DOVE SOAP BAR WHITE 135G	PCS	$53.20	$67.00	36	24
+8717163616468	DOVE PINK 135G	PCS	$53.20	$67.00	36	67
+4806507831064	SILKA PAPAYA WHTNG LOTION 100M	PCS	$53.25	$67.00	107	4
+4800024579997	DM SWEET STYLE SPAG 500G	PCS	$53.28	$67.00	29	12
+4800024580009	DM ITALIAN STYLE SPAG 500G	PCS	$53.28	$67.00	29	12
+4800120006304	TABLE TISSUE 4 CANTEEN	PCS	$53.40	$53.40	87	0
+6675	EM 03GS HANGER	PCS	$53.40	$66.75	107	0
+4800011501185	MAMA'S LOVE COTTON 200'S BALLS	PCS	$53.45	$67.00	40	3
+4800030001482	SUNSHINE CARBONARA 1KG	PCS	$53.50	$67.00	53	20
+4800575120303	ALSK SWT CNDNS300ML	PCS	$53.53	$67.00	19	106
+6921211108290	MENTOS PEPPERMINT 35G	PCS	$53.60	$67.00	67	12
+6921211108764	MENTOS SPEARMINT 35G	PCS	$53.60	$67.00	67	24
+4800888201638	DOVE SE ENGRAVED 100G	PCS	$53.65	$67.00	36	32
+4809013191615	SWT SMPLOC 50'S	PCS	$53.75	$67.00	105	25
+4800575884007	ALPINE EVAP CRM MLK370ML	PCS	$53.80	$67.00	19	30
+4902430426329	BONUX POW FFIESTA 800G	PCS	$53.81	$68.00	70	0
+4902430440073	BONUX POW LAVLMN 700G	PCS	$53.81	$68.00	70	6
+4902430623186	BONUX LAU POW 700G	PCS	$53.81	$67.00	70	6
+4800060254605	JOY EXTRA 2PLY 4ROLLS	PCS	$53.91	$68.00	28	4
+4804888555395	ONION & GARLIC 400G	PCS	$54.00	$68.00	15	0
+3035	OMNI 3GANG WSO-003	PCS	$54.00	$70.00	20	-2
+3431	HELLO KTTY LADIES SLPPR M	PCS	$54.00	$70.00	20	3
+6965463126268	PENCIL CASE #2626	PCS	$54.00	$68.00	20	0
+704	VGT ONION RED SM	PCS	$54.00	$73.00	23	0
+4806018405532	LS BUTTERSCOTCH 350G 10S	PCS	$54.00	$68.00	79	0
+4806018405662	LS LVACKE MSTCHOCCK 420G	PCS	$54.00	$68.00	79	18
+4806018406386	LAVA CAKE CHOCO 420G	PCS	$54.00	$67.00	79	46
+4809010626349	LS BROWNIES350G	PCS	$54.00	$68.00	79	0
+1890	EVEREADY D-SIZE R20S 2PCS BLAC	\N	$54.00	$67.00	86	0
+654	RICE PREMIUM DINURADO 1KL	PCS	$54.00	$61.00	95	1065.9200000000001
+192	VGT N PECHAY	PCS	$54.16	$68.00	23	86.700000000000003
+4800040351317	FIBISCO CHOCO CRUNCHIES 200G	PCS	$54.20	$68.00	117	48
+8888021100013	D BLCK 1250BP2	PCS	$54.25	$68.00	86	0
+4800016783579	EL REAL PASTA 1KG	\N	$54.29	$68.00	76	0
+4800016787010	EL REAL SPAGHETTI 1KG	PCS	$54.29	$68.00	76	19
+4902430671804	HS COOL MNTHOL 11 GET 1	PCS	$54.31	$68.00	70	12
+4800024562432	DM SPAG SAUCE SWT STYLE 560G	PCS	$54.38	$68.00	28	0
+4893049000416	CHIPS AHOY 142.5G	PCS	$54.40	$68.00	20	0
+4806512309848	CRISTELA FC001	PCS	$54.50	$54.50	61	84
+4480	VETO SWITCH SET	PCS	$54.50	$69.00	107	0
+5010238017300	NSTL TOBLERONE STICK 100ML	\N	$54.54	$68.00	8	18
+8999999504502	MAGNUM RED VELVET 80ML	PCS	$54.55	$68.00	9	0
+8999999524142	MAGNUM HAZELNUT LUXE EX 80ML	PCS	$54.55	$69.00	9	24
+4800361015375	NSTL OREO STICK 110ML	PCS	$54.55	$68.00	32	0
+4902430721011	HS SMOOTH&SLKY BUY 11 GET 1	PCS	$54.55	$68.00	70	14
+4803746880396	WHITE DOVE BABY OIL 100ML	PCS	$54.65	$90.00	107	0
+4809013191646	SPCY SMPLC 50'S	PCS	$54.75	$68.00	105	22
+3901	PANTENE 3MMHFC BUY 12GET1	\N	$54.98	$69.00	70	6
+3902	PANTENE 3MMTDC BUY12GET1	\N	$54.98	$69.00	70	8
+188	DAN ERICS 1 PINT	PCS	$55.00	$69.00	6	363
+4809010639318	MARKY'S EGG CRKLTS GAL250G	PCS	$55.00	$69.00	13	56
+4800092551291	FUDGEBAR MILK 10S	PCS	$55.00	$69.00	15	0
+4800092551451	FUDGE MACAPUNO 10S	PCS	$55.00	$69.00	15	0
+4800092552090	FUDGEBAR COMBO 10S	PCS	$55.00	$69.00	15	0
+389	AUP VEG GLUTEN 500G	PCS	$55.00	$69.00	17	280
+865	FASHION SANDALS	PCS	$55.00	$69.00	20	0
+936	BOSTIK RUGBY 300ML	PCS	$55.00	$72.00	20	-6
+5345	LED ESLS	PCS	$55.00	$69.00	20	0
+6174	HANGER ROUND CLEAR	PCS	$55.00	$72.00	20	-20
+8012	RE-650 FASPACK	PCS	$55.00	$72.00	20	3
+8901	STRAW TIE B	PCS	$55.00	$68.75	20	0
+10549	IBP WHITE CORN GRITS	PCS	$55.00	$68.75	20	0
+60821	LINEN PT-M	PCS	$55.00	$69.00	20	0
+229242	YALE PADLOCK 30MM	PCS	$55.00	$72.00	20	0
+4800104089958	EXCEL RUGBY 300ML	PCS	$55.00	$69.00	20	28
+4902505397066	PLOT FRXION-P #0.4A	PCS	$55.00	$72.00	20	22
+8699868126322	LED BULB XQG 7W	PCS	$55.00	$69.00	20	0
+1019	VGT SPROUT	PCS	$55.00	$72.00	23	-2
+8992959107560	SOFTEX PANTY LINER 20'S	PCS	$55.00	$69.00	26	0
+26000005159	ELMERS GLUE STICK 22G	PCS	$55.00	$69.00	37	0
+3641	EM KIT POUCH	PCS	$55.00	$55.00	41	10
+626	FLOURISH GLASS CANDLE M.	PCS	$55.00	$69.00	49	2
+4809010997098	CHOYO WAFER STCK CHOCO 500G	PCS	$55.00	$69.00	53	48
+2777	CONDOR TOMATO	PCS	$55.00	$55.00	60	8
+3289	CONDOR CUCUMBER	PCS	$55.00	$55.00	60	32
+5187	CONDOR EGGPLANT	PCS	$55.00	$55.00	60	12
+6170	CONDOR AMPALAYA	PCS	$55.00	$55.00	60	3
+6349	CONDOR PEPPER PNG	PCS	$55.00	$55.00	60	35
+4800110068916	ROYAL PREMIUM SALAD MAC 1KG	PCS	$55.00	$69.00	92	0
+4806021384343	TAPE DISPENSER MDM	PCS	$55.00	$69.00	100	5
+4902505139314	PILOT G-TEC 0.4 BLGC4	PCS	$55.00	$69.00	100	153
+4902778024744	UNIBALL SP BLACK	PCS	$55.00	$69.00	100	0
+4902778744772	UNI BALL GEL IMPCT	PCS	$55.00	$69.00	100	0
+514	MALUNGGAY SALT	PCS	$55.00	$70.00	107	0
+730	ZIPPER 1S	PCS	$55.00	$12.00	107	0
+1764	ESCOBIDO'S SQUASH SEED	PCS	$55.00	$69.00	107	0
+1801	ATSARA	\N	$55.00	$69.00	107	-12
+2021	MIKKO BANANA CRACKERS 200G	PCS	$55.00	$69.00	107	0
+8096	BUCAYO CON	PCS	$55.00	$69.00	107	0
+718	CHOCO WHEATSTICK 130G	PCS	$55.00	$69.00	117	0
+1001142	BTL SOY COFFEE ROASTED	PCS	$55.00	$69.00	118	234
+3013	SW PEANUT CRACKER	PCS	$55.00	$69.00	228	1
+3014	SW GUMMY BANANA	PCS	$55.00	$69.00	228	3
+3023	SW SUNFLOWER SEEDS	PCS	$55.00	$69.00	228	0
+1701	CANTEEN LEMON CUCMBER SHAKE	\N	$55.00	$55.00	578	0
+1702	CANTEEN IMMUNITY BOOST SHAKE	\N	$55.00	$55.00	578	-2
+1703	CANTEEN BETTY BURGER	\N	$55.00	$55.00	578	0
+1986	CANTEEN CHOCONANA SHAKE	\N	$55.00	$55.00	578	-10
+4800888154316	DOVE SHAMPOO STRT&SLKY 80ML	PCS	$55.05	$69.00	36	0
+4800361061322	NESTLE ALL PURPOSE CRM 250ML	PCS	$55.14	$69.00	14	177
+4800092553233	FUDGEE BAR DARK CHOCO 10S 380G	PCS	$55.20	$69.00	15	70
+19195	DRGN FRUIT VINEGAR 1L	PCS	$55.20	$69.00	20	0
+229237	YALE PADLOCK 30MM	PCS	$55.20	$69.00	20	0
+1245477778	FIREFLY FLRSCNT 40W	\N	$55.20	$69.00	20	7
+4809011001152	MERT BREADING	PCS	$55.20	$25.00	20	27
+794	LA PRIMA MALUGAY STICK 130G	PCS	$55.20	$69.00	107	0
+4800092550911	FUDGEE BARR CHOCO 410G	PCS	$55.21	$69.00	117	80
+891	STEEL BRUSH	PCS	$55.22	$61.00	107	36
+4800024012395	DM PINEAPPLE TIDBITS ELS	PCS	$55.24	$69.00	29	6
+4806018405792	LS LAVA CAKE BAVARIAN380G	PCS	$55.25	$69.00	79	38
+4806018406058	LS LAVA CAKE DUTHC 380G	PCS	$55.25	$55.00	79	40
+4806018406072	LS LAVA CAKE UBE QUESO 380G	PCS	$55.25	$55.00	79	32
+3900	PANTENE HFC BUY12 GET1 FREE	\N	$55.49	$70.00	70	26
+19	CVI FROZEN VEG BURGER 500G	PCS	$55.50	$70.00	4	0
+4806018403484	LS WHATTA TOPS VNLLA 350G	PCS	$55.50	$55.00	79	24
+4806018403727	LS WHATTATOPS CHOCO 350G	PCS	$55.50	$69.00	79	18
+4806018403729	LS WHTTOPS CHLT 350G	PCS	$55.50	$55.00	79	18
+4806018403842	LS WHTTOPS MLKYCHS 350G	PCS	$55.50	$55.00	79	24
+119	VGT POTATO	PCS	$55.55	$69.00	23	144.16
+516	VGT CAMOTE Y	PCS	$55.55	$69.00	23	170.09999999999999
+5414	RICE DINURADO UNPOLISHED 1KL	PCS	$55.89	$62.00	107	-25.539999999999999
+46	CAMEL CASEROL #28	PCS	$56.00	$276.00	20	2
+947	SLIPPER BASIC RAMBBO	PCS	$56.00	$70.00	20	0
+3420	LOGIC LADIES SLIPPER M	PCS	$56.00	$73.00	20	3
+7054	RX DOG CHAIN	PCS	$56.00	$70.00	20	2
+3829	EM LW POSTER W/ HANGER	PCS	$56.00	$56.00	41	12
+3830	EM 5LP LONG POSTER W/ HANGER	PCS	$56.00	$56.00	41	1
+4800030270208	AUSTRALIA HRVSTQUICKOATS 500G	PCS	$56.00	$70.00	104	0
+678	BROWN RICE DINURADO 1KG	PCS	$56.00	$62.00	107	0
+976	CHOCO COOKIES	PCS	$56.00	$70.00	107	0
+8945	MALUNGGAY SALT	\N	$56.00	$70.00	107	0
+21841	CAMINO SLPPRS	PCS	$56.00	$70.00	107	17
+4801981109210	MINUTE MAID PLPY 4-SSONS 1L	PCS	$56.00	$70.00	211	0
+41800319008	WELCH GRAPE JUICE 10OZ	PCS	$56.25	$71.00	53	0
+1117	GUITAR STRING #5 HARANA	PCS	$56.25	$70.00	107	13
+1118	GUITAR STRING #6 HARANA	PCS	$56.25	$70.00	107	6
+7823651293415	WHISPER SPRCLNDRY 16PAD	PCS	$56.45	$71.00	70	0
+4806030202201	JOLLY CANOLA OIL SUP 500ML	PCS	$56.46	$65.00	53	48
+4800014700028	ABSOLUTE WATER 4000ML	PCS	$56.50	$71.00	19	128
+4800030280207	ASTRLL INSTNT OATS 500G	PCS	$56.50	$71.00	104	0
+4800194113601	OISHI WAFU CHOCO 14GX12X20	PCS	$56.65	$71.00	10	24
+4800194185059	OISHI WAFU CHEESE 14GX12X20	PCS	$56.65	$71.00	10	24
+4800888152916	PEPSODENT CFIGHTER 190G	PCS	$56.65	$71.00	36	36
+4800047841705	ZONROX COLORSAFE 900ML	PCS	$56.67	$71.00	117	24
+4809010639219	MARKY'S ROSQUIL300GM	PCS	$56.75	$71.00	13	62
+4806516213035	SWEET BABY PREM. WIPES	PCS	$56.75	$71.00	20	13
+4800042112510	EVEREADY D-SIZE R20 1.5V BLACK	\N	$56.75	$71.00	86	0
+4804880553122	MARCA LEON VGT OIL500ML	PCS	$56.92	$71.00	53	12
+4800473000011	ROGER'S REALEGGY MAYO 225ML	PCS	$56.95	$71.00	113	24
+2132110	LAUNDRY BASKET	PCS	$57.00	$57.00	20	0
+4807770121425	MONDE SPCLMMN CHCFIL 192G	PCS	$57.00	$71.00	20	0
+1006	ZINC ALLOY SLDNG GLSSDR LCK #1	PCS	$57.20	$73.00	20	0
+4800888203731	SURF FRESH 61G 12+2	\N	$57.20	$71.00	36	0
+4806030200771	JOLLY COCONUT CREAM 400ML	PCS	$57.32	$77.00	53	12
+4804888322102	CVI FROZEN VEGE BURGER 500G	PCS	$57.50	$72.00	4	126
+4806018403866	LS CHOOCHOO CHVAN380G	PCS	$57.50	$57.00	79	61
+4806018403880	LS CHOCHO CHZMLK380G	PCS	$57.50	$57.00	79	60
+4806018405815	LS WHATTATOPS C&CREAM 360G	PCS	$57.50	$57.00	79	44
+4806018405891	LS WHATTA TOPS MANGO GRHM350G	PCS	$57.50	$57.00	79	30
+4806018406164	LS WHTTOPS RCKYRD 350G	PCS	$57.50	$57.00	79	27
+750515030275	SKYFLAKES FIT OATFIBR 250G	PCS	$57.54	$72.00	1	3
+750515030299	SKYFLAKES FIT OMEGA3 250G	PCS	$57.54	$72.00	1	5
+331	VARONA VEGE BRAISED	PCS	$57.60	$72.00	18	24
+3410	GARLIC POWDER 100G	PCS	$57.60	$72.00	20	-1
+1674	YELLOW GINGER 100G	\N	$57.60	$72.00	107	-3
+4809010109347	LAURA'S EGG CRCKLTS 250G	PCS	$57.75	$72.00	71	81
+4800042112367	EVEREADY C-SIZE R14 1.5V	PCS	$57.75	$72.00	86	8
+4806026321619	QUAKER INSTANT 400G +2MILK	PCS	$57.75	$72.00	117	22
+6077	PHOTO FRAME T31468	PCS	$57.82	$72.00	778	1
+8850389810052	MOGU MOGU BUNDLE 320ML	PCS	$58.00	$70.00	7	0
+148	FF PANDESAL	PCS	$58.00	$73.00	17	48.380000000000003
+3429	TT-FLOP LADIES SLIPPER	PCS	$58.00	$76.00	20	4
+3434	NIKE LADIES 1STRAP	PCS	$58.00	$76.00	20	-1
+137	FRT LAKATAN	PCS	$58.00	$72.00	23	266.48000000000002
+733	NAIL CLIPPER B	PCS	$58.00	$25.00	107	0
+4806527242574	KOJIC SAKAURA WHTENING 135G	PCS	$58.00	$72.00	145	36
+4800024012418	DM PINE CHUNKS ELS	PCS	$58.10	$73.00	29	30
+3	EM BMK	PCS	$58.40	$15.00	107	0
+4800060080808	PURITY COTTON BUDS	PCS	$58.46	$73.00	20	13
+4804880221519	BAGUIO OIL PET 500ML	PCS	$58.58	$67.00	117	48
+4800552888882	CHIPS DELGHT BAON PACK 226G	PCS	$58.67	$74.00	104	0
+4902430430869	HEAD N SHLDR ULTRA MEN 70ML	PCS	$58.72	$73.00	70	0
+4902430507516	H&S MEN COOL BLST 70ML	PCS	$58.72	$74.00	70	18
+4902430807043	HEAD N SHLDER 70ML	PCS	$58.72	$73.00	70	0
+1830	CRUSHED ICE GALATINA	PCS	$58.80	$58.80	33	5
+4800094097315	MINOLA OIL POUCH 485ML	PCS	$58.95	$74.00	117	24
+4804888322140	CVI FROZEN CHOPLETS 500G	PCS	$59.00	$74.00	4	90
+7000	HITOP BOTTLE 700ML	PCS	$59.00	$77.00	20	-21
+1341	FRT LAKATAN DI TUBOG	PCS	$59.00	$74.00	23	20
+3632	EM BLISS SERIES E	PCS	$59.00	$59.00	41	-1
+463	VT STICKY RICE 1/2KL	PCS	$59.00	$34.00	55	0
+4806512305413	1707 9-12 BLACK	PCS	$59.00	$77.00	61	0
+4800147200709	ZIM LQD ZOSA 500ML	PCS	$59.00	$74.00	77	17
+4800110093888	SLCT FORTFIED FLLED MILK 1L	PCS	$59.00	$74.00	92	0
+4809013293609	CRYSTL WHT SKNWHTNING SOAP 90G	PCS	$59.00	$74.00	104	0
+4803746880488	WHITE DOVE BABY MILK SOAP	PCS	$59.00	$74.00	107	0
+93443128	LISTERINE COOL MINT 80ML	PCS	$59.15	$74.00	69	0
+8935001710622	MENTOS FRESH MINT 52.5G	PCS	$59.65	$75.00	67	6
+4806512308988	CRISTELA F009-A-F	PCS	$59.75	$59.75	61	228
+4806506313981	CHERUB BABY WIPES 50'S	PCS	$59.75	$75.00	77	6
+4808680653150	BSTFOODS PNTBTTR 170G	PCS	$59.85	$75.00	36	12
+4800361002844	NESTLE CORNFLAKES 150G	PCS	$59.93	$75.00	117	36
+8801382127789	WOONGJN DR.ALOE 500ML	PCS	$60.00	$75.00	11	973
+8801382137917	WOONGJIN MANDARIN 500ML	PCS	$60.00	$75.00	11	295
+160	AUP VEGE BURGER 500G	PCS	$60.00	$75.00	17	44
+161	AUP VEGE LONA 500G	PCS	$60.00	$75.00	17	730
+162	AUP VEGE MEAT 500G	PCS	$60.00	$75.00	17	877
+4800110033402	FIESTA SPAGHETTI PASTA1KG	PCS	$60.00	$75.00	19	27
+53	ORIENTAL L.BASKET #307	PCS	$60.00	$75.00	20	3
+609	LAUNDRY BASKET NO.1115	PCS	$60.00	$75.00	20	0
+818	PITCHER #818	PCS	$60.00	$75.00	20	0
+843	GI WIRE #24	\N	$60.00	$78.00	20	11
+874	NOTEBOOK CATTLEYA BIG	PCS	$60.00	$75.00	20	-25
+1082	PASSPORT HOLDER	PCS	$60.00	$75.00	20	0
+1380	HAIRNET #85 12S	PCS	$60.00	$78.00	20	10
+3428	NIKE MEN 1 STRAP	PCS	$60.00	$78.00	20	4
+6079	SUNSPORT BASKETBALL NYLON	\N	$60.00	$78.00	20	0
+9655	SHOPPING BAG GRAY/BLACK	PCS	$60.00	$78.00	20	25
+90901	NIKE LADIES STRAP	PCS	$60.00	$75.00	20	0
+4806506930911	ACACIA P& PPR  A-4 200GSM	PCS	$60.00	$78.00	20	5
+76	AUP KEYCHAIN T	PCS	$60.00	$75.00	21	0
+4806509930178	YAKULT LIGHT 80MLX5	PCS	$60.00	$60.00	30	0
+733586455154	SCRIPTI TAPE FLAGS	PCS	$60.00	$75.00	37	1
+4800132504218	CRISTELA FACE MASK	PCS	$60.00	$60.00	61	24
+4902505087813	PILOT MARKER INK BLUE	PCS	$60.00	$75.00	63	0
+4800037111047	GILLETE RUBIE BLADE 5+1 PCS	PCS	$60.00	$75.00	70	40
+18834	EDNAS CRSPY PINIPIG	\N	$60.00	$75.00	75	0
+154682468753	GP FABCON 1L	PCS	$60.00	$75.00	75	1
+154682468757	GP DISHWASHING LIQD 1.5L	PCS	$60.00	$75.00	75	0
+154682468758	GP DISWASHNG LQD YELLW 1.5L	PCS	$60.00	$75.00	75	0
+12501	MC CODY CURRY POW 250G	PCS	$60.00	$75.00	84	7
+351011	PHOTO PAPER A4 SET	PCS	$60.00	$75.00	100	0
+548	EM WALLET	PCS	$60.00	$75.00	107	0
+549	WALLET HKITTY RCTNGL	PCS	$60.00	$75.00	107	0
+781	FRT PEANUT RAW	PCS	$60.00	$81.00	107	0
+921	AHAVA TUMERIC 7IN1 200G	PCS	$60.00	$75.00	107	0
+923	CAYENNE MASSAGE OIL	\N	$60.00	$75.00	107	0
+975	SLIPPER BOYS	PCS	$60.00	$75.00	107	0
+1070	FRT LEMON S	PCS	$60.00	$75.00	107	0
+1079	ANGELICA BR VAC PCKD	PCS	$60.00	$69.00	107	0
+1481	VEGAN'S VIM WALNUTS 100G	\N	$60.00	$75.00	107	1
+1627	CONDEMENT ORGANIZER	\N	$60.00	$60.00	107	-1
+1781	PINIPIG PEANUT	PCS	$60.00	$75.00	107	0
+2025	ANTONIO'S MANGO GUMMY	PCS	$60.00	$75.00	107	0
+2026	ANTONIO'S GUMMY BEAR	PCS	$60.00	$75.00	107	0
+2027	ANTONIO'S JELLY BEAN	PCS	$60.00	$75.00	107	0
+2028	ANTONIO'S SQUASH SEEDS	PCS	$60.00	$75.00	107	4
+2029	ANTONIO'S PAKWAN SEEDS	PCS	$60.00	$75.00	107	13
+2048	VEN LONGGANISA	\N	$60.00	$75.00	107	0
+2052	3A'S SPICY VINEGAR M	\N	$60.00	$75.00	107	0
+2100	AHAVA RICE BRAN 140G	PCS	$60.00	$75.00	107	15
+2411	AHAVA RICE COFFEE 200G	PCS	$60.00	$75.00	107	0
+4562	MUSHROOM CRACKERS 100G	PCS	$60.00	$75.00	107	0
+4750	LESSON QUARTERLY 2017	PCS	$60.00	$60.00	107	0
+4821	NEW SOFT POUCH	PCS	$60.00	$75.00	107	0
+5657	SPECIAL MIKI LCBAN 500G	PCS	$60.00	$75.00	107	0
+8975	BTL BLACK PEPPER 100G	PCS	$60.00	$75.00	107	16
+12120114	GINGER TEA	PCS	$60.00	$75.00	107	0
+154682468754	GP LAUNDRY SOAP 1KG	PCS	$60.00	$75.00	107	6
+4800310112587	CARELINE LIPBALM (STRAWBERRY)	PCS	$60.00	$75.00	107	0
+4804888804240	MAMA SITAS OYSTER SAUCE 405ML	PCS	$60.00	$95.00	107	0
+4806519890042	KOJIC ACID ROYALE 135G	PCS	$60.00	$75.00	107	0
+4800186001268	GOLDEN OATS WLGRAIN400G	PCS	$60.00	$75.00	211	10
+21458	D'R HERBARICE W/ SERPENTINA 80	PCS	$60.00	$75.00	500	0
+1605	CANTEEN HALO-HALO REGULAR	\N	$60.00	$60.00	578	0
+1614	CANTEEN PIZZA ALOHA	\N	$60.00	$60.00	578	-44
+1615	CANTEEN PIZZA GARDEN FRESH	\N	$60.00	$60.00	578	-52
+1616	CANTEEN RAMEN	\N	$60.00	$60.00	578	-45
+1710	CANTEEN PIZZA	\N	$60.00	$60.00	578	-8
+4800060172008	JOY KTCHEN TOWEL 2PLY	PCS	$60.67	$76.00	28	6
+78895128789	LEE KUM KEE SOY SAUCE 500ML	PCS	$60.76	$76.00	110	9
+7852	DISH DRAINER M	PCS	$60.80	$76.00	20	0
+3040	STORAGE BOX #1996	PCS	$61.00	$80.00	20	0
+4800030013300	IDEAL SPAG	PCS	$61.00	$80.00	20	50
+122	VGT CALAMANSI	PCS	$61.11	$76.00	23	100.25
+4800094037144	MINOLA OIL PLASTIC 485ML	PCS	$61.16	$76.00	117	24
+321	VARONA SAUSAGE	PCS	$61.20	$76.00	18	43
+4800552888158	CHPS DLGHT STRCHCHCKS 175G	PCS	$61.25	$77.00	104	20
+8005391104438	CMPGN SPGETTI PSTA 500G	PCS	$61.28	$77.00	20	0
+4800888127112	VASELIN ALOE SOOTHE 100ML	PCS	$61.35	$77.00	36	0
+4800888127204	VASELINE INTENSVE LOTION 100ML	PCS	$61.35	$77.00	36	6
+7622210340160	EDEN SANDWICH SPREAD 220ML	PCS	$61.50	$77.00	15	0
+4902505088292	PILOT MARKER REFILL INK 30ML	PCS	$61.60	$77.00	20	159
+4800473001148	ROGER'S TRU-MAYO 470ML	PCS	$61.60	$77.00	113	0
+4800888602299	LADY'S SANDWCH SPRD DOY 220ML	PCS	$61.67	$77.00	36	24
+4710032503078	JB WIPES SKINCARE 20S	PCS	$61.75	$77.00	69	4
+8850007790020	JB WIPES SKINCARE 20S	PCS	$61.75	$77.00	69	7
+4800042112169	EVRDY SPR H&DTY AA-4 1215BP4	PCS	$61.75	$77.00	86	21
+4800110006246	WHITE KNG MAPLE SYRUP 400G	PCS	$61.75	$77.00	92	0
+8993417390111	ESKULIN SHMP&CNDTNR 100ML	PCS	$61.80	$77.00	76	7
+8993417390128	ESKULIN SHMP&CONDTNR 100ML	PCS	$61.80	$77.00	76	6
+8993417390135	ESKULIN SHMP&CNDTNR 100ML	PCS	$61.80	$77.00	76	5
+4805358702448	MAGNOLIA CLSSC CHOCO 425ML	PCS	$61.85	$77.00	115	19
+4805358703445	MAGNOLIA CLSSC VANILLA 425ML	PCS	$61.85	$77.00	115	17
+4805358704442	MAGNOLIA CLSSC UBE 425ML	PCS	$61.85	$77.00	115	14
+4806524580037	B-CARE C.BALLS 300'S	PCS	$61.91	$77.00	67	12
+4801010194002	BAND-AID ANTI-SEPTIC 50 STRIPS	PCS	$61.92	$81.00	69	0
+4801981164707	WILKINS DSTLLDWATER 5000ML	PCS	$61.95	$78.00	15	0
+4804888322027	CVI FROZEN MEAT 500G	PCS	$62.00	$78.00	4	205
+804	LOGIC SANDAL	PCS	$62.00	$78.00	20	0
+3437	NIKE MEN 1STRAP (ABA)	PCS	$62.00	$81.00	20	0
+2020	RICE MALAGKIT ORDINARY 500G	PCS	$62.00	$69.00	55	0
+1075	HEIRLOM RED RICE 1KG	PCS	$62.00	$71.50	107	0
+4538020000022	ROMERO'S DRIED PINEAPPLE	PCS	$62.00	$77.50	107	0
+4902430335065	WHSPER 16PADS W-WNGS 23CM	PCS	$62.08	$78.00	70	30
+4801688881419	RGNT ASSTD CAKE 10S	PCS	$62.10	$78.00	15	0
+8801038566207	DORCO SD507 SHAVE 5 PACK	\N	$62.10	$78.00	20	0
+918	HAVAIANAS SLPPER	PCS	$62.40	$63.00	20	0
+101000	RE-1000 FASPACK	PCS	$62.40	$78.00	20	0
+4806512309398	CRISTELA CSMA-02	PCS	$62.40	$78.00	107	0
+4800010075526	CREAM-O VANLLA 300G	PCS	$62.45	$78.00	15	0
+4800010075564	CREAM O CHOCO FUDGE 300G	PCS	$62.45	$78.00	15	0
+4902430452953	DOWNY LQD ANTIBC 330ML	PCS	$62.48	$78.00	70	11
+4902430452724	DOWNY FABRIC. GRDEN BLM 400ML	PCS	$62.48	$78.00	20	6
+4902430972260	DOWNY FABRIC. SNRISE FRESH 400	PCS	$62.49	$78.00	70	11
+1472	FRT MANGO CANTEEN HILAW	PCS	$62.50	$78.00	23	16
+4892642101926	OREO CHOCO 12X9X29.4G	PCS	$62.73	$79.00	19	96
+4892642103098	OREO STRAWBRY CRM 12X9X29.4G	PCS	$62.73	$79.00	19	0
+4893049150012	OREO VANILLA 12X19X29.4G	PCS	$62.73	$79.00	19	12
+11	CVI FROZEN GLUTEN TOCINO 500G	PCS	$63.00	$79.00	4	21
+214	FF LRT	PCS	$63.00	$79.00	17	219.96000000000001
+7500	RE-750 FASPACK	PCS	$63.00	$82.00	20	0
+127	VGT TOMATO	PCS	$63.15	$79.00	23	180.72999999999999
+1208	VGT SIGARILYAS	PCS	$63.15	$79.00	23	26.649999999999999
+4800011121536	CASINO  ANTIDISINFECTANT 500ML	PCS	$63.35	$79.00	40	16
+4800361017300	NSTL TOBLERONE STICK 100ML	PCS	$63.64	$80.00	32	0
+4806014001158	JOLLY FRUIT COCKTAIL 850G	PCS	$63.70	$80.00	53	12
+4800034011357	HAPEE TP WHT 100ML	PCS	$63.75	$80.00	15	13
+4800034011555	HAPEE TP SRGE	PCS	$63.75	$80.00	15	17
+4800047840050	ZONROX ORIG 1892ML	PCS	$63.90	$80.00	53	36
+14	DALISAY BASIN #14	PCS	$64.00	$80.00	20	0
+985	HAVAINAS LADIES THICK	PCS	$64.00	$80.00	20	0
+931	JEDNUTS SPECIAL POLVORON	PCS	$64.00	$80.00	49	0
+4800014707515	SUMMIT 6L	PCS	$64.00	$80.00	53	6
+4809013300468	KOJIE SAN DRM WHTE SOAP 65G	PCS	$64.00	$80.00	54	0
+4589	MINDORO RED RICE 1KL	\N	$64.00	$72.00	107	-14.5
+7891000120101	NESTLE ALL PURPOSE CREAM 300G	PCS	$64.49	$81.00	14	23
+4902430624541	PNTNE CONDTNR TOTLDMGECRE 70ML	PCS	$64.51	$81.00	70	4
+4902430490399	SECRET SHRDRY 14G	PCS	$64.53	$81.00	70	0
+4800011121567	ETHYL ALCOHOL 70%FEMME 500ML	PCS	$64.60	$81.00	40	17
+4800361381222	MILO ACTIVE GEN 220G	PCS	$64.75	$81.00	15	0
+1662	DELTA OULTET SOTU2	PCS	$64.75	$82.00	20	0
+4806014099612	JOLLY MATE CAN OIL 500ML	PCS	$64.77	$74.00	53	36
+48060140996124	JOLLY CANOLA OIL PET 500ML	PCS	$64.77	$74.00	53	48
+4809010109309	LAURA'S EGGCRKLTBAG 30'S	PCS	$64.85	$81.00	71	23
+4804888322089	CVI VEGEFRANKS 350G	PCS	$65.00	$81.00	4	184
+4804888322126	CVI VEGEBURGER 375G	PCS	$65.00	$81.00	4	239
+95560070018	SOYFRESH STRWBRRY 1L	PCS	$65.00	$82.00	5	0
+955600700365	SOYFRESH CHOCOLATE 1L	PCS	$65.00	$82.00	5	0
+955600700518	SOYFRESH STRWBRRY 1L	PCS	$65.00	$82.00	5	0
+9556007000365	S-F SOYA MILK 1L	PCS	$65.00	$82.00	11	117
+9556007000457	SF SOYA MLK CHOCO 1L	PCS	$65.00	$82.00	11	133
+9556007000518	SOYFRESH STRWBRRY 1L	PCS	$65.00	$81.00	11	48
+9556007000556	SOY FRESH W CALCIUM 1L	PCS	$65.00	$82.00	11	36
+224	FF SOY COFFEE	PCS	$65.00	$81.00	17	44
+89	HANFORD MENS BRIEF	PCS	$65.00	$81.00	20	0
+322	FLAMINGO CARRY ENVLP 322	PCS	$65.00	$82.00	20	0
+613	NAIL #2-1/2	PCS	$65.00	$82.00	20	4
+659	NAIL #2-1/2	PCS	$65.00	$85.00	20	160
+660	NAIL #3	PCS	$65.00	$85.00	20	5.6600000000000001
+661	NAIL #5	PCS	$65.00	$81.00	20	0
+3423	SANDUGO MEN SLIPPER	PCS	$65.00	$85.00	20	0
+3425	HAVAIANAS MEN SLIPPER COLOR	PCS	$65.00	$85.00	20	-2
+3439	LOGIC SLIPPER W/FLOWER M	PCS	$65.00	$85.00	20	-8
+3453	SEAGULL SLIPPER MSX	PCS	$65.00	$85.00	20	0
+20129	NAIL #1	PCS	$65.00	$85.00	20	4.0499999999999998
+1254545	ABACA MATT	PCS	$65.00	$82.00	20	0
+2000000000322	FLAMINGO CARRY ENVLP 322	PCS	$65.00	$82.00	20	0
+6900245451190	CHAIMOIS BIG	PCS	$65.00	$82.00	20	0
+21002000000000	FLAMINGO CARRY ENVLP 322	PCS	$65.00	$82.00	20	0
+505	KEYCHAIN BEADS S	PCS	$65.00	$19.00	21	0
+4800030064814	SUNSHINE SPAG SCE KID STYL 1KG	PCS	$65.00	$81.00	53	24
+4806028902229	DYNAMIC NOTEBOOK NOTES VECO	PCS	$65.00	$81.00	63	15
+4800110098982	ROYAL SPAG FSD 1KG	PCS	$65.00	$81.00	92	95
+1024	TAPE DISPENSER BIG	PCS	$65.00	$81.00	100	4
+5096	METAL RULER 24	PCS	$65.00	$81.25	100	19
+3154144681100	MAPED SCISSORS 8 1/4	PCS	$65.00	$81.00	100	50
+6936399300060	NEW WONDER TAPE DISPENSER #50	PCS	$65.00	$81.00	100	5
+729	ARNIS STICK	PCS	$65.00	$50.00	107	12
+792	SUNEX 1L	PCS	$65.00	$81.00	107	0
+1224	DTRI FRESHMILK 500ML	PCS	$65.00	$82.00	107	10
+2012	POLYSTER SALTED CARAMEL	\N	$65.00	$75.00	107	-3
+5014	POLYTASTE YEMA SPREAD	PCS	$65.00	$75.00	107	1
+5015	POLYTASTE CHOCO SPREAD	PCS	$65.00	$81.00	107	-1
+9205	SPECIAL MANI (FRIED)	PCS	$65.00	$82.00	107	0
+1053	CZAIONLY'S CRUNCHY SWT/CHZ CRN	PCS	$65.00	$81.00	114	0
+3020	SW MANING HUBAD (GARLIC)	PCS	$65.00	$81.00	228	0
+3021	SW MANING HUBAD (SPICY)	PCS	$65.00	$81.00	228	2
+1602	CANTEEN BANANA NUTELLA	\N	$65.00	$65.00	578	-12
+1603	CANTENN MANGO NUTELLA	\N	$65.00	$65.00	578	-9
+1604	CANTEEN HALO-HALO SPECIAL	\N	$65.00	$65.00	578	0
+1618	CANTEEN TAPYOKA PEARL	\N	$65.00	$65.00	578	0
+4800095001144	FAMILY ISO ALCOHOL 473ML	PCS	$65.10	$81.00	54	6
+4902430276436	DOWNY FABRIC. PASSION 370ML	PCS	$65.24	$82.00	20	5
+4902430575812	SAFEGRD DERMA SNSE 135G	PCS	$65.39	$82.00	107	13
+4902430575829	SAFEGRD BAR ACNE 135G	PCS	$65.39	$82.00	107	0
+4800047820182	GREEN CROSS ALCOHOL 500ML	PCS	$65.46	$82.00	117	120
+8016	334 W. TRASHCAN	PCS	$65.50	$82.00	20	25
+8998899940557	KIWI BLCK INSTNT PLISH 30ML	PCS	$65.55	$82.00	28	17
+4800011122236	ETHYL ALCHL 70% FEMME 500ML	PCS	$65.80	$82.00	40	14
+4800011131733	CASINO ACTIVE ALCOHOL 500ML	PCS	$65.80	$82.00	40	18
+20	CVI FROZEN TAPATOCINO 500G	PCS	$66.00	$83.00	4	31
+4804888322065	CVI FROZEN FRANKS 500G	PCS	$66.00	$83.00	4	99
+4800274040018	QUAKE INSTANT OATS FL 400G	PCS	$66.00	$83.00	15	2
+2014	TRASH CAN #2014	PCS	$66.00	$83.00	20	0
+48859	FLOWER POT JUMBO 8503	PCS	$66.00	$86.00	20	11
+3630	EM LADIES CELLPHONE POUCH	PCS	$66.00	$66.00	41	9
+4800300990249	CROWN BAKING SODA 1K	PCS	$66.00	$83.00	61	0
+4804888322188	CVI FROZEN TAPA 500G	PCS	$66.50	$83.00	4	334
+4902430093767	JOY LQD LEMON 250ML	PCS	$66.55	$83.00	70	48
+4902430093835	JOY LQD KLMNSI 250ML	PCS	$66.55	$83.00	70	12
+99	FRT MANGO RIPE	PCS	$66.66	$83.00	23	195.72
+4806506150531	TOILY TISSUE 12S	PCS	$66.80	$84.00	19	0
+4804888322041	CVI VEGEMEAT 350G	PCS	$67.00	$84.00	4	593
+4800556410041	VALIANT RECORD BOOK 500P	PCS	$67.00	$84.00	20	63
+4708	ROMERO'S ASSTRD PASTILLAS 50S	PCS	$67.00	$84.00	107	0
+4809014128443	KOJI SAN EXTRA FRESH 135G	PCS	$67.50	$84.00	54	24
+4902430688109	JOY DSHLQD LVNDR&LMN 250ML	PCS	$67.54	$85.00	70	36
+4800888152978	PEPSODENT PLUS WHITNG 190G	PCS	$67.95	$85.00	36	12
+789	FIREFLY FLOURESCENT 20W	PCS	$68.00	$85.00	20	25
+919	SLIPPER PRINCESS THICK	PCS	$68.00	$85.00	20	0
+1620	THICK SANDALS/SLIPPER	PCS	$68.00	$85.00	20	6
+6603	TOOL BOX #603	PCS	$68.00	$85.00	20	3
+8013	RE-1000 FASPACK	PCS	$68.00	$88.00	20	0
+49863	KNIFE #8	PCS	$68.00	$85.00	20	0
+3154144961103	MAPED SCISSOR 6 3/4	PCS	$68.00	$85.00	100	50
+800	PEANUT BUTTER 200G	PCS	$68.00	$85.00	107	0
+4804888804226	MAMA SITAS BBQ MRND 350ML	PCS	$68.00	$92.00	107	0
+4809013950014	ARROWROOT COOKIES 180G	PCS	$68.00	$85.00	107	0
+4800049715608	NS DISTILLED DRNKNG WATER 6.6L	PCS	$68.00	$85.00	123	9
+2114	D 'RIGHT ROAST RICE BLEND 150G	PCS	$68.00	$85.00	500	3
+4800024575449	DM TOMATO SAUCE FILI STYLE 1KG	PCS	$68.25	$85.00	19	0
+5730800723001	COCIO DARK CHOC 270ML	PCS	$68.54	$86.00	53	55
+5730800723025	COCIO CLSSIC C-M 270ML	PCS	$68.54	$86.00	53	51
+4800147200662	CL MURIATIC ACID 1000ML	PCS	$68.75	$86.00	77	0
+48009	VT RED RICE 1KL	PCS	$68.75	$76.00	98	316.80000000000001
+4806512306083	CRISTELA	PCS	$68.80	$86.00	107	0
+4808680653174	LC PNTBTTR CREAMY 170G	PCS	$68.85	$86.00	36	0
+4808680653204	LDYS CHOICE PNTBTTR SWT 170G	PCS	$68.85	$86.00	36	6
+4804888322164	CVI VEGECHOPLETS 400G	PCS	$69.00	$86.00	4	235
+4806502760406	DALIA DAYAP 135G	PCS	$69.00	$86.00	96	4
+480003000466	ASTRLL ROLLED OATS 500G	PCS	$69.00	$86.00	104	0
+4800030005466	AUSTRALIA HRVST RLLDOATS 500G	PCS	$69.00	$87.00	104	0
+4806502760536	DAILA HERBL SOAP 135G	PCS	$69.00	$86.50	20	4
+4800024558268	TODAY MIX FRT836G	PCS	$69.05	$89.00	19	0
+4809013293937	MYSLIM FTBRN YERBA 32G	PCS	$69.08	$86.00	104	10
+4987176013491	VICKS INHALER 0.5ML	PCS	$69.18	$87.00	70	10
+1865	OROCAN PAIL 12L	PCS	$69.50	$87.00	20	0
+4800024011862	DM TIDBITS PNAPPLE 490G	PCS	$69.52	$87.00	19	0
+11197	LAUNDRY BASKET NO.11199	PCS	$69.60	$87.00	20	0
+4974052812897	ARTLINE STAMPAD INK BLK 50CC	PCS	$69.60	$87.00	63	23
+4902430335058	WHISPER RGFLW 16S W/WINGS	PCS	$69.76	$87.00	36	12
+4800024579294	DM 100% PJ W/ACE 1L	PCS	$69.94	$87.00	28	0
+14521	RAISINS 250G	PCS	$70.00	$80.00	1	0
+151	FF TOKWA/TOFU	PCS	$70.00	$84.00	17	1009
+163	AUP VEGE STEAK 500G	PCS	$70.00	$87.00	17	289
+4560	AUP VEGE HOTDOG 500G	PCS	$70.00	$87.50	17	113
+9090	FF HOPIA UBE BOX	PCS	$70.00	$88.00	17	0
+9091	FF HOPIA MONGO BOX	PCS	$70.00	$88.00	17	0
+4809010460141	AUP VEGE TAPA 500G	PCS	$70.00	$87.00	17	500
+65	SLIPPER COOLSI	PCS	$70.00	$91.00	20	0
+504	MOP HEAD FINE	PCS	$70.00	$91.00	20	93
+847	GI WIRE	PCS	$70.00	$88.00	20	0
+1810	SLING BAG W/ AUP SEAL RED	PCS	$70.00	$91.00	20	50
+1813	SLING BAG W/ AUP SEAL BLUE	PCS	$70.00	$91.00	20	47
+4048	BAYONG MEDIUM	\N	$70.00	$88.00	20	-1
+9060	BELLE PROF COMB SET	PCS	$70.00	$91.00	20	5
+9652	CELLOPHANE FOR CANTEEN	PCS	$70.00	$70.00	20	10
+4902505088308	PILOT REFILL INK RED	PCS	$70.00	$90.00	20	0
+4902505088315	PILOT REFILL INK BLUE	PCS	$70.00	$90.00	20	0
+4974052849336	ARTLINE STAMP PAD	\N	$70.00	$90.00	20	0
+779	VGT SILI PANIGANG	PCS	$70.00	$87.00	23	13.619999999999999
+4800888127242	VASALINE UVLIGHTNG COLMGT 100M	PCS	$70.00	$88.00	36	6
+4806021300275	JOY STAPLER #35/NO.306	PCS	$70.00	$88.00	100	0
+339	TURBAN #69	PCS	$70.00	$28.00	107	3
+367	IPB WHT FLOUR 1KG	PCS	$70.00	$88.00	107	0
+765	BTL MONGO BEAN FLOUR 500G	PCS	$70.00	$88.00	107	0
+767	BTL WHITE BEAN FLOUR 500G	PCS	$70.00	$88.00	107	0
+791	CHEMROX 1L	PCS	$70.00	$88.00	107	0
+877	SUNFLOWER SEEDS BIG	PCS	$70.00	$88.00	107	0
+1098	POLYSTER PEANUT BUTTER	\N	$70.00	$81.00	107	-4
+1226	DTRI YOGURT 500ML	PCS	$70.00	$88.00	107	30
+1479	VEGAN'S VIM PECANS 100G	\N	$70.00	$88.00	107	3
+2032	MUSHROOM BITS	\N	$70.00	$88.00	107	0
+2039	TERIYAKI 200G	PCS	$70.00	$88.00	107	-1
+3123	CARANZA BANANA CHIPS LARGE	PCS	$70.00	$88.00	107	0
+3557	MUSHROOM CHIPS ASSORTED 50G	\N	$70.00	$88.00	107	-14
+4447	CHILI SAUCE	PCS	$70.00	$88.00	107	11
+4546	FOOT SCRUB	PCS	$70.00	$70.00	107	0
+4563	MUSHROOM CHIPS 50G	PCS	$70.00	$88.00	107	4
+4693	GREENHOME 7IN1HCHOC 145G	PCS	$70.00	$88.00	107	0
+4694	GREENHOME 7IN1CFFEE 145G	PCS	$70.00	$88.00	107	0
+5656	LAUVERA LQUID SOAP 500ML	PCS	$70.00	$88.00	107	24
+10546	IPB YELLOW CORN GRITS	PCS	$70.00	$88.00	107	0
+19928	RAW MUSCOVADO 1KG	\N	$70.00	$88.00	107	19
+126556	IPB WHT CORN FLOUR 1KG	PCS	$70.00	$94.00	107	0
+4803746900063	ALERT TPASTE FOR KIDS 50G	PCS	$70.00	$87.00	107	5
+8809396173631	QUEENS FRESH UP CLNSING	PCS	$70.00	$84.00	107	0
+423	BTL CORN FLOUR 1KG	PCS	$70.00	$88.00	118	85
+11223	BTL CORN MILL 1KG	\N	$70.00	$88.00	118	9
+48954	BTL WHOLE WHEAT FLOUR 1KG	PCS	$70.00	$88.00	118	16
+3015	SW JELLY BEANS	PCS	$70.00	$87.00	228	1
+3018	SW GUMMY COLA	PCS	$70.00	$87.00	228	0
+3022	SW KALABASA SEEDS	PCS	$70.00	$87.00	228	2
+3024	SW ADOBO MANI	PCS	$70.00	$87.00	228	1
+1861	CANTEEN MANGO GRAHAM	\N	$70.00	$70.00	578	-153
+4807770121333	MONDE SPCL MAMON CLSSC 258G	PCS	$70.27	$88.00	20	0
+4800110066127	FIESTA SWTBLND SPAG SAUCE 1KG	PCS	$70.30	$88.00	92	0
+7894	BOTTLE HITOP	PCS	$70.40	$88.00	20	0
+10547	BTL LAGKITAN 1KL	PCS	$70.40	$88.00	20	0
+988	ARIEL 1KL	PCS	$70.40	$88.00	107	0
+4806512306229	CRISTELA 30004H	PCS	$70.50	$70.50	20	0
+4800060084905	PURITY COTTON BALLS 300S	PCS	$70.63	$88.00	28	0
+750515017528	FITA CRACKERS 450G 15S	PCS	$70.64	$89.00	1	13
+4800024575500	DM SPAG SAUCE FIL STYLE 1KG	PCS	$70.67	$88.00	29	133
+4800888602268	LC REALMAYO DOY 220ML	PCS	$70.85	$89.00	36	72
+4805358709447	MAGNOLIA GLD RCKYRD 425ML	PCS	$70.95	$89.00	2	18
+4800024037480	DM FSTA FRT CTAIL836G	PCS	$70.95	$89.00	19	3
+4805358707443	MAGNOLIA GLD CKSN'CRM 425ML	PCS	$70.95	$89.00	115	21
+4805358708440	MAGNOLIA GLD DBLDTCH 425ML	PCS	$70.95	$89.00	115	20
+8018	1503 PAIL	PCS	$71.00	$89.00	20	0
+4800047840586	ZONROX FLORAL 1/2 GAL	PCS	$71.00	$93.00	46	21
+519	ARIEL 1K	PCS	$71.00	$85.00	107	-3
+465741	EM PRINTED ENVELOPE L	PCS	$71.00	$89.00	107	0
+4808680230979	KNORR LIQ SEASNING ORIG250ML	PCS	$71.35	$89.00	36	24
+176	RICE RED RICE 1KG	PCS	$71.43	$74.50	98	-5.2699999999999996
+4805358606081	MAGNOLIA FULL CRM MILK 1L	PCS	$71.45	$89.00	900	0
+4800473005047	ROGER'S TRUSPREAD SNDWCH 470ML	PCS	$71.68	$90.00	113	0
+4800086043580	SLCT 2N1 CHCUBE 750ML	PCS	$71.80	$90.00	9	37
+4800086043597	SLCT 2N1 CHCKESO 750ML	PCS	$71.80	$90.00	9	33
+4800174065005	BESUTO ONION&GARLIC 500G	PCS	$71.83	$90.00	117	120
+4804888322225	CVI FROZEN SAUSAGE 500G	PCS	$72.00	$90.00	4	111
+165	AUP VEGE TOCINO 500G	PCS	$72.00	$90.00	17	503
+325	VARONA SOYCOFFEE DARK 250G	PCS	$72.00	$90.00	18	86
+326	VARONA SOYCOFFEE LIGHT 250G	PCS	$72.00	$90.00	18	117
+2131	ARMANDO CARUSO TOWEL	PCS	$72.00	$72.00	20	9
+1295	ORGRANIC EGG 6 PCS	PCS	$72.00	$90.00	42	31
+7892	MASKING TAPE CROCO 2	PCS	$72.00	$90.00	63	0
+4806512230586	MAGNOLIA AP FLOUR 800G	PCS	$72.10	$91.00	900	0
+9556121028191	JULIE'S HERSHEYS CHCCHIP 102G	PCS	$72.32	$102.00	71	0
+9556121028207	JULIE'S HRSHY CHCHP HZLNT 102G	PCS	$72.32	$102.00	71	0
+4800888113474	CLOSEUP RED HOT 95ML	PCS	$72.35	$91.00	36	52
+4800888113559	CLOSEUP GRN INTENSE 95ML	PCS	$72.35	$91.00	36	7
+4805358324053	MAGNOLIA CHEEZ SPRD 235G	PCS	$72.40	$91.00	900	0
+4800361015110	NESTLE FRESH MILK 1L	PCS	$72.43	$91.00	14	74
+4804888322249	CVI VEGESAUSAGE 350G	PCS	$72.50	$91.00	4	281
+4809014128672	KOJIE SAN SOAP 65G	PCS	$72.50	$91.00	21	39
+4902430293433	WHISPER COTTNY SULTPACK 20PADS	PCS	$72.64	$91.00	70	11
+4800014700004	ABSOLUTE DISTLLD WATER 6L	PCS	$72.67	$91.00	19	123
+4808888892177	COLGATE CC ICF BUY 11GT1	PCS	$72.91	$95.00	20	24
+4808888892566	COLGATE CC KMF BUY 11GT1	PCS	$72.92	$95.00	20	24
+1225	DTRI CHOCOMILK 500ML	PCS	$73.00	$91.00	107	15
+9204	MERINGUE RED CAP SMALL	PCS	$73.00	$92.00	107	0
+1333	FRT PONKIAT	PCS	$73.08	$92.00	23	0
+4902430803717	SAFEGUARD LEMON 3X90G	PCS	$73.36	$92.00	70	26
+4800024577740	DM SPGHETTI PSTA ITAL 900G	PCS	$73.43	$92.00	29	31
+4806512306274	CRISTELA 17155F	PCS	$73.60	$92.00	61	0
+4800310153047	EB NATURALS KOJIC SOAP 80GX2	PCS	$73.60	$92.00	113	9
+4800024578938	DM SPAG CREAMY&CHEESY 900G	PCS	$73.74	$92.00	29	12
+1078	HEIRLOM RR VCM PACKED 1KG	PCS	$74.00	$85.00	20	0
+5701215046832	EMBORG FULL CREAM MILK 1L	PCS	$74.09	$93.00	8	12
+5704025012325	EMBORG SKIMMED MILK 1L	PCS	$74.10	$93.00	8	12
+4800047840302	ZONROX LEMON 1/2 GAL	PCS	$74.15	$93.00	46	12
+4800024556226	DM SPAGHETTI 900G	PCS	$74.18	$93.00	28	0
+4806531670097	DISHWASHING LQD REFILL 1L	PCS	$74.20	$93.00	19	31
+4804888322201	CVI VEGETAPA 350G	PCS	$74.50	$93.00	4	879
+4805358603080	MAGNOLIA CHOCOLAIT 1L	PCS	$74.75	$94.00	900	0
+8801382135166	WOONGJN APPLE  500ML	PCS	$75.00	$94.00	11	270
+8807664000030	SEAWEED KIMBAP 10G	PCS	$75.00	$94.00	11	80
+153	FF BANANA BREAD LOAF	PCS	$75.00	$94.00	17	109
+390	FF BUTTER CAKE	PCS	$75.00	$94.00	17	13
+655	MARY PANTY S	PCS	$75.00	$85.00	20	9
+761	WALIS TING2X W/ HANDLE	PCS	$75.00	$98.00	20	71
+815	DELTA 9W	PCS	$75.00	$94.00	20	0
+1106	BOLSTER SMALL ORDINARY	PCS	$75.00	$94.00	20	0
+1769	TIN COIN BANK	PCS	$75.00	$94.00	20	0
+3435	PUMA MEN SLIPPER 1STRAP	PCS	$75.00	$98.00	20	-1
+3436	LOGIC LADIES SLIPPER	PCS	$75.00	$98.00	20	0
+3438	LOGIC SLIPPER THICK	PCS	$75.00	$98.00	20	7
+3495	PLASTIC 4X6X3	PCS	$75.00	$75.00	20	0
+8010	W. TRASH CAN 8948	PCS	$75.00	$94.00	20	0
+90905	NIKE STRAP MEN	PCS	$75.00	$98.00	20	-1
+229241	YALE PADLOCK 40MM	PCS	$75.00	$98.00	20	-1
+6950690305050	CLEANING BRUSH SET	PCS	$75.00	$94.00	20	0
+22	AUP KEYCHAIN B	PCS	$75.00	$63.00	21	0
+3607	EM CPD COIN PURSE DENIM	PCS	$75.00	$75.00	41	-1
+3608	EM CPCN COIN PURSE CRSHD NYLON	PCS	$75.00	$75.00	41	-1
+4809010997029	CHOYO WAFER STCKS CHC 850G	PCS	$75.00	$94.00	53	0
+764	BTL RED BEAN FLOUR 500G	PCS	$75.00	$94.00	107	0
+1476	CASHEW NUTS 100G	\N	$75.00	$94.00	107	0
+1490	EL CASOY SALTED 100G	PCS	$75.00	$94.00	107	-1
+2038	MUSHROOM SHANGHAI 200G	PCS	$75.00	$94.00	107	0
+2051	3A'S SPICY VINEGAR L	\N	$75.00	$94.00	107	0
+3120	CARANZA TARO CHIPS ASRTD 150G	PCS	$75.00	$94.00	107	-34
+3122	CARANZA POTATO CHIPS 150G	PCS	$75.00	$94.00	107	88
+8409	BLACK RICE 1KL	PCS	$75.00	$83.00	107	0
+9191	KINOKI CLNSNG DTX	PCS	$75.00	$94.00	107	0
+9207	ALODIA'S URARO	PCS	$75.00	$94.00	107	0
+9208	CAMOTE CHIPS POUCH	PCS	$75.00	$94.00	107	0
+1059000002285	EM- TUMBLR	PCS	$75.00	$75.00	107	0
+6904542608684	GIGI POWDER DTRGNT 1KG	PCS	$75.00	$94.00	113	0
+641	CZAIONLY'S GUMMY CANDY	PCS	$75.00	$94.00	114	-16
+1212	CZAIONLY'S GUMMY ASSTRD	PCS	$75.00	$94.00	114	0
+8850120991267	MONIEGOLD TMRND SWT&SPCY 190G	PCS	$75.00	$94.00	114	14
+8850120991274	MONIEGOLD SWEET TMRND 190G	PCS	$75.00	$94.00	114	17
+2011	SW BROWNIES	PCS	$75.00	$94.00	228	1
+1978	FRT CANTEEN MANGO SHAKE	\N	$75.00	$75.00	578	-98
+4800473000523	ROGER'S SALAD DRSSNG 470ML	PCS	$75.04	$94.00	113	0
+8500	MINI BATH FELICITY	PCS	$75.20	$94.00	20	0
+8851316112916	COLLEEN POSTER COLOR BIG	PCS	$75.20	$94.00	37	0
+23667	ACIDERA HERBAL SEASONING 100G	PCS	$75.20	$94.00	107	79
+4805358327054	MAGNOLIA CHEZ SPRD PTO 235G	PCS	$75.25	$94.00	900	0
+4808647010026	CHEEZ WHIZ ORIG 220G	PCS	$75.48	$95.00	19	51
+4902430093729	JOY ANTIBAC DSHLQD 250ML	PCS	$75.69	$95.00	70	48
+8850006322956	COLG TP CC SPICY FRESH 95ML	PCS	$75.75	$95.00	15	0
+8850006323687	COLGATE CC MENT 95ML	PCS	$75.75	$95.00	15	0
+9556121029532	JULIE'S WAFERS HAZELNUT 150G	PCS	$75.75	$95.00	71	17
+20800304348	OLD SPICE APDO CRM 14G	PCS	$75.82	$95.00	70	0
+20800306348	OLD SPICE APDO CRM 14G	PCS	$75.82	$95.00	70	11
+20800309325	SECRET APDO FLR BUOQ 14G	PCS	$75.82	$95.00	70	3
+20800309363	SAFEGRD DEODRNT 14G	PCS	$75.82	$95.00	70	22
+20800712705	SECRET APDO CRM 14G	PCS	$75.82	$95.00	70	12
+20800712712	SECRET APDO CRM SPRG BRZ 14G	PCS	$75.82	$95.00	70	5
+20800718349	OLD SPICE APDO CRM 14G	PCS	$75.82	$95.00	70	16
+20800721356	SFEGRD DEODRNT 14G	PCS	$75.82	$95.00	70	3
+20800306379	SAFEGRD DEODRNT 14G	PCS	$75.82	$95.00	107	1
+2016	TRASH CAN #2016	PCS	$76.00	$95.00	20	8
+8850007011187	JJ POWDER PINK BLOSSOM 200G	PCS	$76.22	$94.00	117	38
+8850006320501	COLG TP GRF 95ML	PCS	$76.44	$100.00	15	45
+4806512307080	CRISTELA 9107B	PCS	$76.80	$96.00	61	0
+324	VARONA VEG STRIPS	PCS	$77.00	$96.00	18	17
+656	OROCAN BASIN 16L	PCS	$77.00	$96.00	20	0
+4806512304171	CRISTELA SOCKS	\N	$77.00	$77.00	61	0
+4805358323032	MAGNOLIA QUICKMELT 165G	PCS	$77.15	$97.00	900	0
+4806512307530	CRISTELA 5288	PCS	$77.20	$96.50	61	0
+4806512881320	ELLPS F-VANILLA 65ML	PCS	$77.27	$97.00	76	6
+4800010781076	CLOUD9 BR28G 12S	PCS	$77.50	$97.00	15	0
+4805358501065	NUTRI-OIL COCNTOIL 475ML	PCS	$77.65	$89.00	900	18
+4805358601086	MAGNOLIA FRESH MILK 1L	PCS	$77.70	$97.00	900	0
+4801234015022	J&J MR MSCLE 250ML	PCS	$77.80	$97.00	28	4
+4804880551401	FRITO PLUS PALM OIL SUP 900ML	PCS	$77.83	$89.00	53	19
+38000138577	PRINGLES CHEDDAR CHEESE 158G	PCS	$78.00	$102.00	7	0
+802	FASHION W/ FLOWER SANDAL/SLIPP	PCS	$78.00	$98.00	20	0
+4806789519186	MASTER FW OIL CNTRL 50G	PCS	$78.00	$97.00	36	12
+4809014128009	KOJIE SAN ANTI AGING 135G	PCS	$78.00	$98.00	54	6
+35454	CZAIONLY CRUNCHY CORN	PCS	$78.00	$97.00	114	16
+4806514654038	BUENAS LONGKUO 500G	PCS	$78.75	$98.00	53	12
+4800888147219	AXE DEO AP DRKTEMP 40ML	PCS	$78.80	$99.00	36	12
+4806512308001	CRISTELA 5555	PCS	$78.80	$98.50	107	0
+3832	EM VICTORY PURSE	PCS	$79.00	$79.00	41	9
+4800380530144	CARAMEL 425ML	PCS	$79.00	$99.00	99	0
+4521	BLUE CORNER XL	PCS	$79.00	$99.00	107	0
+4800110068909	ROYAL ELBOW MACARONI 1KG	PCS	$79.00	$99.00	113	21
+4808647010057	CHEEZ WHIZ PMNTO 220G	PCS	$79.05	$99.00	19	72
+4800888152107	DOMEX ULTRATHCK BLCH 500G	PCS	$79.10	$99.00	36	24
+9556121026500	JULIE'S OAT25 TENGRNS 200G	PCS	$79.10	$99.00	71	25
+9556121026463	JULIES LEMOND	PCS	$79.11	$99.00	71	3
+9556121022496	JULIE'S LMND PFFSDWCH 170G	PCS	$79.11	$99.00	20	0
+212356	EM-JR. TUMBLER	PCS	$79.20	$99.00	20	0
+4807770121364	MONDE SPCLMMN MCHA 240G	PCS	$79.35	$99.00	20	0
+4800888158024	CLOSEUP FIREFREZE 95ML	PCS	$79.40	$99.00	36	65
+4806512305437	CRISTELA MFG SOCK	PCS	$79.50	$79.00	20	0
+4800380530243	MANTECADO 425ML	PCS	$79.50	$99.00	99	0
+4806531670028	APPLAUSE DSWSHING LQD 1L W/PUM	PCS	$79.50	$99.00	200	10
+4800473001520	ROGER'S SANDWICH SPRD 470ML	PCS	$79.52	$100.00	113	0
+2130100	AUP STORE EM MOUSE PAD	PCS	$79.80	$99.75	107	0
+8809475020009	SEAWEEDS PAD 20G	PCS	$80.00	$100.00	11	240
+73	BABY HAT	PCS	$80.00	$100.00	20	0
+801	PLASTIC SHOES	PCS	$80.00	$100.00	20	0
+3548	3 FOLDS SATIN UMBRELLA	PCS	$80.00	$100.00	20	0
+6263	STYRO FOAM 1	PCS	$80.00	$100.00	20	0
+13354	CANNON TOWEL	PCS	$80.00	$104.00	20	-4
+80195	FIREFLY 15W	PCS	$80.00	$104.00	20	15
+80196	FIREFLY 18W	PCS	$80.00	$100.00	20	0
+209	FRT WATERMELON SMALL	PCS	$80.00	$100.00	23	5
+1991	FRT LYCHEE	PCS	$80.00	$108.00	23	0
+20133	VGT SUGAR BEETS	PCS	$80.00	$104.00	23	0
+4974052820021	ARTLINE MARKER RD	PCS	$80.00	$100.00	37	2
+4974052820038	ARTLINE MARKER GR	PCS	$80.00	$100.00	37	2
+3606	EM CPL COIN PURSE LEATHERETTE	PCS	$80.00	$80.00	41	0
+4806512309930	CRISTELA CSMA-12	PCS	$80.00	$100.00	61	0
+542	ABACA SLIPPER	PCS	$80.00	$100.00	107	8
+564	ROASTED PEANUT 500G	PCS	$80.00	$100.00	107	0
+632	POUCH WALLET REC	PCS	$80.00	$100.00	107	0
+634	WALLET LEAF	PCS	$80.00	$100.00	107	0
+635	BAG HKITTY LEATHER	PCS	$80.00	$100.00	107	0
+766	BTL WHITE PEAS FLOUR 500G	PCS	$80.00	$100.00	107	0
+858	SOYA FLOUR 1KG	PCS	$80.00	$100.00	107	0
+924	CAYENNE OIL 50ML	\N	$80.00	$100.00	107	0
+1474	ORGANIC CHIA SEEDS 100G	\N	$80.00	$100.00	107	0
+1475	ORGANIC FLAX SEEDS 100G	\N	$80.00	$100.00	107	0
+1482	PINK HIMALAYAN COURSE 100G	\N	$80.00	$100.00	107	4
+1800	CDJM SOY COFFEE 250G	PCS	$80.00	$100.00	107	10
+2081	AHAVA WONDER MASSAGE OIL	\N	$80.00	$100.00	107	0
+2083	NANA ROSA'S CHICHACORN	\N	$80.00	$100.00	107	0
+4757	ESCOBIDO'S BANANA CHIPS B	PCS	$80.00	$100.00	107	0
+4851	BEADS POUCH	PCS	$80.00	$100.00	107	0
+6024	GOLDEN HAND PEANUT COATED 300G	PCS	$80.00	$100.00	107	5
+7100	SLIPPER FOR WOMEN	\N	$80.00	$100.00	107	-3
+7850	MALUNGGAY FLAKES 130G	PCS	$80.00	$100.00	107	0
+26638	ACIDERA HLTHY SPRINKLE 150G	PCS	$80.00	$100.00	107	2
+65656532	RED RICE FLOUR 500G	PCS	$80.00	$100.00	107	0
+4809011038103	PIAYA CLSSC 380G	\N	$80.00	$100.00	107	0
+4809011038899	PIAYA UBE 380G	\N	$80.00	$100.00	107	0
+1054	CZAIONLY'S PURE HONEY SMALL	PCS	$80.00	$100.00	114	4
+213402	PURE HONEY SMALL	PCS	$80.00	$100.00	114	0
+4806508361638	SUNRISE KARATE BELTS 160G	PCS	$80.00	$100.00	114	0
+6902482003446	PREM VERMICELLI STNGHN 500G	PCS	$80.00	$100.00	114	10
+725	BANGLA NAT'L DRESS	PCS	$80.00	$1,125.00	117	0
+24401	BTL SORGHUM FLOUR 1KG	PCS	$80.00	$100.00	118	17
+20119	VGT NATIVE ONION	\N	$80.00	$100.00	120	-0.66000000000000003
+3026	SW MANING HUBAD ADOBO	PCS	$80.00	$100.00	228	1
+4800024573520	DM SPAG SAUCE ITALIAN 1KG	PCS	$80.19	$100.00	29	145
+4800024573544	DM SPAG SAUCE SWT STYLE 1KG	PCS	$80.19	$100.00	29	132
+4800024562609	DM 100% PNPPL FBR-ENRCHD 1.36L	PCS	$80.32	$100.00	29	22
+4800888602275	LADY'S  CHCKN SPRD DOY 220ML	PCS	$80.50	$101.00	36	24
+4806512307837	CRISTELA 9112B	PCS	$80.80	$101.00	107	0
+4800575141612	ALASKA P-MLK DRNK 330G	PCS	$80.84	$101.00	19	65
+4800086043364	SLCT IH COFFEE CRMBLE 475ML	PCS	$80.91	$101.00	9	0
+4800086043643	SELECTA CRUMBLE 475L	PCS	$80.91	$101.00	20	0
+9556121028221	JULIES HERSHEYS CHC FDG 126G	PCS	$80.99	$102.00	71	4
+4801981164714	WILKINS DSTLDWTR 7000ML	PCS	$81.00	$102.00	15	0
+8516	OROCAN BASIN #8516	PCS	$81.00	$105.00	20	5
+4804880551319	ML FRITO PLUS VEG  OIL SUP 900	PCS	$81.33	$102.00	53	43
+4800888112996	DOMEX MULTIPRPS LEMON 500ML	PCS	$81.50	$102.00	36	48
+4800888152121	DOMEX BLEACH 500ML	PCS	$81.50	$102.00	36	24
+4800024562739	DM PINEJUICE W/ACE 1.36L	PCS	$81.64	$102.00	28	20
+4806789445553	MASTER ANTI ACNE 50G	PCS	$81.90	$102.00	36	12
+4800086043641	SLCT PSTCHIO&CSHW 475ML	PCS	$86.36	$108.00	9	48
+3623	EM DRAWSTRING POUCH XSM BLCK	PCS	$82.00	$82.00	41	-1
+9556006060001	JB BATH MILK+RICE 200ML	PCS	$82.00	$104.00	69	0
+9502	DRAGON HERB SOAP 100G	PCS	$82.00	$82.00	107	0
+4800361381246	NESTLE MILO 300G	PCS	$82.06	$103.00	14	185
+4800361002851	NSTL KOKO 170G	PCS	$82.14	$103.00	117	54
+9556121027606	JULIE'S OAT25 CHOCO 200G	PCS	$82.40	$103.00	71	21
+4800888181572	SURF HS STD PWDR KLMNSI 1100G	PCS	$82.45	$103.00	36	72
+4800888181596	SURF POW SUNFRSH 1100G	PCS	$82.45	$103.00	36	72
+4800888189813	SURF POW W/FBCN CHBL 1100G	PCS	$82.45	$104.00	36	76
+4800888199140	SURF POW PRPL BLOOMS 1100G	PCS	$82.45	$103.00	36	36
+748485401508	BIRCH TREE FORTIFIED MILK 300G	PCS	$82.49	$103.00	117	4
+8850007010869	JJ POWDER BEDTIME 200G	PCS	$82.74	$104.00	117	44
+937	AHAVA RICE COFFE 300G	PCS	$83.00	$104.00	20	0
+4806525942421	HPPY FIESTA BRD CRUMBS 100G	PCS	$83.00	$104.00	114	0
+4808680021430	LADY'S  REAL MAYNSE  220ML	PCS	$83.20	$104.00	36	31
+4800060202309	KLEENEX FACIAL TISSUE 190'S	PCS	$83.22	$104.00	28	16
+113	VGT CARROT	PCS	$83.33	$104.00	23	150.34
+6076	FLASH LIGHT 3512 BPI	PCS	$83.50	$104.00	86	2
+4800380530342	ARCE VANILLA 425ML	PCS	$83.50	$104.00	99	5
+803	FASHION THICK SANDAL/SLIPPER	PCS	$84.00	$105.00	20	5
+4538020000077	ROMERO'S DRIED JACKFRUIT	PCS	$84.00	$105.00	107	0
+4800473002022	ROGER'S PREM SNDWCH SPRD 470ML	PCS	$84.00	$105.00	113	0
+3266555	CZAIONLY'S SFLWER SEED CHOC	PCS	$84.00	$105.00	114	23
+2110	INSTANT TURMERIC 150G	PCS	$84.00	$105.00	500	1
+21463	D'R PURE RICE BLEND 150G	PCS	$84.00	$105.00	500	5
+122101	D'RIGHT INSTANT LAGUNDI 150G	PCS	$84.00	$105.00	500	-1
+490243026406	WHSPHR SUPRCLEAN & DRY REG FLW	PCS	$84.27	$106.00	70	0
+4800380520541	ARCE DAIRY NANCA 425ML	PCS	$84.50	$106.00	99	2
+4800380521043	ARCE SLTD CRMEL 425ML	PCS	$84.50	$106.00	99	0
+4987176009678	VAPORUB 25G	PCS	$84.69	$105.00	70	16
+1850	IRONING COVER	PCS	$84.80	$106.00	20	9
+6451	WOODEN PUSHBRUSH	PCS	$84.80	$106.00	20	0
+5089	FIREFLY 9WATTS	PCS	$84.95	$106.00	324	3
+5090	FIREFLY 11WATTS	PCS	$84.95	$106.00	324	3
+8801382127970	WOONGJIN GRAPE JUICE 500ML	PCS	$85.00	$106.00	11	80
+8801382132240	GRAPE100 TSTY GRP 500ML	PCS	$85.00	$106.00	11	80
+8809041751535	SEAWEEDS OLIVE 25G	PCS	$85.00	$106.00	11	0
+15	DALISAY BASIN #15	PCS	$85.00	$107.00	20	0
+448	STRAINER STAINLESS	PCS	$85.00	$107.00	20	0
+2013	AUP PILLOW SVNR	PCS	$85.00	$106.25	20	0
+4806514650108	BMACAPUNO 12OZ	PCS	$85.00	$107.00	53	0
+6172	CONDOR BASIL	PCS	$85.00	$85.00	60	-9
+6173	CONDOR PARSLEY	PCS	$85.00	$85.00	60	7
+4974052860027	ARTLINE MARKER INK RED	PCS	$85.00	$106.00	63	0
+4800282000617	GLDN VLLY PALM OLEIN 1L	PCS	$85.00	$98.00	76	0
+4806506930539	SMART PLASTIC MAG. BOX S301	PCS	$85.00	$106.00	100	45
+1483	PINK HIMALAYAN FINE 100G	\N	$85.00	$106.00	107	-4
+1489	EL CASOY ROASTED 100G	PCS	$85.00	$106.00	107	-87
+1790	CDJM RICE COFFE 250G	PCS	$85.00	$106.00	107	25
+1812	AUP SHOULDER BAG SMALL	PCS	$85.00	$120.00	107	29
+2040	GYOZA DUMPLING 250G	PCS	$85.00	$106.00	107	0
+2405	KALABASA DRIED 100G	PCS	$85.00	$107.00	107	0
+6025	GH PEANUT COATED JUMBO 300G	PCS	$85.00	$107.00	107	4
+46954	GARLIC CREAM BUTTER SM	PCS	$85.00	$94.00	107	0
+201119	COATED PEANUT BIG	\N	$85.00	$107.00	107	0
+201121	COUTED PEANUT BIG	PCS	$85.00	$106.00	107	0
+4800310110767	MAGIC LS ORANGE	PCS	$85.00	$106.00	107	0
+4800310110774	MAGIC LS STRAWBRRY	PCS	$85.00	$107.00	107	0
+4800310110781	MAGIC LS LEMON	PCS	$85.00	$107.00	107	0
+4809015047019	ROMERO'S DRIED MANGO	PCS	$85.00	$106.00	107	0
+4800049720244	NS DISTILLED DRNKNG WATER 6.6L	PCS	$85.00	$106.00	123	6
+3012	SW CHOCO ROCKS	PCS	$85.00	$106.00	228	1
+3017	SW CHOCO MARBLES	PCS	$85.00	$106.00	228	3
+3019	SW CHOCO PEANUTS	PCS	$85.00	$106.00	228	1
+4800888161222	DOVE UNSCENTED WHTNG 40ML	PCS	$85.20	$107.00	36	6
+4710032504297	JB WIPES MESSY TIMES 80S	PCS	$85.25	$107.00	69	8
+9556121026111	JULIE'S OAT25 STRWBRY 200G	PCS	$85.49	$107.00	71	43
+31351	BATH TOWEL CANON PLAIN	PCS	$85.60	$107.00	20	10
+480392541123	GATORADE TFRUIT 1.5L	PCS	$85.82	$107.00	16	0
+4803925241109	GATORADE ORCHILL 1.5L	PCS	$85.82	$107.00	16	0
+8019	1997 STOOL BOX	PCS	$86.00	$108.00	20	0
+4974052860010	ARTLINE MARKER INK BLUE	PCS	$86.00	$108.00	63	0
+4800417005201	BENCH B20 BODY SPRAY 75ML	PCS	$86.11	$108.00	117	12
+4800417005218	BENCH EIGHT BODY SPRAY 75ML	PCS	$86.11	$108.00	117	12
+4800417005225	BENCH ATLANTIS 75ML	PCS	$86.11	$108.00	117	12
+1815234165512	MR. MUSCLE TC CITRUS 500ML	PCS	$86.15	$108.00	28	6
+4801234165536	MR MUSCLE PINE 500ML	PCS	$86.15	$108.00	28	14
+4809012721165	GLUE BOARD PLASTIC 4PCS	PCS	$86.15	$108.00	77	0
+4800086033634	SLCT IH COFFEE CRUMBLE 475ML	PCS	$86.36	$108.00	9	5
+4800086043603	SLCT IH DBLEDUTCH 475ML	PCS	$86.36	$108.00	9	48
+4800086043610	SLCT IH RCKYRD 475ML	PCS	$86.36	$108.00	9	43
+4800086043627	SLCT IH CKIES&CRM 475ML	PCS	$86.36	$108.00	9	47
+4800086043634	SLCT COFFEE CRMBLE 475ML	PCS	$86.36	$108.00	9	31
+4800086045423	SLCTA QUEZO REAL 475ML	PCS	$86.36	$108.00	9	24
+4800086045430	SLCTA BUCO SALAD 475ML	PCS	$86.36	$108.00	9	20
+4800024558282	DM FOUR SEASONS 1.36L	PCS	$86.50	$108.00	29	36
+4800888135568	AXE DEO CLICK 50ML	PCS	$86.60	$108.00	36	15
+4800888141101	AXE DARK TEMP 50ML	PCS	$86.60	$108.00	36	8
+4800888172761	AXE DEO ANARCHY 50ML	PCS	$86.60	$108.00	36	14
+8851932305297	AXE DEO APOLLO 50ML	PCS	$86.60	$108.00	36	15
+4803925241130	GATORADE BLUE BOLT 1.5L	PCS	$86.67	$108.00	20	0
+108	TOOL BOX #108	PCS	$87.00	$206.00	20	0
+2112	D 'RIGHT ROAST RICE 150G	PCS	$87.00	$109.00	500	2
+4902430026406	WHISPER CLEAN&DRY	PCS	$87.17	$109.00	70	52
+4800888138446	SSILK PRFCT STRGHT 180ML	\N	$87.40	$109.00	36	0
+4800888140838	SSILK SH DMGE RCNSTRUCTN 180ML	\N	$87.40	$109.00	36	0
+4800888140869	SUNSILK SMTH MNGBL 180ML	PCS	$87.40	$109.00	36	0
+4800888146830	SUNSILK STRNG LONG 180ML	PCS	$87.40	$109.00	36	0
+4800024556240	ELBOW MACARONI 1K	PCS	$87.43	$109.00	28	0
+4806512302900	CRISTELA 17105B	PCS	$87.50	$87.50	61	108
+4806512309947	CRISTELA FC003-ASSTD	PCS	$87.50	$87.50	61	108
+4800042122328	ENERGIZER MAX PWER SEAL 2A	PCS	$87.50	$109.00	86	29
+4800380540143	ARCE AVOCADO DE CARO 425ML	PCS	$87.50	$109.00	99	6
+4800380540242	ARCE MANGA DE CARO 425ML	PCS	$87.50	$109.00	99	6
+4800380540341	ARCE QUEZO REAL DE CARO 425ML	PCS	$87.50	$109.00	99	5
+319	VARONA VEG TOCINO 500G	PCS	$87.73	$110.00	18	55
+320	VARONA VEG TAPA 500G	PCS	$87.75	$110.00	18	50
+4808680020877	LADY'S SANDWCH SPRD 220ML	PCS	$87.90	$110.00	36	51
+4800186001138	GOLDEN OATS QUICK CK800G	PCS	$87.95	$110.00	211	4
+6312	OROCAN PAIL #6004 16L	PCS	$88.00	$114.00	20	0
+8017	1504 PAIL	PCS	$88.00	$110.00	20	0
+3010	DUST BIN 504	PCS	$88.00	$110.00	23	0
+4809014247311	CANDLE 22X3	PCS	$88.00	$110.00	49	2
+4806512306243	CRISTELA 5125	PCS	$88.00	$110.00	61	0
+3332	VARONA VEGE V-STEAK	PCS	$88.20	$110.00	18	41
+1121000938	TABASCO GREEN PPER SAUCE 60ML	\N	$88.35	$111.00	19	0
+4804880322131	SPRING OIL PET 1L	PCS	$88.46	$102.00	117	24
+4800034011364	HAPEETPFWHT	PCS	$88.50	$111.00	15	0
+4800034011562	HAPEE TP SRGEL15	PCS	$88.50	$111.00	15	0
+4800380520145	ARCE DAIRY AVOCADO 425ML	PCS	$88.50	$111.00	99	7
+4800380520244	ARCE CHOCOLATE 425ML	PCS	$88.50	$111.00	99	5
+4800380520343	ARCE COFFEE 425ML	PCS	$88.50	$111.00	99	3
+4800380520442	ARCE MANGO 425ML	PCS	$88.50	$111.00	99	6
+4800380520640	ARCE STRAWBERRY 425ML	PCS	$88.50	$111.00	99	5
+4800380520947	ARCE UBE 425ML	PCS	$88.50	$111.00	99	4
+8850006323694	COLGATE CC MENTOL 145ML	PCS	$88.75	$111.00	15	0
+4806506313998	CHERUB BABY WIPES 80'S	PCS	$88.75	$111.00	77	6
+8888021100112	EVEREADY 3A NO. 1212 RO3	PCS	$88.75	$111.00	86	119
+1632	VARONA VEGE MEAT 500G	PCS	$89.00	$111.00	18	16
+2131350	UMBRELLA FOR KID	PCS	$89.00	$89.00	20	0
+3629	EM DENIM BOX PURSE	PCS	$89.00	$89.00	41	-1
+3639	EM PRINTED ENVELOPE SHORT	PCS	$89.00	$89.00	41	0
+4809013293852	MYSLIM FATBURN YERBA 200ML	PCS	$89.00	$111.00	104	1
+8934839121471	CLOSEUP DIAMNDATRCTN 100G	PCS	$89.25	$112.00	36	22
+4800888183279	SUNLIGHT KALAMANSI 750ML	PCS	$89.48	$112.00	36	21
+4800380510641	CHOCOLATE CASHEW 425ML	PCS	$89.50	$112.00	99	1
+4800380511143	DURIAN 425ML	PCS	$89.50	$112.00	99	0
+4800380511440	MACAPUNO CON NANCA 425ML	PCS	$89.50	$112.00	99	1
+4800380511846	UBE MACAPUNO 425ML	PCS	$89.50	$112.00	99	0
+6925169492159	FIREFLY 15W	PCS	$89.95	$113.00	324	22
+4800086035790	SLCT 3N1 CHCMNGUBE 1L	PCS	$90.00	$113.00	9	31
+4800086040527	SLCT 3N1 CHCUBEKESO 1L	PCS	$90.00	$113.00	9	31
+4800086044846	SLCT 3N1 CHCMNGBUCO 1L	PCS	$90.00	$113.00	9	4
+4800086045607	SLCT IH 3IN1 MOCHA UBE 1L	PCS	$90.00	$113.00	9	0
+4800086045812	SLECTA 3IN1 CHCO-NUT UBE 1L	PCS	$90.00	$112.00	9	5
+4805358798083	MAGNOLIA SORBETES KESO 1L	PCS	$90.00	$113.00	9	4
+605	CAMINO SLIPPPER	PCS	$90.00	$112.00	20	-5
+775	LILY GAN NO.908-2	PCS	$90.00	$120.00	20	0
+2113	KID'S BAG LEATHER ASSRTD	\N	$90.00	$99.00	20	-1
+9097	CAMINO LADIES SLIPPER	PCS	$90.00	$117.00	20	30
+10108	STOOL BOX #108	PCS	$90.00	$108.00	20	0
+6500	FRT SINIGUELAS	PCS	$90.00	$112.00	23	6.4199999999999999
+4800361373104	NSTL 3N1SORB KESOTSOKPAST 1L	PCS	$90.00	$112.00	32	7
+4800361382977	NSTL 3N1 SORB UBEMNGGATSOK 1L	PCS	$90.00	$112.00	32	8
+4800361397711	NSTL 3N1 BNNCTSOSTRAW 1L	PCS	$90.00	$112.00	32	8
+4800361406062	NSTL TEMP ALMD BRWN FDG 450ML	PCS	$90.00	$113.00	32	6
+4800361406079	NSTL TEMP ROCKY ROAD 450ML	PCS	$90.00	$113.00	32	0
+4800361406086	NSTL TEMP MOCHA CASHEWS 450ML	PCS	$90.00	$112.00	32	6
+4800361406727	NSTL TEMP COOKIES&CRM 450ML	PCS	$90.00	$113.00	32	0
+4701	LESSON QUARTERLY 2019 TAGALOG	PCS	$90.00	$112.00	35	127
+4805358799080	MAGNOLIA SRBTS TSK 1L	PCS	$90.00	$113.00	52	4
+2019	MALAGKIT SUNG2X 1KL	PCS	$90.00	$99.00	55	75
+4806525943831	SOFIA LIP TINT BLK VOILET 12ML	PCS	$90.00	$113.00	84	12
+3154144991100	MAPED SCISSOR 8 1/4	PCS	$90.00	$113.00	100	50
+8850389105450	MOGU MOGU LYCHEE 1L	PCS	$90.00	$113.00	104	0
+8850389105474	MOGU MOGU GRAPES 1L	PCS	$90.00	$113.00	104	0
+8850389106990	MOGU MOGU COCONUT 1L	PCS	$90.00	$113.00	104	0
+8850389108666	MOGU MOGU STRAWBERRY 1L	PCS	$90.00	$113.00	104	0
+481	CRISPY MSHRM CHCHRN SC 100G	PCS	$90.00	$113.00	107	0
+482	CRISPY MSHRM CHCHRN SPCY 100G	PCS	$90.00	$113.00	107	0
+483	CRISPY MSHRM CHCHRN SCHS 100G	PCS	$90.00	$113.00	107	0
+484	CRISPY MSHRM CHCHRN GAR 100G	PCS	$90.00	$113.00	107	0
+525	BTL FLOUR MILLET 1KG	PCS	$90.00	$113.00	107	13
+999	AHAVA CAYENNE OIL 350ML	PCS	$90.00	$75.00	107	0
+2080	GINGER OIL 350ML	\N	$90.00	$113.00	107	0
+2410	AHAVA 9-IN-1 PARAGIS TEA	PCS	$90.00	$113.00	107	0
+2413	AHAVA GINGER TEA	PCS	$90.00	$113.00	107	0
+4819	NEW PENCIL CASE	PCS	$90.00	$113.00	107	0
+32104	V-RUB 15G	PCS	$90.00	$113.00	107	6
+45613	CARROT JAM 350ML	PCS	$90.00	$113.00	107	0
+4800310132097	CARELINE FACEPOWDER	PCS	$90.00	$113.00	107	0
+4806513107924	TAI CHI GINGER RUB	PCS	$90.00	$113.00	107	0
+640	CZAIONLY'S POLVORON	PCS	$90.00	$175.00	114	20
+642	CZAIONLY'S SAMPALOC SWT/SPCY	PCS	$90.00	$94.00	114	0
+3456	CZAIONLY'S MARSHMALLOW	PCS	$90.00	$113.00	114	50
+48956	CZAIONLY'S BUKAYO	PCS	$90.00	$119.00	114	12
+4800186001237	GOLDEN OATS ORGGRNLTD400G	PCS	$90.00	$113.00	211	10
+3011	SW MANGO CUBES	PCS	$90.00	$112.00	228	1
+2121	D 'RIGHT INSTNT TRMERC 150G BO	PCS	$90.00	$112.00	500	0
+3508	D'R PURE SAMBONG 70G	PCS	$90.00	$113.00	500	-4
+21447	D'R TURMERIC GINGER 150G	PCS	$90.00	$113.00	500	0
+21457	D'R INSTANT SAMBONG L 150G	PCS	$90.00	$112.00	500	-3
+21459	D'R GARLIC CHIPS 90G	PCS	$90.00	$113.00	500	0
+213224	D'RIGHTFD PURE TURMERIC 70G	PCS	$90.00	$113.00	500	-2
+4805358503083	NUTRI-OIL PALM OLEIN 950ML	PCS	$90.00	$103.00	900	0
+4902430428316	REJOICE SHMPOO 170ML	PCS	$90.12	$113.00	70	7
+8565	GINGER OIL 350ML	PCS	$90.40	$113.00	23	0
+4800166142400	CHOKO-CHOKO STCK 100S 700G	PCS	$90.56	$113.00	117	66
+4800888207098	SURF FABCN SCOOPER 1100G	PCS	$90.75	$114.00	107	0
+8851932371551	AXE SPRAY YOU 50ML	PCS	$91.00	$114.00	36	14
+4800888180407	BREEZE POW  W/ACTV 700G	PCS	$91.10	$114.00	36	64
+4800888202772	BREEZE POW ROSE GOLD 650G	PCS	$91.10	$109.00	36	49
+8934868113058	BREEZE LIQ DET 700ML	PCS	$91.10	$114.00	36	24
+4800147110107	FARLIN BBY WIPES 80S	PCS	$91.10	$114.00	78	31
+4806512307875	CRISTELA 8180	PCS	$91.20	$114.00	107	0
+4806014099162	JOLLY CLARO PLM OLN SUP1L	PCS	$91.24	$105.00	53	48
+8851932349130	AXE BLACK 50ML	PCS	$91.50	$115.00	36	2
+4801234111120	BAYGON INSCT KLLR 250ML	PCS	$91.80	$115.00	20	0
+4809013300086	KOJIE SAN SOAP135G	PCS	$91.80	$115.00	54	29
+4806513690563	KWIK GREEN 150ML	PCS	$91.88	$115.00	113	0
+2017	#2017 TRASHCAN COL.	PCS	$92.00	$115.00	20	1
+3624	EM DRAWSTING POUCH XSM CLRD	PCS	$92.00	$92.00	41	0
+570	TM 100	PCS	$92.00	$102.00	111	107
+4806504471218	GLOBE 100	PCS	$92.00	$102.00	111	285
+4800888174239	DOVE ULTMT WHT RO SEA 40ML	PCS	$92.20	$115.00	36	11
+4800888193797	DOVE RO SENSITIVE 40ML	PCS	$92.20	$115.00	36	10
+4800888205124	DOVE RO ULTMT REPAIR LILY 40ML	\N	$92.20	$115.00	36	7
+4800888208910	DOVE SECRETS CALM 40ML	PCS	$92.20	$115.00	36	6
+4800888208927	DOVE SECRETS GLOW 40ML	PCS	$92.20	$115.00	36	6
+4808680022031	LADY'S CHCKN SPRD  220ML	PCS	$92.30	$116.00	36	22
+4808680022277	LADY'S TUNA SPREAD 220ML	PCS	$92.30	$115.00	36	46
+8850006321539	COLGATE TRPL ACTN 95ML	PCS	$92.40	$116.00	63	0
+8850006322925	COLGATE PPPRTMINTICE BLUE 95ML	PCS	$92.40	$116.00	63	0
+680	ORIENTAL PAIL #600	PCS	$92.50	$116.00	20	0
+4806789010744	FISSAN PWD XTRA COOL 100G	PCS	$92.50	$116.00	36	6
+8851932336659	PONDS MEN ACNE SOL 50G	PCS	$92.55	$116.00	36	7
+4800282006617	GOLDEN VLLY PLM OLEIN 1LTR	PCS	$92.63	$116.00	76	30
+4902430399425	PNTNE DMGE CRE CONDTNER 165ML	PCS	$92.80	$116.00	20	9
+12101	CZAIONLY'S SHING ALING	PCS	$93.00	$116.00	114	40
+321534	CZAIONLY'S PUMPKIN SEEDS	PCS	$93.00	$116.00	114	30
+14285000921	GOLDEN FSTA PALM OIL 950ML	PCS	$93.27	$117.00	15	7
+4902430532433	TIDE POW GBLOOM 850G	PCS	$93.60	$117.00	15	15
+4902430412674	TIDE LAU PWDR 1150G	PCS	$93.60	$118.00	70	22
+4902430759267	TIDE POW PRFM FNTSY 850G	PCS	$93.60	$117.00	70	28
+4902430412551	TIDE POW ORGNL SCNT 950G	PCS	$93.68	$118.00	15	21
+41800354504	WELCH'S GRAPE JUICE 16OZ	PCS	$94.17	$122.00	20	8
+4806512881344	ELLIPS SRNITY SWT MYSTQ 105ML	PCS	$94.25	$118.00	76	7
+4806507831071	SILKA PAPAYA LOTION 200ML	PCS	$94.25	$118.00	222	13
+4800417056906	BENCH FIX PROF 80G	PCS	$94.33	$118.00	117	4
+4806501705248	CHAMPION POW W/FABCN 800G	PCS	$94.50	$119.00	15	0
+4800380510344	ARCE BLUEBERRY CHEESECAKE 425M	PCS	$94.50	$118.00	99	7
+4800380510443	ARCE CHEESE 425ML	PCS	$94.50	$118.00	99	6
+4800380510740	ARCE CHOCOLATE CRUNCH 425ML	PCS	$94.50	$118.00	99	5
+4800380510849	ARCE COFFEE CRUMBLE 425ML	PCS	$94.50	$118.00	99	5
+4800380510948	ARCE COOKIES N' CREAM 425ML	PCS	$94.50	$118.00	99	5
+4800380511044	ARCE DAIRY DARK CHOCO 425ML	PCS	$94.50	$118.00	99	5
+4800380511341	ARCE MACAPUNO 425ML	PCS	$94.50	$118.00	99	6
+4800380511648	ARCE PISTACHIO 425ML	PCS	$94.50	$118.00	99	5
+4800380511747	ARCE ROCKY ROAD 425ML	PCS	$94.50	$118.00	99	5
+4806501705347	CHAMPION POW CITRUS 1000G	PCS	$94.53	$118.00	15	24
+4806501705040	CHAMPION POW SUPRA CLEAN 1000G	PCS	$94.53	$118.00	117	24
+4800186001336	GOLDEN OATS 800G	PCS	$94.85	$119.00	211	2
+4809012721370	GLUE BOARD MICE CATCHER 4S	PCS	$94.98	$119.00	77	3
+38000138416	PRINGLES ORIGINAL 149G	PCS	$95.00	$119.00	7	0
+45	TUFF TORCH FLASHLIGHT	PCS	$95.00	$118.75	20	1
+50505	PUSH BRUSH 505	PCS	$95.00	$124.00	20	37
+38000138430	PRINGLES SRCRM & ONION 149G	PCS	$95.00	$119.00	20	0
+6929537239889	LKK FRIED GARLIC 1KG	PCS	$95.00	$123.00	20	40
+104530	PEANUT BRITTLE BIG	PCS	$95.00	$119.00	21	0
+4800186001510	GETUP&GO CEREAL OATS PROMO PCK	PCS	$95.00	$119.00	26	0
+4801234075101	MR MUSCLE FOAMING BLEACH \\500M	\N	$95.00	$119.00	28	0
+3626	EM DRAWSTRING POUCH SM BLCK\\	PCS	$95.00	$95.00	41	-2
+4806525943787	S LIPTINT EXTREME RED 12ML	PCS	$95.00	$119.00	84	0
+4806525943794	S LIPTINT MAROON 12ML	PCS	$95.00	$119.00	84	0
+4806525943800	S LIPTINT BURGUNDRY 12ML	PCS	$95.00	$119.00	84	10
+4806525943817	S LIPTINT PEACH 12ML	PCS	$95.00	$119.00	84	3
+4806525943824	S LIPTINT BROWN 12ML	PCS	$95.00	$119.00	84	18
+26000003797	ELMRS GLUE-ALL 240G	PCS	$95.00	$119.00	100	8
+3154140019020	MAPED SPARE BLADE 2'S	PCS	$95.00	$119.00	100	3
+4806021389164	MIYAGI GLUE GUN MGG-0020	PCS	$95.00	$119.00	100	25
+4902505343544	V BOARD MASTER	\N	$95.00	$119.00	100	0
+1811	AUP SHOULDER BAG BIG	PCS	$95.00	$160.00	107	37
+8809091073489	COCO PEELING SOAP ROSE	PCS	$95.00	$114.00	107	0
+8809091073526	COCO PEELING SOAP ACAI BERRY	PCS	$95.00	$114.00	107	0
+8809091073533	COCO PEELING SOAP CHRCOAL	PCS	$95.00	$114.00	107	0
+8809091073540	COCO PEELING SOAP PEARL	PCS	$95.00	$114.00	107	0
+8809091073557	COCO PEELING SOAP FRN TEA	PCS	$95.00	$114.00	107	0
+8809091073618	COCO PEELING SOAP OLIVE	PCS	$95.00	$114.00	107	0
+506	CZAIONLY'S SUNFLOWER BIG	PCS	$95.00	$119.00	114	35
+636	CZAIONLY'S GARLIC PEANUT SMALL	PCS	$95.00	$119.00	114	9
+643	CZAIONLY'S JUMBONUTS	PCS	$95.00	$119.00	114	0
+312040	CZAIONLY'S YEMA PNUT	PCS	$95.00	$119.00	114	0
+1021044	CZAIONLY'S POPBEANS 180G	PCS	$95.00	$119.00	114	30
+2130401	CZAIONLY'S TURONES	PCS	$95.00	$119.00	114	-8
+1202	JOELYN 'S SALABAT W/ TURMERIC	PCS	$95.00	$119.00	1851	16
+4902505089213	PILOT WHYTEBOARD INK REFILL 30	PCS	$95.20	$119.00	20	270
+4902430473538	ARIEL POW FPSSION 825G	PCS	$95.49	$120.00	70	8
+4902430766999	ARIEL POW GBLSSM 650G	PCS	$95.49	$120.00	70	6
+4801234165512	MR MUSCLE CITRUS 500ML	PCS	$95.50	$119.00	28	6
+9310059050071	LISTERINE MOUTHWASH 250ML	PCS	$95.93	$120.00	117	24
+1315010	FLAMINGO EXP FILE 4403Z	PCS	$96.00	$120.00	20	7
+30301283	HAIRNET FOR CANTEEN	PCS	$96.00	$96.00	20	9
+4800030064753	SUNMAC SPGHT PACK PROMO	PCS	$96.00	$120.00	53	14
+4806512306595	CRISTELA 5280	PCS	$96.00	$120.00	107	0
+2120	D' RIGHT ROAST RICE 150G BOTLE	PCS	$96.00	$120.00	500	5
+3507	D'RIGHT FOODS CLEANSE PLS 150G	PCS	$96.00	$120.00	500	-2
+21010100	D'R RSTDRICEBLND3IN1 200G	PCS	$96.00	$120.00	20	0
+69	RUBBER BAND B	PCS	$96.75	$121.00	20	0
+4800888139450	CREAM SLK DMGE CNTRL 180ML	PCS	$96.90	$121.00	36	5
+4800888139467	CREAM SLK DFNSE 180ML	PCS	$96.90	$121.00	36	6
+4800888139481	CSLK S&STRGHT 180ML	PCS	$96.90	$121.00	36	11
+4800888139498	CREAM SLK DANDRFF FREE 180ML	PCS	$96.90	$121.00	36	3
+4800888161291	CREAM SLK STNNG SHNE 180ML	PCS	$96.90	$121.00	36	5
+4800888180124	CREAM SLK DRY RESCUE 180ML	PCS	$96.90	$121.00	36	4
+4800888200518	CSLK COLOR PRTCT 180ML	PCS	$96.90	$121.00	36	6
+49	OROCAN BASIN 8518 18L	PCS	$97.00	$121.00	20	0
+6309	#6309 TRASH CAN	PCS	$97.00	$121.50	20	3
+4902430782821	WHISPER 10 PADS	PCS	$97.07	$121.00	70	18
+4800166142288	ECCO STIK-O CHOCO   850G	PCS	$97.27	$122.00	117	96
+4806014099223	GOODLIFE VERMICELLI 500G	PCS	$97.72	$122.00	53	4
+4800042122427	ENERGIZER 3A MAX PWER SEAL 2PC	PCS	$97.75	$122.00	86	26
+4806014093344	JOLLY CLARO PLM OLN PET1L	PCS	$97.77	$112.00	53	54
+4800092110580	SUPERSTIX CHOCO 804G	PCS	$98.38	$122.00	117	0
+4804880555232	MARCA LEON CRN OIL1L	PCS	$98.40	$113.00	53	7
+3640	EM PRINTED ENVELOP LONG	PCS	$99.00	$99.00	41	0
+932	JEDNUTS PASTLLAS DEYEMA/UBE	PCS	$99.00	$124.00	49	0
+4804880552354	MARCA LEON CANOLA OIL SUP1L	PCS	$99.00	$114.00	53	26
+4806512306878	CRISTELA 9120C	PCS	$99.00	$99.00	61	12
+4809013293432	CRYSTL WHTNING TONER 100ML	PCS	$99.00	$124.00	104	15
+1623	AUP BAG SMALL	\N	$99.00	$149.00	107	-11
+5943	EM JUNIOR TUMBLER	PCS	$99.00	$99.00	107	0
+4803746151502	HERBS BEAUTY HYDRATING 250ML	PCS	$99.00	$124.00	107	0
+4806512307851	CRISTELA 915B	PCS	$99.00	$99.00	107	0
+30	HANGER BIG #30	PCS	$99.75	$57.00	20	0
+3007	MAAM LOLI'S SUMAN MALAGKIT	\N	$100.00	$125.00	11	4
+566	PINATUBO CHILI PWDR 40G	PCS	$100.00	$125.00	19	0
+79	MAGIC PILLOW PRNTD	PCS	$100.00	$130.00	20	3
+925	IPON CHALLENGE COIN BANK	PCS	$100.00	$125.00	20	0
+1060	MAGIC PILLOW MOONLIGHT	PCS	$100.00	$125.00	20	0
+1068	PILLOW CASE 18X28	PCS	$100.00	$130.00	20	11
+1105	BOLSTER SMALL W/ HEAD	PCS	$100.00	$125.00	20	1
+3416	DURALITE WHITE SHOES	PCS	$100.00	$130.00	20	6
+3417	DURALITE LADIES SHOES	PCS	$100.00	$130.00	20	5
+8020	2034 KEEP&CARRY	PCS	$100.00	$125.00	20	0
+8064	CARBUTANDUM	PCS	$100.00	$125.00	20	3
+8711	OROCAN #8711	PCS	$100.00	$97.00	20	0
+208665	OCO PADLOCK 40MM	PCS	$100.00	$125.00	20	0
+12355888	AUP T-SHIRT S,M,L	PCS	$100.00	$125.00	21	0
+759	APAS BREAD S	PCS	$100.00	$25.00	23	0
+125562	BANANA CUE STICK	PCS	$100.00	$125.00	23	0
+4800888113658	CLOSEUP REDHOT 145ML	PCS	$100.00	$125.00	36	32
+4800888113672	CLOSE UP MENTHOL FRESH 145ML	PCS	$100.00	$125.00	36	34
+3637	EM ENGRAVED WOODEN BOOKMARK	PCS	$100.00	$100.00	41	-4
+25	OCO SQUARE CIRCLE PADLOCK	PCS	$100.00	$125.00	51	0
+488	INDEX CARD 5X8 100S WHT	PCS	$100.00	$125.00	63	2
+4806512881351	ELLIPS SERENITY SWTMYSTQ 105ML	PCS	$100.00	$125.00	76	5
+4806508361621	KARATE BELTS SUNRISE	PCS	$100.00	$100.00	96	0
+426	AHAVA CHILI GRLC SAUCE	PCS	$100.00	$125.00	107	0
+546	WALLET LETHER RCTNGL	PCS	$100.00	$125.00	107	0
+560	POUCH MAKE UP	PCS	$100.00	$125.00	107	0
+610	POUCH MAKE UP PLAIN	PCS	$100.00	$125.00	107	0
+630	POUCH TRIANGLE GLITTER	PCS	$100.00	$125.00	107	0
+1478	VEGAN'S VIM ALMONDS 500G	\N	$100.00	$125.00	107	1
+1480	GREAT CONTROVERSY CD	PCS	$100.00	$125.00	107	0
+1773	SOLIBIO'S CHEWY BROWNIES	PCS	$100.00	$125.00	107	0
+1894	MIRACLE BLAM 40G	\N	$100.00	$125.00	107	-2
+1988	FARU'S SEACHRON ORIG 50G	PCS	$100.00	$125.00	107	0
+1989	FARU'S SEACHRON SCREAM 50G	PCS	$100.00	$125.00	107	0
+1997	FARU'S SEACHRON SPICY 50G	PCS	$100.00	$125.00	107	0
+1999	FARU'S SEACHRON SPICY GRLIC 50	PCS	$100.00	$125.00	107	0
+2082	AHAVA TURMERIC 10IN1 200G	\N	$100.00	$125.00	107	-2
+2099	AHAVA PARAGIS 10-IN-1 200G	PCS	$100.00	$125.00	107	0
+2305	WALLET BAG	PCS	$100.00	$125.00	107	0
+3357	VENUS COCO JAM 100G	PCS	$100.00	$125.00	107	14
+3563	VEGANS VIM MIXED NUTS 100G	\N	$100.00	$125.00	107	-19
+3663	HENGFANG MASCARA 11G	PCS	$100.00	$125.00	107	2
+3664	JIALIQI LIQUID EYELINER	PCS	$100.00	$125.00	107	2
+4379	SOAP IN CAN	PCS	$100.00	$125.00	107	-2
+4822	NEW SLING BAG	PCS	$100.00	$125.00	107	0
+5678	AUP CLOCK	\N	$100.00	$125.00	107	0
+6847	RPM PILI TART	PCS	$100.00	$125.00	107	0
+8559	DUAL USB CAR CHARGER	PCS	$100.00	$130.00	107	0
+9201	ARROW COOKIES SM CANS	PCS	$100.00	$125.00	107	0
+9202	PEANUT COOKIES SMALL CANS	PCS	$100.00	$125.00	107	0
+16485	AHAVA MALUNGGAY POW	PCS	$100.00	$125.00	107	0
+20103	AN MING JUICE MAKER	PCS	$100.00	$125.00	107	0
+321354	GLUTA PAPAYA SOAP	PCS	$100.00	$120.00	107	9
+2134114	HEALTHY SPRINKLE BIG	PCS	$100.00	$125.00	107	0
+2135465	AHAVA HONEY BEE 250ML	PCS	$100.00	$125.00	107	0
+34561327	NUTRI TEA 5N1 145G	PCS	$100.00	$125.00	107	38
+456668899	DAILA HERBAL BODY OIL	PCS	$100.00	$125.00	107	2
+609332031012	ALL OVER COLR STCK	PCS	$100.00	$125.00	107	0
+609332038103	BEAUTFLLY BRGHT NAIL POLISH 1L	PCS	$100.00	$125.00	107	0
+609332221819	LIP LCQUER 2.6ML	PCS	$100.00	$125.00	107	0
+609332232112	ELF POWDER	PCS	$100.00	$125.00	107	0
+609332837041	ELF BKD HGHLHTR 5G	PCS	$100.00	$125.00	107	0
+4800310132035	CL FRESH TOMATO	PCS	$100.00	$125.00	107	0
+4800310132042	CL TOUCH OF PINK	PCS	$100.00	$125.00	107	0
+4800310132479	CARELINE OIL CNTRL LQD MAKEUP	PCS	$100.00	$125.00	107	0
+4806512307332	CRISTELA MFG	\N	$100.00	$130.00	107	0
+4806531764079	MIRA'S 12IN1 HRBL TEA 150G	PCS	$100.00	$150.00	107	0
+4809011631021	PANCIT BATO MALUNGGAY 500G	PCS	$100.00	$125.00	107	27
+4809011631038	PANCIT BATO CARROTS 500G	PCS	$100.00	$125.00	107	7
+4809015965009	SOLID CORR PANCIT CANT 450G	\N	$100.00	$125.00	107	10
+6903071016748	BAXI 3D SHINE EYESHDW	PCS	$100.00	$125.00	107	2
+4806522100015	SMART 100	PCS	$100.00	$102.00	108	87
+4806522100046	TNT 100	PCS	$100.00	$102.00	108	35
+1055	CZAIONLY'S HONEY/HONEYCOMB SM	PCS	$100.00	$125.00	114	29
+3457	CZAIONLY'S MUSCUVADO 500G	PCS	$100.00	$115.00	114	0
+4800888181602	SURF POW BLSMFRSH 1100G	PCS	$101.20	$127.00	36	50
+4800888181640	SURF ANTIBACTRL 1100G	PCS	$101.20	$127.00	36	41
+4800086033375	SLCT IH SUP BLACKFOREST 750ML	PCS	$101.46	$143.00	9	0
+4800361388757	NESTLE BEARBRAND 320G	PCS	$101.90	$127.00	14	150
+61	TRASHCAN 2018	PCS	$102.00	$128.00	20	0
+2018	TRASH CAN #2018	PCS	$102.00	$128.00	20	0
+4800888151070	SURF DWL LQD LEMON 750ML	PCS	$102.00	$128.00	20	0
+4800888168405	SURF LIQ DSHWSHNG KAL 750ML	PCS	$102.00	$128.00	36	0
+3501	D'RIGHT FOODS CHOL-OUT 160G	PCS	$102.00	$128.00	500	-5
+3502	D'RIGHT FOODS CLEANSEPLUS 160G	PCS	$102.00	$128.00	500	-9
+196	VGT GARLIC	PCS	$102.30	$128.00	23	61.270000000000003
+17	DALISAY BASIN #17	PCS	$103.00	$130.00	20	0
+490250508913	HBW WB INK	PCS	$103.00	$134.00	20	0
+6422	CZAIONLY'S PEANUT	PCS	$103.00	$129.00	107	-12
+454112	CZAIONLY CASSAVA CHIPS	PCS	$103.00	$129.00	114	51
+4902430400886	PANTNE SHAMP HAIFALL 150ML	PCS	$103.05	$129.00	20	9
+4902430400602	PANTENE SHAMPOO DC 150G	PCS	$103.05	$129.00	70	0
+4800030700002	SUNSHINE SPAG 1KG	PCS	$103.80	$130.00	53	2
+4809014665191	M2 TEA DRINK	PCS	$104.00	$130.00	71	12
+4805358103047	MAGNOLIA GOLD BUTTERSLTD 225G	PCS	$104.75	$131.00	900	0
+3034	KM C.O EXTENSION SET#2188	PCS	$105.00	$137.00	20	-7
+3414	DURALITE LADIES SLIPPER	PCS	$105.00	$137.00	20	1
+4804880555317	MARCA LEON VGT OIL SUP 1L	PCS	$105.00	$121.00	53	9
+1090	POLYTASTE OATMEAL BROWNIES	PCS	$105.00	$131.00	107	6
+1091	POLYTASTE RED VELVET	PCS	$105.00	$131.00	107	0
+1093	POLYTASTE UBE BARS	PCS	$105.00	$131.00	107	0
+3145	GABRIDO SUNFLOWER SEED BIG	\N	$105.00	$132.00	107	-4
+4801	POLYTASTE PANDAN BARS	PCS	$105.00	$131.00	107	0
+4800888179616	DOVE RESCUE PLUS 170ML	PCS	$105.50	$132.00	36	3
+8992304013775	LOREAL SHINE COND. 80ML	\N	$105.60	$132.00	53	0
+4809010508812	MILCU POWDR UNDERARM&FEET 80G	PCS	$105.60	$132.00	63	0
+4806030202218	JOLLY CANOLA OIL 1L	PCS	$106.18	$122.00	53	0
+4807770121715	NSSN WAFFLE DLUXE 276G	PCS	$106.22	$133.00	1	29
+4800888154330	DOVE GOLD 170ML	PCS	$106.40	$133.00	36	7
+4800888154347	DOVE INTENSE RPR BLUE 170ML	PCS	$106.40	$133.00	36	21
+4800888154354	DOVE STRAIGHT SLKY 170ML	PCS	$106.40	$133.00	36	17
+4800888190192	DOVE OXYGEN&NRSHMNT 170ML	PCS	$106.40	$133.00	36	11
+8851013767495	TIPCO POMEGRANTE&MIX FRUIT 1L	PCS	$106.83	$134.00	29	12
+8851013773496	TIPCO CHERRY BERRY&GRAPE 1L	PCS	$106.83	$134.00	29	12
+8851013785499	TIPCO ORANGE MEDLEY 1L	PCS	$106.83	$134.00	29	12
+8851013788490	TIPCO ALOE VERA 1L	PCS	$106.83	$134.00	29	12
+8851013797492	TIPCO RED GRAPE 1L	PCS	$106.83	$134.00	29	12
+110	TOOL BOX #110	PCS	$107.00	$134.00	20	0
+3625	EM DRAWSTRING POUCH SM CLRD	PCS	$107.00	$107.00	41	-1
+1234566	D'RIGHTFOOD HERBAFULL 200G	PCS	$108.00	$135.00	21	0
+1234569	D'RIGHTFOODS ROASTRICE 200G	PCS	$108.00	$135.00	107	0
+4800310134008	CL BBCREAM NUDE	PCS	$108.00	$163.00	107	0
+4804880213217	BAGUIO OIL SUP 1L	PCS	$108.00	$124.00	117	24
+3503	D'RIGHT FOODS HRBALFULL10 150G	PCS	$108.00	$135.00	500	-10
+8005391190431	CMPNG INSTANT LSAGNA 500G	PCS	$108.30	$135.00	76	0
+4902430160896	SAFEGRD BAR WHITE 135GX3	PCS	$108.36	$135.00	107	18
+4902430803731	SAFEGUARD LEMON FRESH 3X135G	PCS	$108.37	$135.00	70	22
+4800016783319	EL REAL YAKAP SARAP PCK	PCS	$108.57	$136.00	76	16
+8850006322963	COLGATE TP CC	PCS	$108.75	$136.00	15	0
+4800888133519	CLEAR CMPLTE SOFT CARE 200ML	PCS	$108.85	$136.00	36	14
+4272939	B1T1 HT BASIC	PCS	$109.00	$109.00	20	0
+1622	AUP BAG BIG	\N	$109.00	$189.00	107	-8
+2180	CVI FROZEN BBQ	PCS	$109.65	$137.00	4	0
+2075	EM CP CASE	\N	$109.75	$109.75	41	0
+8850006320495	COLGATE ANTICAVITY 145ML(214G)	PCS	$109.81	$143.00	36	48
+4804888322096	CVI FROZEN BURGER 1KG	PCS	$110.00	$138.00	4	168
+1103	BOLSTER BIG ORDINARY	PCS	$110.00	$143.00	20	0
+3415	DURALITE MEN SLIPPER	PCS	$110.00	$143.00	20	-2
+852	LESSON QUARTERLY 2019 ENGLISH	PCS	$110.00	$137.00	35	102
+1028	GLUE GUN HS-E 20W SM	PCS	$110.00	$138.00	100	0
+9012015800026	MGK PUNCHER BIG M07035	PCS	$110.00	$138.00	100	3
+3558	MUSHROOM TOCINO 250G	\N	$110.00	$138.00	107	0
+4051	ALLPURPOSE GRILLED SAUCE	PCS	$110.00	$138.00	107	0
+4800	POLYTASTE CARAMEL BARS	PCS	$110.00	$138.00	107	0
+10312124	MORINGA ESSENCE 60ML	PCS	$110.00	$137.00	107	0
+4809015256008	MUSHROOM TEMPURA 70G	PCS	$110.00	$138.00	107	0
+4809015256077	MUSHROOM TEMPURA 70G	PCS	$110.00	$138.00	107	0
+21454	D'R RSTDRICEBLND 3IN1 300G	PCS	$110.00	$138.00	500	0
+21456	D'R SOYA BLEND 3IN1 300G	PCS	$110.00	$138.00	500	0
+4800888158017	CLOSEUP FIREFREZE 145ML	PCS	$110.15	$138.00	36	24
+4800888171504	SURF FABCON ANTIBACTERIAL 800M	PCS	$110.25	$138.00	36	6
+8934868095002	SURF FABCON FRNCH PR 800ML	PCS	$110.25	$138.00	36	4
+8934868125204	SURF FABCON MBLOOM 800ML	PCS	$110.25	$138.00	36	17
+4806525541594	TENDER LOVE 3PCS 1FREE PAPAYA	PCS	$110.85	$139.00	54	0
+3642	EM GENESIS ENVELOPE A5	PCS	$111.00	$111.00	41	0
+4808680653310	BSTFOOD PNTBTTR 340G	PCS	$111.05	$139.00	36	20
+336	VGT GINGER	PCS	$111.11	$139.00	23	42
+4800888127129	VASLN ALOESOOTHE 200ML	PCS	$111.50	$140.00	36	0
+4800888127211	VSLN RSTRTMST 200ML	PCS	$111.50	$140.00	36	0
+4804880553412	MARCA LEON CANALO OIL PET 1L	PCS	$111.75	$128.00	53	57
+4804888322133	CVI FROZEN CHOPLETS 1KG	PCS	$112.00	$140.00	4	81
+8045	FIREFLY 20W FLOURSNTLGHT	PCS	$112.00	$140.00	20	25
+8562	SUNRISE CORN COFFEE 180G	PCS	$112.00	$140.00	20	0
+4800282000851	GOLDEN VLLY CANOLA OIL 1LTR	PCS	$112.10	$129.00	76	6
+4806513690709	SPLENDA FURN. LEMON 160ML	PCS	$112.14	$140.00	113	5
+4809013772043	TURMERIC W/COCO SUGAR 100G	PCS	$112.25	$140.00	105	0
+4804888815376	TOBI CASHEW NUTS 100G	PCS	$112.35	$141.00	104	10
+4804880553115	MARCA LEON VGT OIL PET 1L	PCS	$112.83	$130.00	53	14
+750515018438	SKYFLAKES CRACKERS 360S	PCS	$113.03	$142.00	1	75
+4800473000028	ROGER'S MAYO 470ML	PCS	$113.12	$142.00	113	0
+4800888157690	SURF FABCON BLSSM FRSH 800ML	PCS	$113.25	$142.00	36	17
+4800888160898	SURF FABCON MFRESH 800ML	PCS	$113.25	$142.00	36	12
+8934868110644	SURF FABCON LUXE PRFME 800ML	PCS	$113.25	$142.00	36	19
+4902430627528	DOWNY LQD ANTBC 800ML	PCS	$113.45	$142.00	20	3
+4800086045003	SLCT IH SUP TPLCHCCAKE 750ML	PCS	$113.46	$142.00	9	0
+4800086045010	SCLT IH SUP HALOHALO 750ML	PCS	$113.46	$142.00	9	0
+4800086040885	SLCTA SUPREME ROCKY ROAD 750ML	PCS	$113.64	$142.00	9	4
+4800086040993	SLCTA SUPRME COOKIES&CRM 750ML	PCS	$113.64	$142.00	9	4
+4800086042309	SLECTA IH MANGO GRHM CKE 750ML	PCS	$113.64	$142.00	9	0
+4800086044990	SCLT YEMA CKE CONQZO 750ML	PCS	$113.64	$143.00	9	0
+4800086045355	SLCT IH PISTACH/DD 750ML	PCS	$113.64	$142.00	9	4
+4800086048647	SLCT IH DBLDTCH/VRKYRD 750ML	PCS	$113.64	$142.00	9	0
+4800086048678	SLCT IH CFECRBL/CKSNCRM 750ML	PCS	$113.64	$142.00	9	0
+4800086043375	SELECTA IH SUP BLK FRST 750ML	PCS	$113.64	$142.00	20	0
+4800274080014	QUAKER INSTANT OATS 800G	PCS	$114.00	$143.00	15	0
+4805358317062	MAGNOLIA CHEEZEE REG 440G	PCS	$114.30	$143.00	900	0
+4800888149510	CLEAR COOL SPRT MENTHL 180ML	PCS	$114.35	$143.00	36	18
+4800888174178	CLEAR MEN ANTI-DANDR 180ML	\N	$114.35	$143.00	36	0
+478	FF PEANUT BUTTER W\\SUGAR	PCS	$115.00	$133.00	17	-3
+479	FF PEANUT BUTTER W\\O SUGAR	PCS	$115.00	$133.00	17	25
+56	TRASHCAN 9.75	PCS	$115.00	$144.00	20	0
+270	HI-TOP TRASH CAN #270	PCS	$115.00	$144.00	20	0
+4809013191714	SEEDLESS SWT SMPLC 250G	PCS	$115.00	$145.00	105	12
+607	SUNRISE TURMERIC POWD 100G	PCS	$115.00	$140.00	107	0
+3210	NUTRI RUB	PCS	$115.00	$144.00	107	0
+4800310130444	EVERBILENA FACEPOWDER NAT	PCS	$115.00	$144.00	107	0
+4902430737111	HEAD & SHLDRS LMN FRSH 170ML	PCS	$115.55	$144.00	61	16
+4800047840067	ZONROX ORIG 3785ML	PCS	$115.86	$145.00	15	27
+686	RICE JAPONICA WHITE 2KG	PCS	$116.00	$145.00	107	0
+3322	VARONA VEGE BBQ	PCS	$116.10	$145.00	18	13
+4902430411783	H&SHLDR MNTH CONDTNER 170ML	PCS	$116.45	$146.00	70	6
+4902430430975	H&SHLDER S&SLKY CNDTNER 170ML	PCS	$116.45	$146.00	70	8
+74305050169	BRAGG APPLE CIDER 473ML	PCS	$116.50	$146.00	26	-6
+74305053160	BRAGG APPLE CIDER VINEGAR 473M	PCS	$116.50	$146.00	26	0
+4809014128146	KOJIESAN DREAMWHITE 135GX2	PCS	$117.00	$146.00	54	15
+64783	D'R TURMERIC GNGR 200G	PCS	$117.00	$146.00	107	0
+4801234014629	MR MUSCLE GLASS CLEANER 500ML	PCS	$117.05	$146.00	28	5
+4801234072612	MR. MUSCLE CLEANER 500ML	PCS	$117.05	$147.00	28	3
+8934868137931	BREEZE LIQ DET 650ML	\N	$117.25	$147.00	36	0
+4902430453028	DOWNY SNRISE FRESH 900ML	PCS	$117.27	$147.00	70	3
+4800086038647	SLCT DBLDTCH/RCKYRD 750ML	PCS	$117.28	$147.00	9	31
+4800086038708	SLCT IH DSUP QZORL/BUCOSLD 750	PCS	$117.28	$147.00	9	5
+4800086040657	SLCT RROAD/C&CRM 750ML	PCS	$117.28	$147.00	9	18
+4800086040675	SLCTA DSUP RROAD/C&CRM 750ML	PCS	$117.28	$147.00	9	2
+4800086040688	SLCT DSUP DDUTCH/C&CRM 750ML	PCS	$117.28	$147.00	9	16
+4800086040879	SLCT SUP DBLE DTCH 750ML	PCS	$117.28	$147.00	9	43
+4800086040886	SLCT SUP RCKYROAD 750ML	PCS	$117.28	$147.00	9	40
+4800086040893	SLCT SUP COOKIES&CREAM 750ML	PCS	$117.28	$147.00	9	38
+4800086040909	SLCT SUP CFFECRMBL 750ML	PCS	$117.28	$147.00	9	13
+4800086040916	SLCT SUP QUEZOREAL750ML	PCS	$117.28	$147.00	9	13
+4800086040923	SLCTA SUP BUCO SALAD 750ML	PCS	$117.28	$147.00	9	2
+4800086038678	SLCT CPECRBL/CKISNCAM 750ML	PCS	$117.28	$147.00	20	17
+4800086038679	SLCTA DSUP CFF/CRBL 750ML	PCS	$117.36	$147.00	9	2
+4800417008295	BENCH SO IN LOVE 75G	PCS	$117.38	$147.00	117	24
+4800094045132	MINOLA OIL BOT 925ML	PCS	$117.83	$147.00	117	12
+4803746900094	ALERT TPASTE INTENSE FRSH 160G	PCS	$118.00	$147.00	107	3
+8888021201567	ENERGIZER ADVNCED 3A 2 PCS	PCS	$118.40	$148.00	86	11
+4804888815369	TOBI CASHEW NUTS 100G	PCS	$118.65	$149.00	104	10
+4800552888028	CHIPS DELIGHT 480G	PCS	$118.80	$150.00	1	0
+492430407984	H&S SHMP AF SUMMER 170ML	PCS	$118.90	$149.00	70	0
+4902430396035	HEAD&SHOULDR COOL MENTHL 170ML	PCS	$118.90	$149.00	70	16
+4902430407984	H&S APPLEFRSH 180ML	PCS	$118.90	$149.00	70	21
+4902430396028	HEAD N SHOULDR SMTH 170ML	PCS	$118.90	$149.00	107	12
+4902430468718	JOYDSHLQD LEMON 600ML	PCS	$118.97	$149.00	70	5
+51	OROCAN BASIN 8520 20L	PCS	$119.00	$149.00	20	27
+4800888190291	DOVE MEN SHFRT STRNGTHNG 170ML	PCS	$119.00	$149.00	36	0
+4800888190321	DOVE MEN SHFRT RFRSH CLN 170ML	PCS	$119.00	$149.00	36	0
+4800186001275	GOLDEN OATS WLGRAIN800G	PCS	$119.00	$149.00	211	2
+6925169443182	FIREFLY 18W	PCS	$119.95	$150.00	324	8
+225	CVI FROZEN GLUTEN TOCINO 1KG	PCS	$120.00	$150.00	4	27
+4804888322010	CVI FROZEN MEAT 1KG	PCS	$120.00	$150.00	4	195
+702	OM PEANUT BUTTER NS	PCS	$120.00	$150.00	11	0
+772	LB PEANUT BUTTER	PCS	$120.00	$150.00	11	0
+612	AUP VEG BURGER 1KG	PCS	$120.00	$150.00	17	325
+42	CATTLEYA NOTE NO.802	PCS	$120.00	$150.00	20	32
+754	NAT HERB SPIRULINA FOODSUP	PCS	$120.00	$188.00	20	0
+956	MOUSE TRAP MED	PCS	$120.00	$150.00	20	4
+1069	PILLOW CASE 20X32	PCS	$120.00	$156.00	20	9
+1847	FASHION SHOES	\N	$120.00	$150.00	20	-1
+3043	KARIT KAHOY SMALL	PCS	$120.00	$156.00	20	6
+3494	FIREFLY 20W BULB	PCS	$120.00	$156.00	20	7
+4818	NEW BAG	PCS	$120.00	$150.00	20	-3
+5001	EGG BEATER SMALL	PCS	$120.00	$150.00	20	0
+8063	KNIFE EQ	PCS	$120.00	$150.00	20	0
+8590	FIREFLY 3U 26W	PCS	$120.00	$150.00	20	0
+9098	LADIES SLIPPER W/BEADS	PCS	$120.00	$156.00	20	9
+9566	BROOCH G CLEF	PCS	$120.00	$156.00	20	3
+13521	GLUE GUN SMALL	PCS	$120.00	$150.00	20	0
+80197	FIREFLY 23W	PCS	$120.00	$150.00	20	0
+80198	KM C.O EXTENSION SET 3GANG	PCS	$120.00	$156.00	20	34
+80917	FIREFLY 23W BULB	PCS	$120.00	$156.00	20	23
+4801234116514	BAYGON SPRAY	PCS	$120.00	$150.00	20	1
+4806531764048	MIRA'S CLASSIC SALABAT 200G	PCS	$120.00	$150.00	20	36
+6957398500329	OVER SHOES	PCS	$120.00	$150.00	20	0
+4806503610830	DELTA LED BULB 3W	PCS	$120.00	$150.00	25	0
+183	TUBE ICE GALANTINA	PCS	$120.00	$120.00	33	74
+4806505354282	EUROLUX EES E-14 DYLGHT 3W GRN	PCS	$120.00	$150.00	51	3
+4809014128337	KOJIE-SAN 3PCS  100G	PCS	$120.00	$150.00	54	33
+4800132292023	CRISTELA NYLON STOCKING REGULA	PCS	$120.00	$120.00	61	24
+8850210030012	HLTYCHF SYBN OIL1L	PCS	$120.00	$150.00	71	87
+4806531764109	MIRA'S 12-1 HERBAL TEA	PCS	$120.00	$150.00	75	12
+4806531764178	MIRA'S MORINGA POWDER 100G	PCS	$120.00	$150.00	75	44
+7111663378856	MIRACLE BAM MENTHOL 40G	PCS	$120.00	$125.00	75	24
+673	RUBBER 1KL	PCS	$120.00	$150.00	94	0
+4710850100565	SHINEY NUMBER STAMP 6D N-56	PCS	$120.00	$150.00	100	2
+4806513823084	UK RUBBER BAND #18 350GMS	PCS	$120.00	$150.00	100	5
+345	HEALTH & HOME MAGAZINE	PCS	$120.00	$150.00	107	0
+427	AHAVA TURMERIC 7IN1 200G	PCS	$120.00	$150.00	107	0
+763	BTL HONEY BOTTLE	PCS	$120.00	$150.00	107	0
+1222	DTRI FRESHMILK 1L	PCS	$120.00	$150.00	107	0
+1590	SHROOM BITES MUSHRM CHCHRN 100	PCS	$120.00	$150.00	107	0
+1681	ICH 01BCC SMALL	PCS	$120.00	$150.00	107	0
+2031	JMF CRISPY MUSHROOM	\N	$120.00	$150.00	107	0
+2400	TURMERIC 500G	PCS	$120.00	$150.00	107	0
+2401	GINGER TEA 500G	PCS	$120.00	$150.00	107	0
+2412	AHAVA CAYENNE POWDER	PCS	$120.00	$150.00	107	0
+2414	AHAVA HONEY GARLIC	PCS	$120.00	$150.00	107	0
+3562	MORINGA HERBAL ESSENCE 60ML	\N	$120.00	$150.00	107	-3
+4085	TABLEYA BALLS	PCS	$120.00	$150.00	107	0
+4441	SANTOL DRIED 250G	PCS	$120.00	$150.00	107	0
+9641	AUP ECOBAG PRINTED	\N	$120.00	$119.00	107	0
+44110	MIRA'S GINGER BREW 200G	PCS	$120.00	$150.00	107	0
+4806512306304	CRISTELA 30008B	PCS	$120.00	$150.00	107	0
+4806531764130	MIRA'S PURE TRMERIC 100G	PCS	$120.00	$150.00	107	0
+4856	CZAIONLY'S WHTECORN 250G	PCS	$120.00	$150.00	114	30
+35401	CZAIONLY'S SPI VIN900ML	PCS	$120.00	$150.00	114	-2
+9319871000356	WHITE GLO TRAVELERS PCK	PCS	$120.00	$150.00	200	11
+4800024577832	PAMASKO FIL STYLE	PCS	$120.03	$150.00	29	0
+74923405273	PIK-NIK ORIGINAL 9OZ 225G	PCS	$120.22	$151.00	117	21
+4806014000557	JOLLY CANOLA OIL 1L	PCS	$121.33	$140.00	53	12
+7806424000557	JOLLY MATE CAN OIL PET 1L	PCS	$121.33	$140.00	53	60
+4801234076115	DUCK DA GEL LAVENDER 500ML	PCS	$121.75	$152.00	28	12
+4902430468732	JOYDSHLQD KLMNSI 600ML	PCS	$121.97	$153.00	70	6
+4800086045690	SCLT IH BUCO PADAN 750ML	PCS	$122.73	$154.00	9	0
+4800086045706	SLCT IH UBE SALTED EGG 750ML	PCS	$122.73	$154.00	9	0
+4800086045713	SLCT IH CHOCO HAZELNUT 750ML	PCS	$122.73	$153.50	9	0
+4800086085706	SLCT IH UBE SALED EGG 750ML	PCS	$122.73	$154.00	9	0
+4808647210105	CALUMET B-PWDR 1KG	PCS	$122.92	$154.00	1	24
+4800552888165	CHIPS DLGHT 480G	PCS	$123.00	$154.00	104	0
+4808647020100	EDEN SINGLES 440G	PCS	$123.34	$154.00	19	227
+8992304006630	LOREAL PEARL CITRUS 170ML	PCS	$124.00	$155.00	20	0
+4800310260363	EB BLACKWATER AQUA	PCS	$124.20	$155.00	86	0
+4800310343196	BLCKWATER WMEN INLOVE 100ML	PCS	$124.20	$155.00	113	0
+1224410	CATA 5W	PCS	$124.80	$156.00	20	0
+8801382127796	ALOE JUICE 1.5L	PCS	$125.00	$156.00	11	86
+8801382127963	MANDARIN JUICE 1.5L	PCS	$125.00	$156.00	11	65
+13	BUTTERFLY WHISTLE	PCS	$125.00	$26.00	20	0
+959	DVSR KALAYKAY	PCS	$125.00	$150.00	20	10
+4960	WASHING BOARD WOOD	\N	$125.00	$156.00	20	0
+6289	OROCAN PAIL #6006 24L	PCS	$125.00	$163.00	20	11
+4806512308223	SHARMANE L STOCKING	PCS	$125.00	$156.00	20	0
+8934868115717	DOMEX CLSSC GKILL 900ML	PCS	$125.00	$156.00	36	15
+8934868115724	DOMEX PINK GKILL 900ML	PCS	$125.00	$156.00	36	12
+3633	EM MUGS	PCS	$125.00	$125.00	41	-4
+4806523121521	INDEX CARD 5X8 100S	PCS	$125.00	$125.00	63	0
+375	TURMERIC TEA 7IN1 300G	PCS	$125.00	$150.00	107	0
+539	VEGAN BAGOONG	PCS	$125.00	$156.00	107	40
+1130	HM VGETRN BAGOONG 200G	PCS	$125.00	$156.00	107	0
+2033	JMF MUSHROOM POLVORON	\N	$125.00	$156.00	107	0
+2402	PEANUT BUTTER 500G	PCS	$125.00	$157.00	107	0
+5061	CZAIONLY'S PURE HONEY MEDIUM	PCS	$125.00	$156.00	114	3
+4801234072216	MR. MUSCLE KITCHEN	PCS	$125.50	$157.00	28	2
+9555027601293	SPLINA SOAP 100G	PCS	$125.60	$157.00	107	-1
+4806014000519	JOLLY HEARTSOYA 1L	PCS	$125.87	$145.00	15	12
+4801234057626	GLADE CARGEL FRSHLMN 70G	PCS	$126.40	$158.00	28	13
+4801234057725	GLADE CARGEL ORANGSQUEEZE 70G	PCS	$126.40	$158.00	28	3
+4801234057824	GLADE CARGEL FRSHAPPLE 70G	PCS	$126.40	$158.00	28	5
+9555222605348	GLADE SPORTS MRNGFRSH RFLL 7ML	PCS	$126.40	$158.00	28	0
+9555222605423	GLADE SPORT REFLL LVNDRMRN 7ML	PCS	$126.40	$158.00	28	0
+8801382144434	DR. ALOE 1.5L	PCS	$126.70	$159.00	11	60
+4804888322058	CVI FROZEN FRANKS 1KG	PCS	$127.00	$159.00	4	99
+1920	EM MULTI POUCH	PCS	$127.00	$127.00	107	0
+33	EM POSITIVE TOTES	PCS	$127.80	$159.75	20	0
+4809014128030	KOJI SAN BODY LOTION 100G	PCS	$127.80	$160.00	54	6
+4808680653266	LC PNTBTTR CREAMY 340G	PCS	$127.90	$160.00	36	5
+4808680653273	LC PNTBTTR CHUNKY 340G	PCS	$127.90	$160.00	36	12
+4808680653303	LC SWEET CRMY PNUT BUTTER 340G	PCS	$127.90	$160.00	36	16
+2074	EM IPHONE & TABLET POUCH	\N	$127.95	$127.95	41	0
+211	CVI FROZEN TAPA TOCINO 1KG	PCS	$128.00	$160.00	4	19
+717	WHITE KITTEN 80X90 PILLOW CASE	PCS	$128.00	$160.00	20	0
+812	UMBRELLA 2FOLD RED	PCS	$128.00	$160.00	107	0
+4800024577825	PAMASKO PACK SWEET	PCS	$128.33	$161.00	29	0
+4902430623636	PANTENE 3MNT CNDTNER 180ML	PCS	$128.35	$160.00	70	5
+4902430623643	PANTN CONDTNR TOTLDMGCRE 150ML	PCS	$128.35	$161.00	70	5
+8934868137719	BREEZE LIQ DET ROSE GOLD 980ML	\N	$128.50	$161.00	36	0
+8934868113041	BREEZE LIQ DET 1000ML	PCS	$128.55	$161.00	36	24
+72	ABACA HAT STRIPE	PCS	$129.00	$129.00	20	0
+7040146	B1T1 HT BASIC	PCS	$129.00	$129.00	20	0
+4800042141206	EVEREADY LED	PCS	$129.00	$161.00	20	1
+3627	EM DRAWSTRING POUCH MED BLCK	PCS	$129.00	$129.00	41	-3
+4803746880464	WHITE DOVE KCOLGNE 200ML	PCS	$129.00	$161.00	107	2
+4803746880471	WHITE DOVE BIG KISSES 200ML	PCS	$129.00	$161.00	107	2
+4803746880518	WHITE DOVE BABY POWDER 200G	PCS	$129.00	$161.00	107	3
+4804888322171	CVI FROZEN TAPA 1KG	PCS	$129.50	$162.00	4	328
+658	EM INSPIRATIONAL MUG	PCS	$129.75	$129.75	41	0
+470	WALIS BAGUIO	PCS	$130.00	$163.00	20	0
+645	COLORED PAPER 1REAM	PCS	$130.00	$200.00	20	4
+1063	SINGLE BLANKET	PCS	$130.00	$169.00	20	-5
+1071	TOWEL MICROFIBER	PCS	$130.00	$169.00	20	25
+1072	TOWEL CLASS A CANNON	PCS	$130.00	$169.00	20	1
+3041	KARIT BAKAL SMALL	PCS	$130.00	$169.00	20	10
+4564	MUSHROOM CHIPS 100G	PCS	$130.00	$163.00	20	3
+9099	PHILIPS FOOTWEAR FOR MEN	PCS	$130.00	$169.00	20	7
+41543	CORAL BLANKET #777	PCS	$130.00	$169.00	20	-1
+4566888	MAGIC MOP	PCS	$130.00	$169.00	20	26
+104	VGT CAULIFLOWER	PCS	$130.00	$162.00	23	16.43
+105	VGT BROCOLI	PCS	$130.00	$162.00	23	21.670000000000002
+4806512306489	CRISTELA FC007	PCS	$130.00	$130.00	61	60
+8990800012629	MENTOS MINT 540G	PCS	$130.00	$163.00	67	1
+8990800012773	MENTOS FRUIT 540G	PCS	$130.00	$163.00	67	1
+368	WALIS TAMBO MINDORO	PCS	$130.00	$163.00	107	-40
+534	MANGOSTEEN 100CAP	PCS	$130.00	$163.00	107	0
+536	AMPALAYA 100CAP	PCS	$130.00	$163.00	107	1
+689	GUYABANO 100 CAP	PCS	$130.00	$163.00	107	-1
+738	ELIE'S PEANUT BUTTER 650G	PCS	$130.00	$163.00	107	0
+2041	MUSHROOM ATSARA 200G	\N	$130.00	$163.00	107	0
+2042	MUSHROOM CHILI OIL 200G	\N	$130.00	$163.00	107	0
+2124	MORINGA WHITE OIL 60ML	PCS	$130.00	$163.00	107	5
+2465	TERNO CLOTHES	\N	$130.00	$160.00	107	0
+2958	BTTLD PUREWILD HONEY	PCS	$130.00	$163.00	107	0
+3241	BIGNAY FOOD SPLMNT	PCS	$130.00	$163.00	107	2
+3556	MUSHROOM CHIPS ASSORTED 100G	\N	$130.00	$163.00	107	-2
+8056	HUMAN ANATOMY & PHYS.	PCS	$130.00	$130.00	107	0
+9203	LENGUA DE GATO SMALL CANS	PCS	$130.00	$163.00	107	0
+2788988761	PLIFE W\\CHILI 15G	PCS	$130.00	$163.00	107	0
+96619982882	PROLIFE ATLAS VITAMIN E 400I.U	PCS	$130.00	$162.00	107	0
+789444220518	NATURAL VIT E 100SGELS	\N	$130.00	$163.00	107	0
+4800310134015	CL BB CREAM FRESH	PCS	$130.00	$163.00	107	0
+4803746151427	GLOW WHITENING FB LOTION 100ML	PCS	$130.00	$163.00	107	0
+8809396173648	QUEENS FRSH UP MICRO FMNG	PCS	$130.00	$156.00	107	0
+9555027600401	MEDI RUB 25G	PCS	$130.00	$163.00	107	0
+98973217120025	MANGOSTEEN FOOD SUPL.	\N	$130.00	$163.00	107	0
+644	CZAIONLY'S MIXNUTS	PCS	$130.00	$162.00	114	1
+1051	CZIAONLY'S SUNGSONG PEANUT BIG	PCS	$130.00	$163.00	114	0
+4806529980009	JUAN CALAMANSI POW 48SCHT	PCS	$130.00	$163.00	114	24
+125546558	BTL PEANUT BUTTER NSNO	PCS	$130.00	$163.00	118	35
+125546669	BTL PEANUT BUTTER W/SUGAR	\N	$130.00	$163.00	118	12
+4800047840258	ZONROX FRESH 1GAL	PCS	$130.75	$164.00	15	0
+4800047840319	ZONROX LEMON 1GAL	PCS	$131.00	$164.00	15	11
+4800047840593	ZONROX FLORAL 1GAL	PCS	$131.00	$164.00	46	6
+8850006321522	COLGATE TRIPLE ACTN 145ML	PCS	$131.10	$164.00	61	0
+4902430622066	DOWNY MYSTIQUE 800ML	PCS	$131.42	$164.00	20	0
+4902430622080	DOWNY PASSION 800ML	PCS	$131.42	$164.00	20	6
+3505	D'RIGHT FOODS PURE TRMRIC 100G	PCS	$132.00	$165.00	500	-6
+3506	D'RIGHT FOODS PURE GNGER 100G	PCS	$132.00	$165.00	500	-4
+3511	D'RIGHT FOODS CONJOINT 100G	PCS	$132.00	$165.00	500	-2
+21448	D'R PURE TURMERIC 100G	PCS	$132.00	$165.00	500	10
+21449	D'R PURE CAYENNE 100G	PCS	$132.00	$165.00	500	5
+4800024562746	DM 100% PA JUICE 2.90L	PCS	$132.03	$165.00	28	3
+4800282006006	GOLDEN VALLEY OLIVE OIL 250ML	PCS	$132.05	$145.00	20	0
+4800888127259	VSLN COLMGT 200ML	PCS	$133.15	$166.00	63	6
+5004	D'AIRPLANE WATER KETTLE #18	PCS	$134.00	$168.00	20	0
+3644	EM WALLET POUCH 3 ZIPPER	PCS	$134.00	$134.00	41	-3
+818159011026	EPSOM SALT 22OZ	PCS	$134.00	$168.00	107	0
+1680	EM ICH 01BCC MED	PCS	$134.40	$168.00	107	0
+471	KIMCHI BIG	PCS	$135.00	$169.00	11	0
+85	OMNI BIKINI COL SML	PCS	$135.00	$169.00	20	0
+1256	MOUSE TRAP BIG	PCS	$135.00	$169.00	20	0
+813	AHAVA CHARCOAL 45CPSULE	PCS	$135.00	$169.00	107	0
+4803746900056	ALERT OPTIMUM TPASTE 160G	PCS	$135.00	$169.00	107	4
+210540	CZAIONLY'S BUTONGPAKWAN	PCS	$135.00	$169.00	114	0
+4805358501089	MAGNOLIA NUTRI-OIL 950ML	PCS	$135.20	$156.00	900	18
+4800361338462	NESTLE YGURTDRINK STRWBRY 1L	PCS	$135.45	$170.00	8	0
+4800086044334	SLCT CHCULFPNDN 1.5L	PCS	$135.45	$170.00	9	7
+4800086044358	SLCT 3+1 CHCUBSMNG 1.5L	PCS	$135.45	$169.00	9	3
+4800086045140	SLCT 3+1 C&CCNUBEPAN 1.5L	PCS	$135.45	$170.00	9	0
+4800086045904	SLCTA 3+1 CHCPANUBEMF 1.5L	PCS	$135.45	$169.00	9	22
+4800086045911	SLCTA 3+1 BUCOMNGUBECB 1.5L	PCS	$135.45	$169.00	9	10
+4800086045928	SLCTA 3+1 CHCKESOUBEBS 1.5L	PCS	$135.45	$169.00	9	23
+4902430506960	H&SHLDR MEN CL-BLST 165ML	PCS	$135.51	$170.00	70	10
+4902430807203	HEAD N SHLDR FBSS 170ML	PCS	$135.51	$170.00	70	0
+4806014000694	D.E. OLIVE OIL PURE 250ML	PCS	$136.22	$170.00	53	3
+4800361404747	OREO COOKIES & CREAM 450ML	PCS	$136.36	$171.00	32	0
+4800361406550	CADBURY DM CARAMEL 450ML	PCS	$136.36	$171.00	32	0
+4800361406567	CADBURY VANILLA 450ML	PCS	$136.36	$171.00	32	0
+4804888815390	TOBI PISTACHIOS 100G	PCS	$136.50	$171.00	104	10
+4803746880334	WHITE DOVE BABY LOTION 200ML	PCS	$137.00	$171.00	107	3
+8	LARD 250G	PCS	$137.50	$16.00	1	0
+4806789519193	MASTER FW OIL CNTRL 100G	PCS	$137.70	$172.00	36	6
+4800888113009	DOMEX LEMON FRSH 1000ML	PCS	$138.00	$173.00	28	13
+4902430468756	JOYDSHLQD ANTIBAC 600ML	PCS	$138.79	$174.00	70	3
+4804888322218	CVI FROZEN SAUSAGE 1KG	PCS	$139.00	$174.00	4	111
+4809013293593	CRYSTL WHT UNDERARM SPRY 50ML	PCS	$139.00	$174.00	104	9
+4806513690501	KWIK GREEN 300ML	PCS	$139.23	$174.00	113	6
+4806513690594	KWIK BLUE 300ML	PCS	$139.23	$174.00	113	0
+4800361000239	NSTL KOKO 330G	PCS	$139.50	$175.00	15	0
+86	OMNI BIKINI COL XL	PCS	$140.00	$175.00	20	0
+624	AHAVA MOLASSES BIG	PCS	$140.00	$175.00	20	0
+1104	BOLSTER BIG W/ HEAD	PCS	$140.00	$182.00	20	2
+41304	AERO WONDER LUBE 60ML	PCS	$140.00	$175.00	20	0
+8858741710625	DOUBLE A A11 70GSM 1RM	PCS	$140.00	$175.00	37	564
+4800380520336	ARCE COFFEE 750ML	PCS	$140.00	$175.00	99	0
+4800380521036	ARCE SALTED CRML 750ML	PCS	$140.00	$175.00	99	0
+4800380540136	ARCE AVOCADO 750ML	PCS	$140.00	$175.00	99	0
+4710850100381	SHINEY NUMBER STAMP 8D N-38	PCS	$140.00	$175.00	100	2
+94	AHAVA TURMERIC 100G	PCS	$140.00	$150.00	107	0
+335	ACTIVE-ON CHARCOAL POW 250G	PCS	$140.00	$175.00	107	17
+1223	DTRI CHOCOMILK 1L	PCS	$140.00	$175.00	107	0
+4890	MEN'S SANDALS/SLIPPER	PCS	$140.00	$175.00	107	63
+480901372104	SUNRISE CORN COFFEE 250G	PCS	$140.00	$175.00	107	0
+4809011038301	BONGBONGS BISCOCHO 383	PCS	$140.00	$175.00	107	0
+4806014000724	D.E. OLIVE OIL XTRA VRGN 250ML	PCS	$140.81	$176.00	53	5
+4800282005924	GLDN VLLY OLIVE OIL XTRA VIRGI	PCS	$140.81	$162.00	76	9
+4800380530335	ARCE DAIRY VANILLA 750ML	PCS	$141.00	$176.00	99	1
+2122	D 'RIGHT E TURMERIC 100G	PCS	$141.00	$176.00	500	4
+4902430750547	SAFEGUARD BAR FRESH GREEN 180G	PCS	$141.03	$176.00	70	9
+4902430821308	DOWNY ANTIBAC 800ML	PCS	$141.82	$178.00	70	11
+4806520410307	KOJI SAN LOTION SPF25 150G	PCS	$142.20	$178.00	54	6
+4801234031015	PLEDGE RED PSTE WAX 450G	PCS	$142.35	$178.00	28	15
+4801234030728	PLEDGE WAX COLORLESS 450G	PCS	$142.40	$178.00	20	12
+4805358324060	MAGNOLIA CHEEZ SPRD 480G	PCS	$142.60	$178.00	900	0
+4806020456256	SPEED KALAMANSI W/HMPR 2KG	PCS	$142.87	$177.00	53	0
+4902430178198	DOWNY SUNRISE FRESH 900ML	PCS	$143.01	$179.00	70	5
+4902430452793	DOWNY FBEN LIQ 900ML	PCS	$143.01	$179.00	70	29
+4801234100018	PLDGE MTL PLISH 150ML	PCS	$143.30	$179.00	28	31
+4806513690532	KWIK MSQITO KLLER WB 300ML	PCS	$143.33	$179.00	145	6
+4805358327061	MAGNOLIA CHEZ SPRD PTO 480G	PCS	$143.35	$179.00	900	0
+750515017108	M.Y SAN FITA 600G	PCS	$143.93	$180.00	1	9
+431	SKIM MILK 500G	PCS	$144.00	$187.00	20	51
+2231	WHOLE MILK 500G	PCS	$144.00	$187.00	20	27
+133	FRT GRAPES	PCS	$144.18	$180.00	23	40.619999999999997
+4806789445546	MASTER ANTI ACNE 100G	PCS	$144.60	$181.00	36	6
+799	DX MOSQUITO NET	PCS	$145.00	$181.00	20	1
+125	VGT CELERY	PCS	$145.00	$181.00	23	5.6100000000000003
+3631	EM BLISS SERIES C	PCS	$145.00	$145.00	41	-2
+4809015059180	MAXGLOW LMNSCNT 1GAL	PCS	$145.00	$181.25	42	0
+4809015059258	FABRIC CONDITIONER GAL BIG	PCS	$145.00	$181.00	107	5
+4809015059043	MAXGLOW LMNSCNT 1GAL	PCS	$145.00	$181.00	20	0
+4809015059173	MAXGLOW DSH LQD 1GAL	PCS	$145.00	$181.00	20	0
+4800361397674	NSTL 2N1 BBPNDNKESO 1L	PCS	$145.45	$188.00	32	0
+750515021372	MYSAN GRAHAM 1KG	PCS	$146.00	$183.00	15	1
+4800380520138	AVOCADO 750ML	PCS	$147.00	$184.00	99	2
+4800380520237	ARCE CHOCOLATE 750ML	PCS	$147.00	$184.00	99	1
+4800380520435	ARCE MANGO 750ML	PCS	$147.00	$184.00	99	1
+4800380520633	ARCE STRAWBERRY 750ML	PCS	$147.00	$184.00	99	1
+609332221758	NOTEBOOK PORTABLE CUP	PCS	$147.20	$184.00	20	0
+4808647010033	CHEEZ WHIZ ORIG 450G	PCS	$148.58	$186.00	19	32
+4806503679011	DELTA LED BULB 5W	PCS	$149.00	$186.00	25	0
+2077	EM BOUNTY PURSE	\N	$149.00	$149.00	41	0
+4809013293418	CRYSTL WHTSKN WHTNNG CRM 30ML	PCS	$149.00	$187.00	104	19
+4809013293975	SNOW WHTENING SOAP 135G	PCS	$149.00	$186.00	104	47
+4806512309077	CRISTELA 25015	PCS	$149.20	$186.50	20	0
+471001302036	VEG MUSHRM OYSTR SAUCE 300G	PCS	$150.00	$188.00	11	67
+6922130114072	MUSHRM SEASONING 200G	PCS	$150.00	$188.00	11	565
+499	FF BUKO PIE	PCS	$150.00	$180.00	17	0
+80	GNS SOFTY PILLOW	PCS	$150.00	$188.00	20	0
+957	STEEL WOOL DINOSAURS	PCS	$150.00	$16.00	20	0
+5344	FRFLY MEGA TRCH LMP	PCS	$150.00	$188.00	20	0
+9055	LAGADERA M	PCS	$150.00	$188.00	20	2
+9651	PLASTIC FOR BURGER	PCS	$150.00	$150.00	20	5
+32354	MOP HANDLE M	PCS	$150.00	$150.00	20	0
+85501	CHRISTINA KIDS 6S	PCS	$150.00	$188.00	20	1
+85506	OMNI GOLD UNDRWEAR 3N1 PACK	PCS	$150.00	$195.00	20	10
+152115	LED HEADLAMP ZOOM	PCS	$150.00	$190.00	20	0
+747297	OCO SC PADLOCK 50MM	PCS	$150.00	$188.00	20	0
+4800042135014	EVEREADY EC2DBP	PCS	$150.00	$188.00	20	0
+98	VGT CHICHARO	PCS	$150.00	$189.00	23	2.2000000000000002
+124	VGT ONION LEEKS	PCS	$150.00	$188.00	23	34.039999999999999
+208	FRT WATERMELON M	PCS	$150.00	$187.00	23	20
+532	AUP MANGO DRIED	PCS	$150.00	$188.00	23	0
+345444	VGT LETTUCE	\N	$150.00	$188.00	23	6
+4806505357955	EUROLUX E-27 3W	PCS	$150.00	$188.00	51	11
+4806512309435	CRISTELA CSMA-04	PCS	$150.00	$150.00	61	72
+4806531764147	MIRA'S PURE TURMERIC 125G	PCS	$150.00	$188.00	75	0
+4800380510832	ARCE COFFEE CRMBLE 750ML	PCS	$150.00	$198.00	99	0
+4800380511631	ARCE PISTACHO 750ML	PCS	$150.00	$198.00	99	0
+4800380511730	ARCE ROCKYROAD 750ML	PCS	$150.00	$198.00	99	0
+41	ELEPHANT POUCH BIG&SMALL	PCS	$150.00	$188.00	107	0
+334	ACTIVATED CHARCOAL	PCS	$150.00	$188.00	107	0
+428	ASHITABA FOOD SUP 100CPSL	PCS	$150.00	$188.00	107	0
+531	SERPENTINA CAPSULE 50G	PCS	$150.00	$187.00	107	-9
+533	TURMERIC 100 CAPSULE	PCS	$150.00	$187.00	107	5
+535	MALUNGGAY 100CAP	PCS	$150.00	$188.00	107	-14
+785	AWIT NG PANAWAGAN	PCS	$150.00	$188.00	107	0
+790	BOTTLED HONEY UFC	PCS	$150.00	$188.00	107	0
+793	NAT HERB BIGNAY 100G	PCS	$150.00	$187.00	107	5
+1187	BTL BLACK PEPPER 250G	PCS	$150.00	$188.00	107	10
+2067	PS INTENSE WHTING & NOURSHING	\N	$150.00	$188.00	107	55
+2068	PS POWER WHTHING & NOURSHING	\N	$150.00	$188.00	107	54
+2088	CARP VGTARIAN CONDMENTS	\N	$150.00	$188.00	107	-3
+2092	USB MOSQUITO KILLER	PCS	$150.00	$188.00	107	-1
+2096	LED HP LAMP 9W	PCS	$150.00	$188.00	107	-1
+2098	PORTABLE LED LIGHT 200	PCS	$150.00	$188.00	107	0
+3561	NATURES ESSENCE AROMA OIL 60ML	\N	$150.00	$188.00	107	-4
+4957	SPIRULINA CAPSULE 50G	PCS	$150.00	$187.00	107	5
+5235	SAMBONG 100CAP	PCS	$150.00	$188.00	107	0
+5236	BANABA 100CAP	PCS	$150.00	$188.00	107	0
+7746	I LOVE AUP TSHIRT	PCS	$150.00	$188.00	107	0
+8222	AHAVA RICE COFFEE 500G	PCS	$150.00	$188.00	107	0
+9501	100% PURE WILD HONEY 320ML	PCS	$150.00	$188.00	107	100
+20130	MALUNGGAY CAPSULE 50G	\N	$150.00	$187.00	107	2
+20131	MANGOSTEEN CAPSULE 50G	\N	$150.00	$187.00	107	4
+21468	BOLTRON'S FOOD TONIC DNK 375ML	PCS	$150.00	$188.00	107	0
+48481	UMBRELLA MAGIC\\MATIC	PCS	$150.00	$188.00	107	0
+203995	KOPIPHEAL	\N	$150.00	$200.00	107	-5
+8132318	NATURACENTIALS MSCLN WASH	\N	$150.00	$189.00	107	0
+475235321590	MANGOSTEEN FOOD SPLMNT	PCS	$150.00	$188.00	107	0
+691018209304	SHUYA SNTRYNPKN V 30'S	PCS	$150.00	$188.00	107	0
+4800310153870	NATURALS SUNFLOWER OIL 60ML	PCS	$150.00	$188.00	107	0
+4800607100174	SUN TU150	PCS	$150.00	$155.00	107	0
+4806531764017	MIRA'S TURMERIC BREW 250G	PCS	$150.00	$187.00	107	60
+4806531764031	MIRA'S TURMERIC BREW 250G	PCS	$150.00	$188.00	107	6
+4806531764055	MIRA'S GINGER BREW 225G	PCS	$150.00	$188.00	107	6
+4806531764086	MIRA'S 12IN1 HRBALTEA PWDR 225	PCS	$150.00	$188.00	107	6
+4806531764161	MIRA'S MORINGA POW 100G	PCS	$150.00	$187.00	107	6
+4806531764185	MIRA'S MORINGA POW 125G	PCS	$150.00	$188.00	107	17
+8995102800448	CARE SAFE AROMATHERAPY OIL	\N	$150.00	$175.00	107	48
+54678	CZAIONLY'S CRUNCHY PBTTER 450M	PCS	$150.00	$189.00	114	2
+1324650	CZAIONLY'S CREAMY PEANUT BUTTE	PCS	$150.00	$189.00	114	16
+726	VEGAN MALUNGAY POW 130G	PCS	$150.00	$188.00	117	0
+568	OIL GALLON	PCS	$150.00	$172.00	808	46
+4800361382953	NSTL SORB ESP UBELNGKA 1L	PCS	$150.00	$188.00	20	-2
+4800361382960	NSTL 2N1 SORB BUCOMELON ESP 1L	PCS	$150.00	$188.00	20	0
+4800361397704	NSTL 2N1 DBL ESP FRTSLD&SS 1L	PCS	$150.00	$188.00	20	0
+4902430671507	ARIEL LAU LIQ 1KG	PCS	$150.01	$187.00	70	3
+3267794000006	SAF-INSTANT YEAST 500G	PCS	$150.04	$188.00	20	0
+4804880551357	FRITO PLUS VEGE OIL TPCK 1L	PCS	$150.25	$173.00	53	0
+1236558	SPECIAL COCO JAM 550ML	PCS	$150.40	$188.00	114	0
+4808647010064	CHEEZ WHIZ PMNTO 450G	PCS	$150.96	$189.00	19	38
+4800310154051	BLACKWATER SMOOTH CHAOS 150ML	PCS	$151.20	$189.00	20	0
+4800310154082	BLACKWATER H-SPIRITS 150ML	PCS	$151.20	$189.00	86	0
+4806512309923	CRISTELA CSMA11	PCS	$151.60	$189.50	107	0
+528	TRASHCAN W\\PEDAL #2021	PCS	$152.00	$190.00	20	0
+9086	ICHTHUS BIBLE COVER	PCS	$152.00	$190.00	107	0
+4800552051019	COLORED PAPER AVIA SHRT RIM	PCS	$152.10	$191.00	63	0
+4800361310031	NESTLE CORN FLAKES 500G	PCS	$152.18	$190.00	14	36
+4710032501791	JB WIPES SKINCARE 75S	PCS	$152.75	$191.00	69	17
+6920354814402	COLGATE CHRCL CLEAN 150G	PCS	$153.60	$192.00	63	0
+8888021200171	ENERGIZER MAX 9V	PCS	$154.50	$193.00	86	22
+244	THERMOS	PCS	$155.00	$195.00	20	0
+6444	EXPANDING FILE #4401Z	PCS	$155.00	$194.00	20	0
+4800552073028	HARD COPY 70GSM	PCS	$155.00	$194.00	42	0
+6320	TIN FOOTWR SNDALS	PCS	$155.00	$193.00	107	0
+1454044	CZAIONLY'S BANANACHPS 140G	PCS	$155.00	$194.00	114	50
+8888336020792	DIAPER PANTS DRY REG	PCS	$156.19	$195.00	76	0
+4809012721134	MICE CATCHER WOODBOARD 2'S	PCS	$156.54	$196.00	77	7
+4800552888127	CHIPS DLGHT ASSTD COOKIES 445G	PCS	$157.17	$197.00	104	0
+5005	D'AIRPLANE WATER KETTLE #20	PCS	$158.00	$198.00	20	0
+8487	D'AIRPLANE #2	PCS	$158.00	$166.00	20	0
+4800380510337	BLUEBERRY CHEESECAKE 725ML	PCS	$158.00	$198.00	99	0
+4800380510733	ARCE CHCCRUNCH 750ML	PCS	$158.00	$198.00	99	0
+4800380510931	COOKIES N' CREAM 750ML	PCS	$158.00	$198.00	99	0
+4800380511037	DARK CHOCOLATE 750ML	PCS	$158.00	$198.00	99	0
+4800380511334	MACAPUNO 750ML	PCS	$158.00	$199.00	99	0
+4800380511839	UBE MACAPUNO 750ML	PCS	$158.00	$198.00	99	0
+4800888157942	VASELINE MEN ANTIDULLNESS 100G	PCS	$158.10	$198.00	36	6
+4800888152114	DOMEX LMN EXPLSNGKLL 500ML	PCS	$158.20	$99.00	36	0
+9556121031344	PROMO LEMN N CHDR + 135G PNT B	PCS	$158.22	$198.00	71	5
+750515018105	SKYFLAKES PLASTIC 850G	PCS	$158.68	$199.00	1	1
+21452	D'R TURMERIC GINGER 300G	PCS	$159.00	$199.00	500	0
+21453	D'R GUYABANO L 300G	PCS	$159.00	$199.00	500	0
+4800086048878	SLCTA 3N1+1 CHCMCHSTRCNC 1.5L	PCS	$159.09	$199.00	9	0
+4800086038890	SELECTA IH 3+1 KSO 1.5L	PCS	$159.10	$199.00	9	4
+4800086039156	SELECTA IH3+1 SUP DBLDTCH 1.5L	PCS	$159.10	$199.00	9	3
+4800086038876	SELECTA IH 3+1 CHC MCA 1.5L	PCS	$159.10	$199.00	20	3
+4800888205827	BREEZE POW MAGENTA 650G+650G	PCS	$159.45	$200.00	36	13
+202	LPG SUPERKALAN	PCS	$160.00	$184.00	3	59
+2857	CHOPPING BOARD	PCS	$160.00	$200.00	20	1
+4454	WAX PAPER	PCS	$160.00	$160.00	20	0
+2071	ICHTHUS BC FLORAL-SM	\N	$160.00	$160.00	41	0
+4806512309671	CRISTELA CSMA-05	PCS	$160.00	$160.00	61	24
+537	ACTIVATED CHARCOAL 50G	PCS	$160.00	$200.00	107	1
+563	ROASTED PEANUT 1KG	PCS	$160.00	$200.00	107	0
+3025	PANALANGIN CD	\N	$160.00	$200.00	107	0
+5809	STEP-IN WOMEN SANDALS FLAT	\N	$160.00	$200.00	107	-7
+1234572	GRANADILLA PSSINFRT 500ML	PCS	$160.00	$200.00	107	2
+697183001021	MAKEUP EYE SHADOW 9COLORS	PCS	$160.00	$200.00	107	1
+1400000056905	NEW CARD BAG HOLDER	PCS	$160.00	$200.00	107	0
+4806524545302	MATTE EYESHADOW	PCS	$160.00	$200.00	107	1
+6910181212809	EMBRACE NAPKIN 10PADS	PCS	$160.00	$200.00	107	2
+6910181212816	EMBRACE NPKIN ION 8PADS	PCS	$160.00	$200.00	107	0
+6910181212823	EMBRACE NAPKIN 30PADS	PCS	$160.00	$200.00	107	0
+6971083000901	FULL MATTE EYESHADOW	PCS	$160.00	$200.00	107	1
+8809317284323	3W CLINIC HAND CREAM SNAIL	PCS	$160.00	$192.00	107	0
+8809317284330	3W CLINIC HAND CREAM ACACIA	PCS	$160.00	$200.00	107	0
+9319871000042	WHITE GLO PROF CHOICE 150G	PCS	$160.00	$200.00	200	13
+9319871000134	WHITE GLO 2IN1 MOUTHWASH 150G	PCS	$160.00	$200.00	200	15
+8993242598362	CACTUS COPY PAPER 279X219	PCS	$160.00	$200.00	205	50
+998877	MAGIC NUTS GRANOLA 500G	\N	$160.00	$200.00	555	-2
+6902482003439	KINGS VRMCLLI 1000G	PCS	$160.00	$200.00	20	10
+4806014000533	JOLLY CORN OIL 1L	PCS	$160.85	$185.00	53	21
+21	DALISAY BASIN #21	PCS	$161.00	$202.00	20	0
+750515021105	M.Y SAN GRAHAM 700G	PCS	$161.53	$202.00	1	1
+4800888181657	SURF POW KLMNSI 2200G	PCS	$162.55	$203.00	36	30
+4800888181671	SURF POW SUNFRESH 2200G	PCS	$162.55	$203.00	36	29
+4800888189820	SURF FABCON CHRYBLOSM2200G	PCS	$162.55	$203.00	36	12
+4800888199157	SURF POW FABCON PBLM 2200G	PCS	$162.55	$203.00	36	33
+4800888206732	SURF CB PWDR 2000G	PCS	$162.55	$203.00	36	6
+4095	ICHTHUS BIBLE COVER 02BCNE-S	\N	$164.00	$205.00	41	0
+184	DAN ERICS 1.7L	PCS	$165.00	$207.00	6	134
+190	DAN ERICS HGALLON	PCS	$165.00	$207.00	6	155
+2054	DAN ERICS 1.89 ICE CREAM	\N	$165.00	$207.00	6	-29
+3406	CALYPSO TABLECLOTH 54X70	\N	$165.00	$207.00	20	8
+4800552073080	HARD COPY 80GSM LETTER	PCS	$165.00	$206.00	42	90
+69020	MCCODY FRIED GARLIC 10KG	PCS	$165.00	$206.00	84	0
+4806506931277	ACURA ZD-6 GLUE GUN	PCS	$165.00	$206.00	100	25
+1774	CHARCOAL CAPSULE 400MG	PCS	$165.00	$206.00	107	54
+4800310117735	MATTE VOGUE DIVA	PCS	$165.00	$206.00	107	0
+4800310117742	MATTE SEXY NUDE	PCS	$165.00	$206.00	107	0
+4800310190127	MATTE PINK FLAME	PCS	$165.00	$206.00	107	0
+510	MC CODY FRIED GARLIC 250G	PCS	$165.00	$52.00	114	0
+4800888197870	AXE DEO STICK DRKTMP 40G	PCS	$165.30	$207.00	36	17
+4806513690044	AMBREE FRUITS FUSION 300ML	PCS	$165.38	$207.00	145	3
+4806513690327	AMBREE SPRING BLOSSOM 300ML	PCS	$165.38	$207.00	145	3
+4806513690334	AMBREE FLORAL BOUQUET 300ML	PCS	$165.38	$207.00	145	3
+4806513690679	AMBREE SO FRESH CLEAN 300ML	PCS	$165.38	$207.00	145	3
+4800888140876	SUNSILK SMTH MNGBL 350ML	PCS	$166.00	$208.00	36	8
+4800888146854	SUNSILK SHP S&L 350ML	PCS	$166.00	$208.00	36	7
+4806020456485	SPEED BABAD FROSES FREE HMPR	PCS	$166.57	$208.00	53	2
+4809010488046	CHOPPING BOARD PAT 3222	PCS	$167.00	$167.00	20	3
+3643	EM GENESIS ENVELOPE B4	PCS	$167.00	$167.00	41	0
+4801234061418	GLADE ORNGE SQUZE 320ML	PCS	$167.60	$210.00	28	16
+4801234061517	GLADE FRSH LEMON 320ML	PCS	$167.60	$210.00	28	14
+4801234141714	GLADE MRNING FRESH 320ML	PCS	$167.60	$210.00	28	7
+4801234145514	GLADE FLORL PERFCTN 320ML	PCS	$167.60	$210.00	28	6
+9555222601463	GLADE WILD LAVNDR 320ML	PCS	$167.60	$210.00	28	6
+9555222605058	GLADE OCEAN ESCPE 320ML	PCS	$167.60	$210.00	28	6
+9555222605904	GLADE PEONY&BRRY BLISS 320ML	PCS	$167.60	$210.00	28	12
+4800361379984	SLCT NOBRELLI QUEZO 1.3L	PCS	$168.00	$210.00	32	0
+4800361381925	SLCT PISTCHIO&CASHEW 1.3L	PCS	$168.00	$210.00	32	5
+4800361385442	SLCT BLK FRST NOBRELLI 1.3L	PCS	$168.00	$210.00	32	0
+44458	ICHTHUS BIBLE COVER 02BCCN-S	PCS	$168.00	$168.00	107	0
+9319871000264	WHITE GLO HERBAL WHT 150G	PCS	$168.00	$210.00	200	12
+9319871000325	WHITE GLO COFFEE&TEA 100ML	PCS	$168.00	$210.00	200	12
+3509	D'RIGHT FOODS DUOHERBS 120G	PCS	$168.00	$210.00	500	-1
+4805358781810	MAGNOLIA CLSSC AVOCADO 800ML	PCS	$168.20	$211.00	2	0
+4902430759774	TIDE PFUME FNTASY 1.55KG	PCS	$168.97	$211.00	70	0
+223300	SANDAL SEW	PCS	$169.00	$169.00	107	9
+4801234111137	BAYGON LQD WBASED 500ML	PCS	$169.60	$212.00	8	1
+4809010109774	JULIES OTAP	PCS	$169.60	$212.00	71	10
+4806512308995	CRISTELA H010-A-F	PCS	$169.75	$169.75	61	192
+7901	HOSE FOR GAS	PCS	$170.00	$213.00	3	5
+6092	SORELLA UNDERWEAR 6S	PCS	$170.00	$221.00	20	5
+85505	OMNI BLUE UNDRWEAR 3N1 PACK	PCS	$170.00	$221.00	20	8
+212314	TOWEL FELICITY	PCS	$170.00	$221.00	20	16
+4800631682172	MERIENDA TIME ASSRTD 1.5KG	PCS	$170.00	$213.00	20	12
+4809014937250	D DEL-C CLMNSI 550ML	PCS	$170.00	$213.00	75	33
+8802203080306	DONG-A MYGEL SET 0.5MM	PCS	$170.00	$212.50	100	0
+530	DULL SHOES ASSRTD	PCS	$170.00	$213.00	107	4
+700	VGT SILI PANIGANG GREEN MOH	PCS	$170.00	$221.00	107	-0.47999999999999998
+4902430671538	ARIEL DOWNY 900G	PCS	$170.00	$170.00	107	0
+3458	CZAIONLY MUSCUVADO RCK 500G	PCS	$170.00	$213.00	114	0
+4806020440231	SPEED BABAD FABON 2KG	PCS	$170.40	$213.00	53	2
+4800310154068	BLACKWATER DARK REBEL	PCS	$170.78	$214.00	107	0
+4800310154075	BLCKWATER DRKPLSR 150ML	PCS	$170.78	$214.00	107	0
+4800310153559	BLACKWATER INSPIRE 150ML	PCS	$170.78	$214.00	113	0
+4803746330051	TARGET MSQTO KLLR 300ML	PCS	$171.00	$214.00	107	0
+21445	D'R TURMERIC GINGER 300G	PCS	$171.00	$214.00	500	0
+214550	D'R HERBAFULL10 300G	PCS	$172.00	$215.00	500	0
+4806014096574	JOLLY CLRO PALM OIL SUP 1L DUO	PCS	$172.48	$198.00	53	0
+4800888154644	VASELINE SPF 24 LOTION 100ML	PCS	$174.50	$218.00	36	6
+4800888154637	VASELINE HW SFP 24 200ML	PCS	$174.53	$218.00	36	6
+4806531670059	APPLS LQD DTRGNT GREEN 1GAL	PCS	$174.90	$219.00	200	8
+3603	EM 01 BIBILE COVER CODRA SM	PCS	$175.00	$175.00	41	1
+4806502143353	COPY ONE MULTI PRPSE PAPER 500	PCS	$175.00	$219.00	42	100
+4800552888110	CHIPS DLGHT CHOC 600G	PCS	$175.00	$219.00	104	0
+4800310134398	EB LEG FOUNDATION	PCS	$175.00	$219.00	107	2
+8993242598324	CACTUS COPY PAPER A4	PCS	$175.00	$219.00	205	85
+4016	IMPORTED COCOA 500G	PCS	$175.20	$219.00	20	0
+8189	#8189 TRASH CAN	PCS	$176.00	$220.00	20	7
+4806512308971	CRISTELA 002	PCS	$176.00	$220.00	107	0
+4800888156358	CSLK STNDOUT&STRGHT 350ML	PCS	$176.65	$221.00	36	9
+4800888156365	CSLK DFNSE 350ML	PCS	$176.65	$221.00	36	6
+4800888156372	CSLK DAMGE CNTRL 350ML	PCS	$176.65	$221.00	36	7
+4800888201157	CREAM SILK COLOR PRTCT 350ML	PCS	$176.65	$219.00	36	8
+4800282000624	GLDN VLLY PALM OLEIN 2L	PCS	$176.70	$203.00	76	0
+4800282006624	GOLDEN VLLY PLM OLEIN2L	PCS	$176.70	$203.00	76	15
+4902430504546	DOWNY MYSTQ 900ML	PCS	$176.80	$221.00	70	10
+4801234106010	BAYGON ANTI DENGUE 300ML	PCS	$176.95	$221.00	28	6
+4801234107819	BAYGN LNGLSTNG PTN 300ML	PCS	$176.95	$221.00	28	14
+4801234108014	BAYGON SPRY 300ML	PCS	$176.95	$221.00	28	7
+4801234108212	BAYGON WATERBASED 300ML	PCS	$176.95	$221.00	28	12
+4801234107314	BAYGON PROTECTOR CIK 300ML	PCS	$177.00	$221.00	28	6
+9300647788691	ORAL B SATIN FLOSS 50M	PCS	$177.28	$222.00	70	0
+4805358761810	MAGNOLIA AVOCADO PREM 800ML	PCS	$177.30	$222.00	115	2
+4805358787810	MAGNOLIA CLSSC KESO PUTI 800ML	PCS	$177.30	$222.00	115	1
+4805358788817	MAGNOLIA CLSSC PSTILLAS 800ML	PCS	$177.30	$222.00	115	2
+4526	ICH-01BCC LARGE	\N	$178.00	$178.00	41	0
+4902430412568	TIDE POW ORIG 1.75KG	PCS	$178.69	$224.00	15	2
+4902430532440	TIDE DWNY GRDN BLM1550G+	PCS	$178.69	$223.00	70	16
+4902430759274	TIDE LAU PWDR 1.55KG	PCS	$178.69	$224.00	70	18
+4806503610854	DELTA LED 7W	PCS	$179.00	$224.00	50	0
+6754	GLDN VLLY COMBO PACK PLM+OIL	PCS	$179.00	$206.00	104	0
+768	VGT LETTUCE	PCS	$180.00	$225.00	4	4.71
+8801068450316	VEG DUMPLINGS NEW	PCS	$180.00	$225.00	5	2
+81652205760	VEGE DUMPLING 675G	PCS	$180.00	$225.00	11	17
+90	HANFORD 3BRIEFS	PCS	$180.00	$225.00	20	0
+507	UMBRELLA ZIYAN 3 FOLDS	PCS	$180.00	$188.00	20	0
+1278	AUP T-SHIRT BLUE	PCS	$180.00	$225.00	20	13
+1814	DOCUMENT BAG W/ AUP SEAL	PCS	$180.00	$234.00	20	50
+3444	UMBRELLA PEACOCK 3FOLDS	PCS	$180.00	$234.00	20	26
+4450	SUGAR BAG #1	PCS	$180.00	$180.00	20	0
+8062	MAGDA #8	PCS	$180.00	$225.00	20	0
+8494	SLIPPER BOY STRAP	PCS	$180.00	$225.00	20	0
+80199	EXTENSION 4GANG/4M	PCS	$180.00	$225.00	20	2
+6940080012514	UMBRELLA HELLOKITTY MATIC	PCS	$180.00	$225.00	20	0
+2354	VGT LETTUCE CANTTEN	\N	$180.00	$180.00	23	1
+2073	ICHTHUS BC FLORAL MED	\N	$180.00	$180.00	41	0
+4806523090384	MIRA'S LEMON GRASS TEA 250G	PCS	$180.00	$225.00	75	0
+4806531764062	MIRA'S GINGER BREW 400G	PCS	$180.00	$225.00	75	0
+1408	SEAGULL 3RING BINDER EJA15 1	PCS	$180.00	$225.00	100	15
+39	FRT WATERMELON BIG	PCS	$180.00	$225.00	107	8
+559	BAG OWL	PCS	$180.00	$225.00	107	0
+1025	FEMALE TOESTRAP	PCS	$180.00	$225.00	107	7
+1772	LADY SCHL SHOES RL05	PCS	$180.00	$225.00	107	10
+2097	USB CONVRTER+NIGHT LIGHT	PCS	$180.00	$225.00	107	0
+4444	UMBRELLA AUTOMATIC	PCS	$180.00	$225.00	107	161
+4645	3 STRPS SNDLS FML	PCS	$180.00	$225.00	107	0
+4891	SLIPPER STRAP WOMEN	PCS	$180.00	$225.00	107	0
+5009	SHOES FOR WOMEN	PCS	$180.00	$225.00	107	20
+5655	AROMAGICARE THRPY OIL 60ML	PCS	$180.00	$225.00	107	0
+5810	STEP-IN WOMEN SANDALS W/HEELS	\N	$180.00	$225.00	107	-9
+6026	GH PEANUT COATED JUMBO 700G	PCS	$180.00	$225.00	107	2
+7085	SANDAL W/ HEELS/BAKYA	PCS	$180.00	$225.00	107	0
+45612	CARROT JAM 750ML	PCS	$180.00	$225.00	107	0
+595996	7STAR 10IN1 COFFEE	PCS	$180.00	$225.00	107	0
+595997	HERBAL COFFEE 7STAR	PCS	$180.00	$225.00	107	0
+3451	CZAIONLY'S YEMA SPREAD	PCS	$180.00	$225.00	114	0
+20120	VGT NATIVE GARLIC	\N	$180.00	$225.00	120	-0.26000000000000001
+21450	D'R PURE TURMERIC 150G	PCS	$180.00	$225.00	500	0
+4800888141125	AXE DEO DARK TEMP 150ML	PCS	$180.15	$225.00	36	13
+9300830019380	AXE DEO GOLD TEMP 150ML	PCS	$180.15	$225.00	36	8
+4800282006631	GOLDEN VLLY PALM OLEIN 1L DUO	PCS	$180.50	$226.00	76	18
+5410746066379	SPARK WHT GRAPE	PCS	$180.84	$226.00	53	0
+4801234111038	BAYGON MIS GR 500ML	PCS	$182.00	$228.00	15	0
+54	AUP CLASSIC T-SHIRT	PCS	$184.00	$230.00	21	0
+9319871000011	WHITE GLO TPASTE 4 SMOKERS 100	PCS	$184.00	$230.00	200	0
+9319871000943	WHITE GLO DEEP STAIN 150G	PCS	$184.00	$230.00	200	22
+8887329200807	STANLEY CROSSCUT SAW 18/450MM	PCS	$184.80	$231.00	20	0
+490	KOPEZ EXTNSN WIRE NO.2168	PCS	$185.00	$235.00	20	0
+1815	GYMN BAG W/ AUP SEAL	PCS	$185.00	$240.00	20	50
+603	KOPEZ KEYSOCKET EXT SET	PCS	$185.00	$235.00	21	0
+3604	EM 01 BIBLE COVER CODRA MED	PCS	$185.00	$185.00	41	-1
+9118	BIBLE COVER CODRA-MEDIUM	\N	$185.00	$320.00	41	0
+1403	SMART DOUBLE DESK TRAY S-421	PCS	$185.00	$231.00	100	2
+4800310117995	LTD LS PRIVATE BEACH	PCS	$185.00	$232.00	107	0
+123365	CZAIONLY'S COCO JAM 550G	PCS	$185.00	$231.00	114	-15
+213401	CZAIONLY'S PUREHONEY BIG	PCS	$185.00	$231.00	114	40
+3213543	CZAIONLY'S HONEY W/HONEYCOMB B	PCS	$185.00	$231.00	114	25
+8993242107021	CACTUS COPY PAPER 216X330MM	PCS	$185.00	$231.00	205	10
+9555222605379	GLADE SPRTS MRNINGFRSH 7ML	PCS	$185.40	$232.00	28	4
+9555222605409	GLADE SPORT LAVNDR MRNE 7ML	PCS	$185.40	$232.00	28	-4
+8888021200133	ENERGIZER C 2PCS MAX PWER SEAL	PCS	$185.50	$234.00	86	6
+4806014090084	JOLLY CLARO PLM OIL DUO PET 1L	PCS	$185.53	$213.00	53	5
+4800361292382	NESTLE KOKO KRUNCH 500G	PCS	$186.40	$233.00	14	34
+4801234107710	BAYGON INSCT KLLR SPRY 300ML	PCS	$186.40	$233.00	28	6
+75355112715	OLD ORCHARD APPLE CRANBERRY	PCS	$186.81	$234.00	53	0
+8563	SUNRISE CORN COFFEE 350G	PCS	$187.00	$234.00	107	0
+4809	FRT SANTOL	PCS	$187.20	$38.00	107	0
+4800888180414	BREEZE ACTVBLCH POW 1450G	PCS	$187.50	$234.00	36	23
+4800888202789	BREEZE ROSE GOLD PRFME 1360G	PCS	$187.50	$235.00	36	18
+3638	EM PRINTED ENVELOPE W/CLR PCKT	PCS	$189.00	$189.00	41	37
+4800282006754	GLDN VLLY DUO PACK PLMOIL 1L	PCS	$189.05	$217.00	104	1
+4713322000844	Q TOFU/TOKWA	PCS	$190.00	$238.00	11	81
+755	PROLIFE VIT E FOODSUP 100S	PCS	$190.00	$163.00	20	0
+798	FX MOSQUITO NET	PCS	$190.00	$234.00	20	0
+1080	SCARF	PCS	$190.00	$238.00	20	0
+547	WALLET LEATHER SHINY	PCS	$190.00	$238.00	107	0
+1872	AUP UMBRELLA (BIG)	PCS	$190.00	$238.00	107	62
+3661	KOMPARE SHORT	PCS	$190.00	$238.00	107	5
+5960	MANGOSTEEN COFFEE STEVIA	PCS	$190.00	$237.00	107	15
+8809203131786	MD ALOE FM PRL WHTNG CLSNR	PCS	$190.00	$228.00	107	0
+705632806258	YVANNA SANITARY NAPKIN	PCS	$190.00	$238.00	117	0
+705632806265	YVANNA PANTY LINER 30 PADS	PCS	$190.00	$238.00	117	0
+1201	JOELYN 'S HONEY 300ML	PCS	$190.00	$237.00	1851	46
+4800888154378	DOVE NOC GOLD 340ML	\N	$190.65	$238.00	36	3
+4800888154385	DOVE INTENSE REPAIR 340ML	PCS	$190.65	$238.00	36	4
+4800888154392	DOVE STRAIGTH SLKY 340ML	PCS	$190.65	$238.00	36	4
+4800888179623	DOVE RESCUE PLUS 340ML	PCS	$190.65	$238.00	36	4
+4800888190208	DOVE OXYGEN&NRSHMNT 340ML	PCS	$190.65	$238.00	36	5
+4806531670042	APPLS FABCON FRESH SCENT 1GAL	PCS	$190.80	$238.00	200	7
+74305401169	BRAGG APPLE CIDER VINEGAR 473M	PCS	$191.00	$239.00	11	36
+4806520321009	SUNSHINE HOT SAUCE 1 GAL	PCS	$191.25	$191.25	20	4
+4806014093351	JOLLY CLARO PLM OIL 2L	PCS	$192.06	$221.00	53	0
+4800274203512	QUAKER INSTANT OATS 33GX20	PCS	$193.50	$242.00	15	0
+4806501594651	ANCHOR FAMILY MILK 655G	PCS	$193.95	$243.00	117	12
+9300830022557	AXE BLACK 150ML	PCS	$194.60	$243.00	36	12
+9300830038527	AXE DEO YOU 150ML	PCS	$194.60	$243.00	36	5
+8858741710632	DOUBLE A LONG 70GSM	PCS	$195.00	$244.00	37	0
+2070	ICHTHUS BC FLORAL-L	\N	$195.00	$195.00	41	0
+2064	VEGAN SPAGHETTI SAUCE VEGA	PCS	$195.00	$244.00	107	2
+2087	PLANT LAB VEGAN BAGOONG	\N	$195.00	$244.00	107	-2
+4800310118275	LIQUID MATTE LOVETHATRED	PCS	$195.00	$244.00	107	0
+4800310118299	LIQUID PINKFLAME	PCS	$195.00	$244.00	107	0
+4800310118312	LIQUID MATTE SEXY NUDE	PCS	$195.00	$244.00	107	0
+4800310118367	LIQUID MATTE VOGUE DIVA	PCS	$195.00	$244.00	107	0
+4805358323063	MAGNOLIA QUICKMELT 440G	PCS	$195.25	$244.00	900	0
+4902430473521	ARIEL LAU PWDR 1800G	PCS	$196.65	$246.00	70	27
+4902430473545	ARIEL LAU PWDR 1360G	PCS	$196.65	$246.00	70	29
+4902430473576	ARIEL LAU AB PWD 1360G	PCS	$196.65	$246.00	70	17
+4806030202225	JOLLY H.MATE CANOLA OIL SUP 2L	PCS	$197.12	$227.00	53	0
+4568	ICHTHUS BIBLE COVER 02BCCN-L	PCS	$198.00	$198.00	107	0
+4800282006068	GOLDEN VALLEY CANOLA 1L DUO	PCS	$198.55	$228.00	76	18
+1041	D'AIRPLANE #5	PCS	$199.00	$250.00	20	0
+8488	D'AIRPLANE #4	PCS	$199.00	$209.00	20	0
+3833	EM TUTTI FRUITTI TUBLR W/ HAND	PCS	$199.00	$199.00	41	3
+4809010109224	BROAS TUBS 350G	PCS	$199.27	$249.00	71	12
+4806513690716	SPLENDA FURN. LEMON 330ML	PCS	$199.29	$249.00	113	6
+4800888181688	SURF FABCON BLOSMFRSH 2200G	PCS	$199.70	$250.00	36	27
+4800888181725	SURF ANTIBACTRL 2200G	PCS	$199.70	$250.00	36	23
+1567	BABY DIAPER/30 SMALL	PCS	$200.00	$250.00	11	-3
+1568	BABY DIAPER/30 MEDIUM	PCS	$200.00	$250.00	11	-2
+4718785091071	VEGE MUSHROOMBALLS 500G	PCS	$200.00	$250.00	11	85
+4806519480557	MAMA'S BABY DIAPER M 30	PCS	$200.00	$250.00	11	0
+6	CORAL BLANKET SOFT #777	PCS	$200.00	$250.00	20	0
+245	SHOE RACK BLACK 3LAYER	PCS	$200.00	$250.00	20	1
+476	TPA REGULATOR LPG	PCS	$200.00	$247.00	20	1
+4453	TRASH BAG L FOR CANTEEN	PCS	$200.00	$200.00	20	0
+4981	NOPS KITCHEN SCALE	PCS	$200.00	$250.00	20	0
+6091	HANFORD MENS BRIEF	PCS	$200.00	$260.00	20	6
+20114	EUROPEAN OUTLET PLUG	PCS	$200.00	$250.00	20	0
+3214410	BLANKET DBLE	PCS	$200.00	$260.00	20	1
+31316100	FLAMINGO EXP FILE 4402Z	PCS	$200.00	$250.00	20	0
+4800258438831	HANFORD BRIEF 3S SMALL	PCS	$200.00	$250.00	20	0
+4800258438848	HANFORD BRIEF 3S MED	PCS	$200.00	$250.00	20	0
+4800258438855	HANFORD BRIEF 3S L	PCS	$200.00	$250.00	20	0
+4800258438862	HANFORD BRIEF 3S XL	PCS	$200.00	$250.00	20	0
+876416035604	NECKTIE	PCS	$200.00	$250.00	21	0
+575	ARISE COOLWATER 50ML	PCS	$200.00	$250.00	26	0
+4806512309060	CRISTELA 25023	PCS	$200.00	$250.00	61	0
+749	MIRA'S TUMERIC BREW 500G	PCS	$200.00	$250.00	75	0
+4806531764093	MIRA'S 12N1 HERBAL TEA 400G	PCS	$200.00	$250.00	75	0
+10	MAAM SANDAL	PCS	$200.00	$250.00	107	0
+92	AURORA T-SHIRT SM	\N	$200.00	$250.00	107	0
+572	ARISE BENETTON 50ML	PCS	$200.00	$250.00	107	0
+573	ARISE BULGARI XTREME 50ML	PCS	$200.00	$250.00	107	0
+574	ARISE CK1 50ML	PCS	$200.00	$250.00	107	0
+576	ARISE HAPPY WOMEN 50ML	PCS	$200.00	$250.00	107	0
+577	ARISE HUGO 50ML	PCS	$200.00	$250.00	107	0
+578	ARISE ISSEY MIYAKE 50ML	PCS	$200.00	$250.00	107	0
+579	ARISE LEGEND 50ML	PCS	$200.00	$250.00	107	0
+580	ARISE LIGHT BLUE 50ML	PCS	$200.00	$250.00	107	0
+581	ARISE PERRY 50ML	PCS	$200.00	$250.00	107	0
+582	ARISE POLO SPORT 50ML	PCS	$200.00	$250.00	107	0
+583	ARISE POLO BLUE 50ML	PCS	$200.00	$250.00	107	0
+584	ARISE SWISS 50ML	PCS	$200.00	$250.00	107	0
+585	ARISE WEEKEND 50ML	PCS	$200.00	$250.00	107	0
+586	ARISE BE DELICIOUS 50ML	PCS	$200.00	$250.00	107	0
+587	ARISE BRIGHT CRYSTAL 50ML	PCS	$200.00	$250.00	107	0
+588	ARISE ECLAT 50ML	PCS	$200.00	$250.00	107	0
+589	ARISE ENVYME 50ML	PCS	$200.00	$250.00	107	0
+590	ARISE GREEN TEA 50ML	PCS	$200.00	$250.00	107	0
+591	ARISE HAPPY 50ML	PCS	$200.00	$250.00	107	0
+592	ARISE INCANTO 50ML	PCS	$200.00	$250.00	107	0
+593	ARISE LIGHT BLUE 50ML	PCS	$200.00	$250.00	107	0
+594	ARISE MOONSPARKLE 50ML	PCS	$200.00	$250.00	107	0
+595	ARISE OMNIA 50ML	PCS	$200.00	$250.00	107	0
+596	ARISE TOMMY GIRL 50ML	PCS	$200.00	$250.00	107	0
+597	ARISE TOUCH OF PINK 50ML	PCS	$200.00	$250.00	107	0
+598	ARISE VANILLA 50ML	PCS	$200.00	$250.00	107	0
+599	ARISE WEEKEND 50ML	PCS	$200.00	$250.00	107	0
+601	ARISE AQUA 50ML	PCS	$200.00	$250.00	107	0
+724	HONEY BOTTLE PURE/TUCAY	PCS	$200.00	$250.00	107	18
+895	PAGBASA AT PAGSULAT	\N	$200.00	$250.00	107	0
+1008	FRT DURIAN	PCS	$200.00	$250.00	107	0
+1111	VOICE OF YOUTH BOOK	PCS	$200.00	$250.00	107	0
+1151	SUPER7 HERBAL OIL	PCS	$200.00	$250.00	107	0
+1720	R.A VALERA COCOJAM 200G	PCS	$200.00	$250.00	107	0
+2094	ZANGHLI D526 CEILING FAN	PCS	$200.00	$250.00	107	0
+2095	LED HP LAMP 12W	PCS	$200.00	$250.00	107	-1
+3233	LALA WOMEN'S SANDAL	PCS	$200.00	$250.00	107	15
+4445	CHARCOAL POWDER 1KG	PCS	$200.00	$250.00	107	30
+4558	CARROT POWDER 500G	\N	$200.00	$250.00	107	0
+4644	2 STRPS SNDLS MALE	PCS	$200.00	$250.00	107	0
+4950	HOT CHOCOLATE 250G	PCS	$200.00	$250.00	107	0
+6004	OLD NAVY KL BLOUSE	PCS	$200.00	$250.00	107	5
+20102	PHUKET USB FAN	PCS	$200.00	$250.00	107	0
+22250	GREEN BARLEY 22G	PCS	$200.00	$250.00	107	0
+884699777	KLK'S 8IN1 BROWNRICE COFFEE	PCS	$200.00	$250.00	107	-54
+309975309409	REVLON LPSTCK 5.9ML	PCS	$200.00	$250.00	107	0
+609332826366	ELF MOISTRIZNG LIPSTICK 3.2G	PCS	$200.00	$250.00	107	0
+609332826724	ELF VELVT MATTE LPSTK 4.1G	PCS	$200.00	$250.00	107	0
+639469992719	ALASKA FISH OIL 100SG	PCS	$200.00	$250.00	107	25
+818159010555	EPSON NATURAL	PCS	$200.00	$250.00	107	0
+4806523090100	DONNABELLE LGRASS 250G	PCS	$200.00	$250.00	107	0
+4806523090377	DONNABELLE MORINGA TEA 250G	PCS	$200.00	$250.00	107	0
+4809010620682	PITO PITO HRBAL TEA 30BGS	PCS	$200.00	$250.00	107	0
+8809613840001	GV LIPTINT CHERRY	PCS	$200.00	$240.00	107	0
+8809613840018	GV LIPTINT GRAPEFRUIT	PCS	$200.00	$240.00	107	0
+8809613840025	GV LIPTINT ROSEPINK	PCS	$200.00	$240.00	107	0
+8809613840032	GV LIPTINT SUMMERPINK	PCS	$200.00	$240.00	107	0
+8809613840049	GV LIPTINT DAILY RED	PCS	$200.00	$240.00	107	0
+4800607100839	SUN TU200	PCS	$200.00	$201.00	108	146
+4806513840722	GRIST TOILET CLEANER 1L	PCS	$200.00	$250.00	113	3
+545451	COCO JAM 200G	PCS	$200.00	$250.00	114	0
+5020	STEPS TO CHRIST EGW	PCS	$200.00	$250.00	119	1
+5021	PAGLAPIT KAY CRISTO EGW	PCS	$200.00	$250.00	119	4
+9319871000806	WHITE GLO MOUTHWASH 500ML	PCS	$200.01	$250.00	200	4
+6920354814792	COLGATE CHRCHL CLN 2X150G	PCS	$200.40	$251.00	63	0
+748485401515	BIRCH TREE FORTIFIED MILK 700G	PCS	$200.88	$251.00	117	16
+4800888127273	VASELINE INTENSIVE CARE 400ML	PCS	$201.10	$251.00	36	6
+4806531670011	APPLAUSE DISWASHING LQD LMON 1	PCS	$201.40	$252.00	200	3
+4803746151601	GLUTALIGHT 180ML	PCS	$202.50	$254.00	107	0
+4800575141629	ALASKA POW FILL MILK 750G	PCS	$202.90	$254.00	19	21
+20800718332	OLD SPICE APDO CRM 45G	PCS	$203.74	$255.00	36	0
+4806513690518	KWIK MIK KEROSENE 500ML	PCS	$204.80	$256.00	145	6
+4806513690600	KWIK MIK WATER BASED 500ML	PCS	$204.80	$256.00	145	6
+545111	PP VIRGIN CCNT OIL 250ML	PCS	$205.00	$256.00	107	11
+4804888302807	ORGANIC VIRGIN COCONUT OIL	\N	$205.00	$256.00	107	0
+4809013772050	SUNRISE TBLEYA PURE 200G	PCS	$205.75	$258.00	105	0
+48090137722173	SUNRISE TURMERIC POW 200G	\N	$205.75	$258.00	107	0
+8888021200140	ENERGIZER  1.5V ULTIMATE LITHI	PCS	$206.25	$258.00	86	0
+4800888154224	VASELINE UVLGHTNNG LOTION400ML	PCS	$206.60	$258.00	36	6
+3504	D'RIGHT FOODS HRBALFULL10 350G	PCS	$207.00	$259.00	500	-2
+3622	EM TOTE BAG (BLACK)	PCS	$208.00	$208.00	41	-1
+9	WHOLE MILK 500G	PCS	$209.00	$180.00	1	0
+9119	BIBLE COVER CRUSHED NYLON MED	PCS	$209.00	$209.00	20	2
+4805358702424	MAGNOLIA CHOCO CLSSC 1.5L	PCS	$209.10	$262.00	2	1
+4800086036001	SLCTA CLASSIC MANGO 1.5L	PCS	$209.10	$262.00	9	2
+4800086036025	SLCTA CLASSIC SUPER CHCO 1.5L	PCS	$209.10	$262.00	9	2
+4800086036029	SLCTA CLASSIC VANILLA 1.5L	PCS	$209.10	$262.00	9	0
+4800086036049	SLCT SUPER THICK VANILLA 1.5L	\N	$209.10	$262.00	9	2
+4800086036063	SLCTA CLASSIC UBE 1L	PCS	$209.10	$262.00	9	0
+4800086036094	SLCTA CLASSIC STRAWBRRY 1.5L	PCS	$209.10	$262.00	9	3
+4800086045836	SLCTA CLASSIC UBE 1.3L	PCS	$209.10	$262.00	9	2
+4805358701427	MAGNOLIA CLSSIC STRAW 1.5L	PCS	$209.10	$262.00	115	1
+4805358703421	MAGNOLIA VANILLA CLSSC 1.5L	PCS	$209.10	$261.00	115	1
+4805358704428	MAGNOLIA UBE CLSSC 1.5L	PCS	$209.10	$261.00	115	1
+4805358705425	MAGNOLIA CLSSSC MANGO 1.5L	PCS	$209.10	$261.00	115	1
+4804880553429	MARCA LEON CNOLA OIL2L	PCS	$209.17	$241.00	53	3
+1059	SWEET DREAMS PILLOWS	PCS	$210.00	$273.00	20	3
+4891895534352	ESSELT INSERT BINDER	PCS	$210.00	$263.00	20	0
+6936860838191	FIBER-COLOUR DESK TRAY 3 TIERS	PCS	$210.00	$263.00	100	2
+6947191208047	MINISTAR PROF MAKEUP	PCS	$210.00	$263.00	107	1
+6971083000031	CC SOFT TOUCH BLUSHER	PCS	$210.00	$263.00	107	1
+2123	D 'RIGHT E TURMERIC 150G	PCS	$210.00	$262.00	500	5
+14800000344	MOTTS APPLE JUICE 1.9L	PCS	$210.06	$263.00	53	0
+4800888190307	DOVE MEN SHFRT STRNGHTNG 340ML	PCS	$210.30	$263.00	36	6
+4800888190338	DOVE MEN CARE RFRSHNG CLEAN 34	PCS	$210.30	$263.00	36	3
+4800888190352	DOVE MEN ANTI DNDRUFF 340ML	PCS	$210.30	$263.00	36	3
+4806513690549	KWIK MSQITO KLLER 500ML	PCS	$210.74	$263.00	145	6
+4902430408011	H&S SHMP APPLE FRESH 330ML	PCS	$210.76	$264.00	70	0
+4800086044938	SLCT HALO HALO 1.5L	PCS	$211.59	$265.00	9	0
+35	SNOWMAN NO.P-70	PCS	$212.40	$267.00	63	0
+9556121009688	JULIE'S MELODIES ASSTRD	PCS	$213.75	$268.00	50	0
+4800282000868	GOLDEN VLLY CNOLA OIL2L	PCS	$213.75	$246.00	76	10
+4800361388771	NESTLE BEARBRAND 700G	PCS	$214.29	$268.00	14	84
+4800024550958	DM FSTA FRT CTAIL 3.033KG	PCS	$214.29	$268.00	19	19
+7840	SNOWMAN NO.P-70	PCS	$214.40	$268.00	20	0
+8858741700114	DOUBLE A A4 80GSM  1RM	PCS	$215.00	$269.00	37	0
+2061	VEGAN MUSHROOM BOPIS	PCS	$215.00	$269.00	107	-2
+2062	VEGAN MUSHROOM TAPA	PCS	$215.00	$269.00	107	-3
+2063	VEGAN TOFU FETA CHEESE	PCS	$215.00	$269.00	107	-1
+4801234199449	GLADE 3N1 FLRLFRSH DINFCT 249G	PCS	$215.40	$270.00	28	0
+4801234214432	GLADE 3N1 CLNFRSH DSNFCT 249G	PCS	$215.40	$270.00	28	0
+8802203703311	DONGA MY-GEL PEN 0.3MM	PCS	$216.00	$270.00	20	10
+4902505043062	PLOT BP-S-F  1DZ	DOZE	$216.00	$270.00	100	10
+4902505043086	PILOT BP-S-F BLUE	PCS	$216.00	$270.00	100	10
+8802203001455	DONG-A MY-GEL PEN	PCS	$216.00	$270.00	100	10
+3005	AUP ALUMNI T-SHIRT	PCS	$216.00	$270.00	107	64
+750515013100	MYSAN BUTTER COOKIES 800G	PCS	$218.06	$273.00	1	4
+4800086045461	SELECTA IH CLSSC AVOCADO 1.3L	PCS	$218.20	$273.00	9	0
+4805358736574	MIC FN SPINNER HAZLE NUT 100ML	PCS	$218.40	$273.00	115	3
+4806513690990	SOLBAC SPRAY FRESH LINEN 300G	PCS	$219.40	$275.00	113	6
+4806513691010	SOLBAC SPRAY LAVNDR 300G	PCS	$219.40	$275.00	113	6
+4806513691027	SOLBAC SPRAY CITRUS&GREEN 300G	PCS	$219.40	$275.00	113	6
+226	VEGE FRITTERS	PCS	$220.00	$275.00	11	44
+746	VEGE TEMPURA	PCS	$220.00	$275.00	11	44
+4806519480571	MAMA'S BABY DIAPER XL 30	PCS	$220.00	$275.00	11	0
+4809013918946	PHARMALINE ADULT DIAPER L 10	PCS	$220.00	$275.00	11	0
+6932853883797	OREX ADULT DIAPER L 10	PCS	$220.00	$275.00	11	1
+908	SNOWMAN NO.P-70	PCS	$220.00	$275.00	20	0
+8060	KARIT KAHOY BIG	PCS	$220.00	$275.00	20	6
+4800631000372	BIG TIME ASSRTD 2.5KG	PCS	$220.00	$275.00	20	1
+4800631000860	DONA JOSEFA ASSRTD 2.5KG	PCS	$220.00	$275.00	20	1
+4806512309107	CRISTELA 25003 SOCKS	PCS	$220.00	$275.00	20	0
+4806512309145	SHARMANE SOCKS 3PRS	PCS	$220.00	$275.00	20	0
+4806512309206	CRISTELA MFG 25502	PCS	$220.00	$220.00	20	0
+4806512308612	CRISTELA 33014-D(33013)	PCS	$220.00	$220.00	61	24
+4806512309657	CRISTELA 25019	PCS	$220.00	$220.00	61	24
+4806531764024	MIRA'S TURMERIC BREW 500G	PCS	$220.00	$275.00	75	5
+1407	SEAGULL 3RING BINDER EJA20 2	PCS	$220.00	$275.00	100	15
+633	WALLET FANCY LEATHER	PCS	$220.00	$275.00	107	0
+1044	FLAMINGO NO.4401	PCS	$220.00	$280.00	107	0
+2049	DREAM HERBAL TEA 360G	\N	$220.00	$275.00	107	1
+2065	18IN1 TURMERIC AND YACON	\N	$220.00	$275.00	107	16
+4820	NEW SCARF	PCS	$220.00	$275.00	107	0
+6013	OLD NAVY BLOUSE RT	PCS	$220.00	$275.00	107	1
+6021	LADIES SANDO QR	PCS	$220.00	$275.00	107	14
+6023	MOSSIMO SANDO W/HOOD BF	PCS	$220.00	$275.00	107	1
+19857	DAKOTCH VEG BAGOONG 225G	PCS	$220.00	$275.00	107	0
+4800310170143	EB ACPOWDER	PCS	$220.00	$275.00	107	0
+4800310170150	EB ACPOWDER	PCS	$220.00	$275.00	107	0
+4804888328418	NATURE'S GIFT COCONUT OIL	\N	$220.00	$275.00	107	0
+4806531764154	MIRA'S PURE TURMRIC 200G	PCS	$220.00	$275.00	107	0
+4809014665474	M2 MALUNGAY TEA 1L	PCS	$220.00	$270.00	107	0
+8809192577565	3W CLNC FM CLSNR BLCK HD	PCS	$220.00	$264.00	107	0
+8809317287713	3W CLINIC FM CLSNR SNAIL	PCS	$220.00	$275.00	107	0
+8809469774888	3W CLINIC HAND CREAM ROSE WTR	PCS	$220.00	$264.00	107	0
+8809469774901	3W CLNC HAND CRM COLLAGEN	PCS	$220.00	$264.00	107	0
+4800361406123	TEMP UBE HALO HALO	PCS	$221.81	$277.00	32	0
+4806014099285	JOLLY CANOLA PET DUO 1L	PCS	$222.66	$278.00	53	18
+4806014000564	JOLLY MATE CAN OIL 2L	PCS	$222.67	$256.00	53	1
+4800086035905	SLCT BUCO SALAD 1.5L	PCS	$222.72	$278.00	9	7
+4800086035943	SLCT SUP CFFCRMBL 1.5L	PCS	$222.72	$279.00	9	16
+4800086035967	SLCT SUP DBLDTCH 1.5L	PCS	$222.72	$279.00	9	37
+4800086036162	SLCT SUP QUEZOREAL 1.5L	PCS	$222.72	$278.00	9	10
+4800086036209	SLCT PISTACHO CASHEW 1.5L	PCS	$222.72	$278.00	9	0
+4800086038186	SLCT VRY RCKY ROAD 1.5L	PCS	$222.72	$279.00	9	3
+4800086038451	SLCTA RROAD/C&C 1.5L	PCS	$222.72	$279.00	9	0
+4800086038592	SLECTA IH DSUP QZO RL/BCO 1.5L	PCS	$222.72	$278.00	9	0
+4800086038630	SLCT 2IN1 DBLDTCH/RCKYRD 1.5L	PCS	$222.72	$279.00	9	11
+4800086038661	SLCT DSUP CFECRBL/CKISNCRM 1.5	PCS	$222.72	$279.00	9	6
+4800086038691	SLCTA 2N1 QR/BS 1.5L	PCS	$222.72	$279.00	9	0
+4800086038692	SLCT QZORL/BUCOSLD 1.5L	PCS	$222.72	$279.00	9	8
+4800086040671	SLCT C&C+DDUTCH 1.5L	PCS	$222.72	$279.00	9	12
+4800086042293	SCLT IH MANGO GRAHAM CAKE 1.5L	PCS	$222.72	$278.50	9	3
+4800086043368	SLCT IH SUP BLACKFOREST 1.5L	PCS	$222.72	$279.00	9	9
+4800086044914	SLCT YEMA CKCNQUEZO 1.5L	PCS	$222.72	$279.00	9	0
+4800086045287	SCLT PISTACHIO/DBLEDUTCH 1.5L	PCS	$222.72	$279.00	9	0
+4800086045560	SLCT IH PISTACHIO N CSHW 1.3L	PCS	$222.72	$279.00	9	1
+4800086045614	SLCT DSUP PSTCH/DD 1.3L	PCS	$222.72	$279.00	9	0
+4800086045720	SLCT IH SUP BUCO PANDAN 1.3L	PCS	$222.72	$279.00	9	2
+4800086045737	SLCT IH UBE SALTED EGG 1.3L	PCS	$222.72	$279.00	9	0
+4800086045744	SELECTA IH SUP CHC HZLNT 1.3L	PCS	$222.72	$278.00	9	0
+4800086045843	SLCTA IH AVOCDO BUCO 1.3L	PCS	$222.72	$279.00	9	2
+4800086045850	SLCTA IH TABLEA CHOCO 1.3L	PCS	$222.72	$279.00	9	3
+4800086045867	SLCTA IH PEACH MANGO 1.3L	PCS	$222.72	$279.00	9	3
+4800086048630	SLCT IH DBLDTCH/VRKYRD 1.5L	PCS	$222.72	$279.00	9	5
+4800086040633	SLCT RROAD/C&CREAM 1.5L	PCS	$222.72	$279.00	20	16
+4800361343275	NSTL TEMPT CHCLT 1.3L	PCS	$222.72	$279.00	32	0
+4800361343299	NSTL TEMPT VANILLA 1.3L	PCS	$222.72	$278.00	32	2
+4800361355117	NSTL TEMPT RCKYRD 1.3L	PCS	$222.72	$279.00	32	3
+4800361355131	NSTL TEMPT DBLEDTCH 1.3L	PCS	$222.72	$279.00	32	0
+4800361355155	NSTL TEMPT CCKS&CRM 1.3L	PCS	$222.72	$279.00	32	2
+4800361394970	NSTL TEMPT ALMND BRWNIE FDGE1.	PCS	$222.72	$278.00	32	5
+4800361402590	NSTL TEMPT MCHA&CSHWS 1.3L	PCS	$222.72	$278.00	32	2
+4800361409131	NSTL TEMPT CHCO BTTER 1.3L	PCS	$222.72	$278.00	32	3
+4800361409148	NSTL TEMPT STRWBRRY FILLED	PCS	$222.72	$278.00	32	3
+4800361409483	NSTL TEMPT BAVRIAN CREAM	PCS	$222.72	$278.00	32	3
+4800086035929	SCLTA SUP COOKIES&CREAM 1.5L	PCS	$222.73	$278.00	9	35
+4800086036186	SLCT IH SUP VRY RCKYROAD 1.5L	PCS	$222.73	$278.40	9	31
+4800086044921	SLCT IH SUP TRIPLCHCCK 1.5L	PCS	$222.76	$279.00	9	0
+3647	EM DOCUMNT CASE PRINTED	PCS	$223.00	$223.00	41	0
+4806515922044	TOKINA GAS REGULATOR	PCS	$224.00	$280.00	107	2
+205	LPG GASULET	PCS	$225.00	$345.00	3	4
+80200	EXTENSION 5GANG/5M	PCS	$225.00	$281.00	20	1
+4803746370071	TUFF SOFT ETERNITY CON 1L	PCS	$225.00	$281.00	107	0
+4800380511099	ARCE DAIRY DRK CHCO 1.5L	PCS	$227.30	$284.00	2	0
+4805358707429	MAGNOLIA C&C 1.5L	PCS	$227.30	$284.00	2	7
+4805358708426	MAGNOLIA GLD DBLDUTCH 1.5L	PCS	$227.30	$284.00	2	6
+4805358709423	MAGNOLIA ROCKYROAD 1.5L	PCS	$227.30	$284.00	2	4
+4805358753815	MAGNOLIA AVOCADO MCCHT 1.5L	PCS	$227.30	$284.00	2	13
+4805358756816	MAGNOLIA MANGO SLTED CRML 1.5L	PCS	$227.30	$285.00	2	0
+4805358758810	MAGNOLIA MANGO DRKCHC 1.5L	PCS	$227.30	$284.00	2	0
+4805358759817	MAGNOLIA UBE CRMLZDSGR 1.5L	PCS	$227.30	$284.00	2	0
+4805358760813	MAGNOLIA AVOCADO PBTTR 1.5L	PCS	$227.30	$284.00	2	0
+4805358784819	MAGNOLIA TARO WHTECHS 1.5L	PCS	$227.30	$284.00	2	10
+4805358785816	MAGNOLIA TBLYA YEMA 1.5L	PCS	$227.30	$285.00	2	17
+4805358786813	MAGNOLIA MCPNO CRML 1.5L	PCS	$227.30	$285.00	2	0
+48053587	MAGNOLIA DOUBLE DUTCH 1.5L	PCS	$227.30	$284.00	8	0
+4805358701847	MAGNOLIA SLTD CRML PRETZL 1.5L	PCS	$227.30	$285.00	115	7
+4805358702844	MAGNOLIA LATTE CHC BRWNIE 1.5L	PCS	$227.30	$285.00	115	13
+4805358706840	MIC LE MANGO TOFFEE NUT 1.5L	PCS	$227.30	$284.00	115	2
+4805358706842	MAGNOLIA MANGO TFFEENUT 1.5L	PCS	$227.30	$284.00	115	14
+4805358707849	MAGNOLIA LE QUEZO MNGSTN 1.5L	PCS	$227.30	$284.00	115	13
+4805358711846	MAGNOLIA UBESLTDCRML WFFLE 1.5	PCS	$227.30	$284.00	115	11
+4805358785090	MAGNOLIA UBE KESO 1.5L	PCS	$227.30	$284.00	115	6
+749921002211	DIABETAMIL VANILLA 200G	PCS	$228.25	$286.00	28	4
+749921882608	DIABETAMIL  CHOCOLATE 200G	PCS	$228.25	$286.00	28	6
+9122	EM BS W/ COLORED ZIPPER SM	PCS	$229.00	$229.00	20	0
+4805358317086	MAGNOLIA CHEEZEE REG 900G	PCS	$229.50	$287.00	900	0
+4495	ICHTHUS BIBLE CVR RCN-M	PCS	$229.75	$229.75	107	0
+4451	SUGAR BAG #2	PCS	$230.00	$230.00	20	0
+4803	ISLANDER SLIPPER	\N	$230.00	$299.00	20	6
+4800631000846	DON JUAN ASSRTD BISC. 2.5KG	PCS	$230.00	$288.00	20	1
+2072	ICHTHUS IKAT-NR LARGE	\N	$230.00	$230.00	41	0
+4806512309428	CRISTELA SOCKS FOR CHLDREN	PCS	$230.00	$230.00	61	24
+1284	BINDER SEAGULL 3R 2 A4 WHITE	PCS	$230.00	$287.00	63	10
+1967	SEAGULL BINDER 3RING 3 WHITE	PCS	$230.00	$287.00	63	30
+18069	CZAIONLY'S CALMANSITO 600ML	PCS	$230.00	$288.00	76	0
+1778	ICHUTUS BIBLE COVER L	PCS	$230.00	$230.00	107	0
+1886	GP LAUNDRY SOAP 1GAL	PCS	$230.00	$288.00	107	0
+4408	LED HEADLIGHT	PCS	$230.00	$288.00	107	0
+6007	OLD NAVY AB T-SHIRT	PCS	$230.00	$288.00	107	4
+6009	OLD NAVY VNECK GH	PCS	$230.00	$288.00	107	9
+6020	OLD NAVY SANDO OP	PCS	$230.00	$288.00	107	18
+4806014000526	JLLY SOYA OIL 2LTR	PCS	$230.40	$265.00	53	0
+1234571	D'RIGHTFOODS ROASTRICE 450G	PCS	$231.00	$289.00	107	0
+750515011359	M.Y SAN HAPPYTIME ASSRTD 1.5KG	PCS	$231.02	$289.00	1	3
+4800361406055	TEMPT FUDGY CHOCO CRINKLE 1.3L	PCS	$231.82	$290.00	8	0
+4800361406093	NSTLE NUTTY BTTR CRML 1.3L	PCS	$231.82	$290.00	32	0
+4800361343312	NSTL TEMPT MNGO CRMEL1.3L	PCS	$231.82	$290.00	20	0
+4800361343374	NSTL TEMPT UBE DEL 1.3L	PCS	$231.82	$290.00	20	0
+4803746370132	SOF EVERMORE 1000ML	PCS	$233.01	$291.00	107	0
+206	LPG GASUL 5KG	PCS	$235.00	$270.00	3	0
+4713322001544	VEGE NUGGETS	PCS	$235.00	$294.00	11	209
+692	CAMEL CASSEROLE #18	PCS	$235.00	$247.00	20	2
+8856976001594	DOUBLE A F4 80GSM 1RM	PCS	$235.00	$294.00	37	0
+8885007020235	EPSON #664 BLK 70ML	PCS	$235.00	$294.00	81	76
+1691	VT SINANDOMENG 5KG SACK	PCS	$235.00	$260.00	98	41
+4803746151670	GLUTALIGHT GLOW F&B LOTION 180	PCS	$235.00	$294.00	107	5
+8885007027876	EPSON 003 BLACK	PCS	$235.00	$294.00	205	29
+4800086042439	SLCT HERSHEYCARAMELKISS 1.3L	PCS	$236.36	$296.00	9	0
+4800086043467	SLCT HERSHEYS MILKAMNDS 1.3L	PCS	$236.36	$296.00	9	0
+4800086045102	SCLT HERSHEYS C&C 1.3L	PCS	$236.36	$296.00	9	0
+4800086045119	SLCT HERSHEYS C&CHOCO 1.3L	PCS	$236.36	$296.00	9	0
+4800361373029	OREO ICE CREAM TUBC1L	PCS	$236.36	$296.00	32	4
+4800361389976	CADBURY ICE CREAM TUB 1L	PCS	$236.36	$296.00	32	0
+4902430452991	DOWNY FBEN LIQ 1.5L	PCS	$237.12	$296.00	70	0
+2055	D'AIRPLANE #1	PCS	$237.70	$320.00	20	0
+4800380530199	ARCE CARAMEL 1.5L	PCS	$238.00	$298.00	99	0
+4800575141605	ALASKA POW FORTI 1KG	\N	$238.37	$298.00	19	0
+4710254505973	KNORR MUSHROOM SSNNG 250G	PCS	$240.00	$300.00	11	0
+256	MOP HANDLE MANSION	PCS	$240.00	$300.00	20	35
+662	CAMEL CASEROL #22	PCS	$240.00	$252.00	20	12
+1656	GARBAGE BAG M CLEAR	PCS	$240.00	$300.00	87	4
+714	WAY DOWN IN MY SOUL CD	PCS	$240.00	$300.00	107	0
+10402	RYDAX SHOES	PCS	$240.00	$276.00	107	4
+4806512309114	CHRISTIAN OLIVER SUCK	\N	$240.00	$300.00	107	0
+4809014948010	MANGOSTEEN COFFEE	PCS	$240.00	$300.00	107	0
+4809014948294	GUYABANO MANGOSTEEN COFFFEE	PCS	$240.00	$300.00	107	0
+4809015755006	EMPEROR'S TEA 15IN1	\N	$240.00	$300.00	107	10
+9555027601286	SPLINA CHLOROPHYLL SOAP 300G	PCS	$240.00	$300.00	107	0
+4806513690525	KWIK GREEN 600ML	PCS	$240.56	$301.00	113	0
+4806513690617	KWIK BLUE 600ML	PCS	$240.56	$301.00	113	1
+129	VGT B PECHAY	PCS	$244.44	$306.00	23	139.22
+4806014000731	D. ELENA PURE OLIVE OIL 500ML	PCS	$244.65	$306.00	53	3
+44	CAMEL CASEROL #26	PCS	$245.00	$258.00	20	1
+4902430245012	DOWNY FBEN LIQ 1.6L	PCS	$245.11	$306.00	70	0
+9789712386695	ART APPRECIATION'17	PCS	$248.00	$298.00	107	0
+9789712386701	UNDERSTANDING THE SELF'17	PCS	$248.00	$298.00	107	0
+9780816310074	THE MINISTRY OF HEALING	\N	$248.00	$310.00	119	0
+4710254020186	KNORR MUSHROOM SEASONING 240G	PCS	$250.00	$312.00	11	26
+3662	ASSORTED SHOES	PCS	$250.00	$313.00	19	6
+48	CAMEL CASEROL #24	PCS	$250.00	$308.00	20	2
+8065	KARIT BAKAL BIG	PCS	$250.00	$313.00	20	0
+8549	BOTA/BOOTS	PCS	$250.00	$313.00	20	9
+55561	6 LED HEAD LAMP	PCS	$250.00	$250.00	20	0
+41800218004	WELCH'S GRAPE JUICE 46OZ	PCS	$250.00	$325.00	20	-6
+4711815159642	STANLEY SAW 600MM/24	PCS	$250.00	$312.50	20	0
+1207	VGT DAHAN NG SILI	PCS	$250.00	$250.00	23	0
+4800380530397	ARCE VANILLA 1.5L	PCS	$250.00	$313.00	99	0
+9787560011813	ACURA 3 HOLE PUNCHER P3-1	PCS	$250.00	$313.00	100	3
+555	BAG HANDBAG M	PCS	$250.00	$313.00	107	0
+557	BAG SLING #2	PCS	$250.00	$313.00	107	0
+558	BAG HANDBAG FLAT	PCS	$250.00	$313.00	107	0
+731	SNOWMAN TAPE DISPENSER TD-150	PCS	$250.00	$38.00	107	1
+745	HONEY BOTTLE PURE QUATRO	PCS	$250.00	$313.00	107	0
+1735	P&T JACKET	PCS	$250.00	$287.50	107	0
+1791	HONY COATED PILI NUTS	PCS	$250.00	$313.00	107	5
+1987	WSA BARONG	\N	$250.00	$313.00	107	0
+2037	MAGIC NUT'S GRANOLA 5S	\N	$250.00	$312.00	107	0
+2093	MINI CEILING FAN	PCS	$250.00	$313.00	107	-1
+3601	EM IKAT-NR BIBLE COVER SM	PCS	$250.00	$250.00	107	1
+6000	OLD NAVY UV SPAG BLOUSE	PCS	$250.00	$313.00	107	8
+6003	OLD NAVY EF T-SHRT	PCS	$250.00	$313.00	107	12
+6006	OLD NAVY IJ T-SHIRT	PCS	$250.00	$313.00	107	8
+6008	SANDO BLOUSE ST	PCS	$250.00	$313.00	107	10
+6010	OLD NAVY VNECK STRIPE MN	PCS	$250.00	$313.00	107	4
+6016	OLD NAVY SHORT LJ	PCS	$250.00	$313.00	107	1
+4806512309091	SHARMANE 3103B	PCS	$250.00	$250.00	107	0
+20121	VIOLY'S 7IN1 TURMERIC 400G	PCS	$250.00	$313.00	114	11
+20122	VIOLY'S 7IN1 TURMERIC 350G	PCS	$250.00	$312.00	114	41
+727	GRASS CUTTER	PCS	$250.00	$438.00	117	0
+4971850187653	CASIO MZ-12S	PCS	$250.40	$331.00	100	0
+875	SEAGULL BINDER 3R 3 A4 BLUE	PCS	$252.00	$315.00	63	0
+5091	ENCOUNTER DEVOTIONAL BOOK FOR	PCS	$252.00	$315.00	107	0
+4803746332802	TUFF TOILET BOWL CLNR	PCS	$252.00	$315.00	107	0
+75355112791	OLD ORACHARD CRNBERRY 1.89L	PCS	$256.78	$321.00	20	0
+75355112883	OLD ORCHRD RASPBRRY 1.89L	PCS	$256.79	$321.00	53	0
+4809013772142	SUNRISE CORN COFFEE 500G	PCS	$257.00	$321.00	105	26
+4801234106027	BAYGON ANTI DENGUE 500ML	PCS	$257.55	$322.00	28	6
+4801234107024	BAYGON COCKROACH KILLER 500ML	PCS	$257.55	$322.00	28	1
+4801234107826	BAYGON SPRY 500ML	PCS	$257.55	$322.00	28	19
+4801234108021	BAYGON KILLER	PCS	$257.55	$322.00	28	6
+4801234108229	BAYGON SPRY WBASED 500ML	PCS	$257.55	$322.00	28	18
+4806014000700	D.ELENA OLIVE OIL 500G	PCS	$258.77	$324.00	53	3
+6941335456152	NSS LED NS-5615	PCS	$259.00	$324.00	20	0
+4800888196958	SURF CHERRY BLSSM 3.3KG	PCS	$259.45	$324.00	36	8
+1064	BED SHEET 36X78	PCS	$260.00	$338.00	20	0
+4457	12X18 HD	PCS	$260.00	$260.00	20	0
+4902430355193	DOWNY FBEN LIQ 1.4L	PCS	$260.00	$325.00	70	0
+4809014641003	VITA HERBS GREEN COFFEE	PCS	$260.00	$325.00	75	12
+4800380540297	ARCE MANGA MANGO 1.5L	PCS	$260.00	$325.00	99	0
+4800380540396	ARCE QUEZO REAL 1.5L	PCS	$260.00	$325.00	99	0
+429	RAISEDHERBS GCFFEE 10SCHT	PCS	$260.00	$325.00	107	-1
+3600	EM RETRO CRUSHED NYLON BC SM	PCS	$260.00	$260.00	107	0
+6002	NIKE DRY FIT XY M	PCS	$260.00	$325.00	107	1
+6005	ROUTE TL T-SHIRT	PCS	$260.00	$325.00	107	1
+6019	OLD NAVY BLOUSE CD	PCS	$260.00	$325.00	107	4
+23564	VITA HERBS GREEN COFFEE 10SCHT	PCS	$260.00	$325.00	107	9
+4800361381284	NESTLE MILO 1KG	PCS	$262.06	$328.00	14	36
+8885007020242	EPSON #664 T6642 CYAN	PCS	$265.00	$331.00	81	39
+8885007020259	EPSON #6644 MGNTA 70ML	PCS	$265.00	$331.00	81	59
+8885007020266	EPSON #664 YELLOW 70ML	PCS	$265.00	$331.00	81	55
+8885007024097	EPSON #6642 CYAN 70ML	PCS	$265.00	$331.00	81	15
+1690	VT DINURADO 5KG SACK	PCS	$265.00	$290.00	98	88
+4800380520398	ARCE COFFEE 1.5L	PCS	$265.00	$331.00	99	0
+4800380520992	ARCE UBE 1.5L	PCS	$265.00	$331.00	99	0
+8885007027890	EPSON 003 CYAN	PCS	$265.00	$331.00	205	21
+8885007027913	EPSON 003 MAGENTA	PCS	$265.00	$331.00	205	21
+8885007027937	EPSON 003 YELLOW	PCS	$265.00	$331.00	205	26
+9120	EM BS W/ COLORED ZIPPER LARGE	PCS	$269.00	$269.00	20	3
+4809013293586	WHTNGLTN 200ML	PCS	$269.00	$336.00	61	16
+4806532480008	DELFA 'S 7IN1 PWDER DRNK	\N	$270.00	$338.00	107	20
+8859082300605	NEW WHIP SOAP	PCS	$270.00	$338.00	107	0
+4902870729325	MAX STAPLER W/RMVR HD-50R	PCS	$270.40	$340.00	63	0
+4801234107727	BAYGON SPRY ODRLS 500ML	PCS	$270.60	$338.00	28	6
+33923329415	BISAGRA STANLEY	PCS	$275.00	$344.00	20	1
+1545	TM 300	PCS	$275.00	$275.00	111	25
+4806504470235	GLOBE 300	PCS	$275.00	$301.00	111	170
+787	GRASS CUTTER NYLON	PCS	$275.09	$358.00	20	4
+4806513690051	SOLBAC SPRAY LAVNDR 400G	PCS	$275.63	$345.00	113	6
+4806513691003	SOLBAC SPRAY FRESH LINEN 400G	PCS	$275.63	$345.00	113	6
+4806513691034	SOLBAC SPRAY CITRUS&GRN 400G	PCS	$275.63	$345.00	113	6
+9789712393570	MATH THE MODERN WORLD'18	PCS	$278.00	$306.00	44	0
+4800380520190	ARCE AVOCADO 1.5L	PCS	$279.00	$349.00	99	2
+4800380520299	ARCE CHOCOLATE 1.5L	PCS	$279.00	$349.00	99	1
+4800380520497	ARCE MANGO 1.5L	PCS	$279.00	$349.00	99	1
+4800380520695	ARCE STRAWBERRY 1.5	PCS	$279.00	$349.00	99	1
+19200248	THB ESV032 LTHR WHITE	PCS	$280.00	$336.00	35	0
+3602	EM IKAT-NR BIBLE COVER MED	PCS	$280.00	$280.00	41	0
+4806014000540	JOLLY CORN OIL 2L	PCS	$280.00	$322.00	53	2
+4800380510399	ARCE BLUEBRRY CHSCK 1.5L	PCS	$280.00	$350.00	99	0
+4800380510795	ARCE CHCCARAMEL 1.5L	PCS	$280.00	$350.00	99	0
+4800380510894	ARCE COFFE CRMBL 1.5L	PCS	$280.00	$350.00	99	0
+4800380511693	ARCE PISTACHO 1.5L	PCS	$280.00	$350.00	99	0
+4800380511792	ARCE ROCKYROAD 1.5L	PCS	$280.00	$350.00	99	0
+788	SOLAR CAMPING LAMP	PCS	$280.00	$350.00	107	0
+1279	AUP LONG SLEEVE (B|W)	PCS	$280.00	$350.00	107	1
+6012	OLD NAVY BLOUSE XM	PCS	$280.00	$350.00	107	5
+6014	BLOUSE YZ	PCS	$280.00	$350.00	107	5
+9590	EKEL ALOE VERA STHNG GEL	PCS	$280.00	$336.00	107	0
+4800289821534	GREEN STEVIA POW 100G	PCS	$280.00	$350.00	107	0
+4806532750217	HEALTH VGCOFFEE 144-IN-1 210G	PCS	$280.00	$350.00	107	0
+8809307770911	TOP FACE ALOE STHNG GEL	PCS	$280.00	$336.00	107	0
+8809426121625	EKEL SNAIL STHING GEL	PCS	$280.00	$336.00	107	0
+8809428541407	EKEL CLLGEN STHING GEL	PCS	$280.00	$336.00	107	0
+4803746332833	TUFF CLASSIC 1L	PCS	$285.00	$356.00	107	4
+4803746370187	SOF FABCON ETERNITY 1L	PCS	$285.00	$356.00	107	3
+4902870729233	MAX STAPLER #35 GRAY	PCS	$288.00	$375.00	20	17
+4902870729240	MAX STAPLER #35 PINK	PCS	$288.00	$375.00	20	6
+4902870729257	MAX STAPLER #35 BLCK	PCS	$288.00	$375.00	20	2
+4902870729264	MAX STAPLER #35 BLUE	PCS	$288.00	$375.00	20	5
+4902870729271	MAX STAPLER #35 BEIGE	PCS	$288.00	$375.00	20	0
+70896331366	WILTON SNACK SERVER	\N	$288.00	$360.00	107	0
+9121	EM BS W/ COLORED ZIPPER XLARGE	PCS	$289.00	$289.00	20	3
+4800888204431	VASELINE SUN+POLLTION 350ML	PCS	$289.20	$362.00	36	2
+1050	SHITAKE MUSHROOM SEASNIG 250G	PCS	$290.00	$362.00	11	145
+4971760140601	CARL HD PUNCHER #75A	PCS	$290.00	$363.00	100	3
+6936860838184	FIBER-COLOUR DESK TRAY 3 TIERS	PCS	$290.00	$363.00	100	2
+567	ALADA NATURAL SOUP	PCS	$290.00	$375.00	107	0
+1654	DAILA GC SOLUTION 1L	\N	$290.00	$363.00	107	0
+4806532750170	VEGGIE COFFEE 124IN1	PCS	$290.00	$363.00	107	0
+6970314470414	SESAME SEAWEEDS 250G	PCS	$290.00	$363.00	107	0
+4902430473514	ARIEL PWDR LAU 220G	PCS	$293.08	$366.00	70	24
+4902430473569	ARIEL LAU PWD 2060G	PCS	$293.09	$367.00	70	18
+4806503614579	DELTA E27 LED 11W	PCS	$295.00	$370.00	20	0
+4806503614562	DELTA LED 13W	PCS	$296.00	$370.00	20	0
+8489	EM BOOKSTAND S	PCS	$296.00	$375.00	107	0
+4801234108236	BAYGON MIK AERSOL WB 600ML	PCS	$298.75	$373.00	28	6
+701	MEAT MAGIC 1KG	PCS	$300.00	$375.00	11	22
+1066	BED SHEET 54X78	PCS	$300.00	$390.00	20	13
+3413	BALISOFT BLACK SHOES	PCS	$300.00	$390.00	20	7
+4452	TRASH BAG XL FOR CANTEEN	PCS	$300.00	$375.00	20	0
+6001	DRESS PJ	PCS	$300.00	$375.00	20	1
+84056	FLEXI MAT	PCS	$300.00	$375.00	20	18
+41800207503	WELCH'S GRAPE JUICE 64OZ	PCS	$300.00	$390.00	20	8
+111	VGT BELLPEPPER G	PCS	$300.00	$375.00	23	18.02
+6394699922144	ALASKA GARLIC OIL 500S	PCS	$300.00	$375.00	26	40
+19200262	THE HOLY BIBLE ESV033(PLC)	PCS	$300.00	$360.00	35	-2
+9780564038275	THE HOLY BIBLE: ESV033(PLC)	PCS	$300.00	$360.00	35	0
+9780564097838	HOLY BIBLE:ESV033(PVC)	PCS	$300.00	$360.00	35	0
+480654181128	WELCH GRAPE JCE 64OZ	PCS	$300.00	$375.00	53	0
+4800132410014	CRISTELA SOCKS FOR CHILDRN 4-6	PCS	$300.00	$300.00	61	24
+615	CHARCOAL PASTE 150G	PCS	$300.00	$375.00	90	0
+554	BAG SHOULDER L	PCS	$300.00	$375.00	107	0
+691	MEDITATION OF THE HEART CD	PCS	$300.00	$375.00	107	0
+780	PLATOON SILK	PCS	$300.00	$375.00	107	0
+811	AHAVA CHARCOAL CAPSULE B	PCS	$300.00	$375.00	107	0
+1754	GAP SHIRT	PCS	$300.00	$345.00	107	0
+1874	AUP T-SHIRT	PCS	$300.00	$375.00	107	34
+1876	MAYBEL LONG NECK SHIRTS	PCS	$300.00	$375.00	107	14
+2775	HEALTHY JUICE 450G	PCS	$300.00	$375.00	107	13
+6018	MAONG SHORT DC	PCS	$300.00	$390.00	107	3
+8405	PLIFE 8IN1 COCOA 210G	PCS	$300.00	$375.00	107	0
+20112	SIRENE LIGHT RED	PCS	$300.00	$375.00	107	0
+639469992214	ALASKA GARLIC OIL 1500G	PCS	$300.00	$375.00	107	65
+857229001321	URIC ACID BLOCK	PCS	$300.00	$375.00	107	-6
+4806503250029	TM 300	PCS	$300.00	$302.00	107	27
+6948460000519	ORGANIC WHEAT GRASS 250G	\N	$300.00	$375.00	107	0
+8809512720015	MD SLK WHTNG BB LIGHT	PCS	$300.00	$360.00	107	0
+4806522100022	SMART 300	PCS	$300.00	$301.00	108	102
+23565	RAISED HERBS GRN COFFEE	PCS	$304.00	$380.00	107	0
+878	HUMAN RSRC MNGT FERRE	PCS	$304.35	$350.00	107	0
+4800888196965	SURF POWDR BLOSSOM FRESH 3.6KG	PCS	$306.60	$383.00	36	16
+4718785093037	VEGE STEWED MUTTON	PCS	$310.00	$388.00	11	42
+4719857052846	VEGAN MUTTON	PCS	$310.00	$388.00	11	6
+6015	SKIRT JP	PCS	$310.00	$388.00	107	3
+8888021300956	EVEREADY RCHRGBLE 3AX2PCS	PCS	$312.00	$390.00	86	10
+11111	PARMESAN CHEESE 130G	PCS	$313.00	$313.00	107	0
+50	EM BOOKSTAND	PCS	$316.00	$375.00	20	0
+43	CAMEL CASSEROL #32	PCS	$320.00	$336.00	20	0
+1067	BED SHEET 60X78	PCS	$320.00	$416.00	20	8
+3605	EM RETRO CRUSHED NYLON BC MED	PCS	$320.00	$320.00	41	0
+4800132410021	CRISTELA CHLDRN SOCKS 7-10 BLC	PCS	$320.00	$320.00	61	12
+4806512309459	CHRSTN OLIVER SOCKS	\N	$320.00	$400.00	61	0
+1404	EXCEL DOCUMENT TRAY 3 LAYERS	PCS	$320.00	$400.00	100	2
+1047	MASINING NA PAGPAPAHAYAG	PCS	$320.00	$320.00	107	0
+74305401329	BRAGG APPLE VIN946ML	PCS	$320.25	$400.00	104	14
+4710850100183	SHINY NUMBER STAMP 8D N-18	PCS	$325.00	$406.00	100	2
+3223	PURPOSIVE COMM NP AFRICA	PCS	$325.00	$374.00	107	0
+4805358323087	MAGNOLIA QUICKMELT 900G	PCS	$325.70	$408.00	900	0
+4800888205841	BREEZE POW MAGENTA 1360G+1360G	PCS	$328.30	$411.00	36	6
+4803746330044	TARGET MULTI INSCT KILLER 600	PCS	$329.00	$411.00	107	3
+1757	NIKE DRI-FIT SHIRT	PCS	$330.00	$379.50	20	0
+1740	OLD NAVY SHIRT	PCS	$330.00	$379.50	107	0
+1755	12OD POLO SHIRT	PCS	$330.00	$379.50	107	0
+6017	OLD NAVY SKIRT/SHORT AC	PCS	$330.00	$413.00	107	6
+2050	VICTORIA SECRETE PANTY	PCS	$333.34	$417.00	20	7
+4800888154200	VASELINE UVLGHTNNG LOTION600ML	PCS	$335.10	$419.00	36	6
+1280	BENJIE AUP POLO SHIRT	PCS	$340.00	$425.00	20	3
+1744	NICOLE MILLER	PCS	$340.00	$391.00	107	0
+2237799443	STRALANDE BERRY WHT 135G	PCS	$344.00	$344.00	107	1
+2242720760	STRLANDE CHARCOAL SOAP 125G	PCS	$344.00	$344.00	107	1
+9789719807674	GENERAL BIOLOGY 1 FOR SHS	PCS	$345.00	$380.00	107	0
+8071	SUNGAS LPG REG. TJ260D	PCS	$350.00	$438.00	3	2
+1405	RAKE BAKAL	\N	$350.00	$455.00	20	4
+112	VGT BELLPERPPER R	PCS	$350.00	$438.00	23	13.44
+9780564038176	HOLY BIBLE: ESV032 COMPACT ED,	PCS	$350.00	$420.00	35	0
+38	MEDICAL TOOL BOX	PCS	$350.00	$450.00	75	0
+709	SDA HYMNAL	PCS	$350.00	$438.00	107	10
+1729	UNION BAY PANTS	PCS	$350.00	$402.50	107	0
+1739	URBAN POLO SHRTS	PCS	$350.00	$402.50	107	0
+1747	EIGHTY EIGHT	PCS	$350.00	$402.50	107	0
+1756	NIKE DRI-FIT POLOSHIRT	PCS	$350.00	$402.50	107	0
+1758	SPEEDO SHIRT	PCS	$350.00	$402.50	107	0
+1759	GAP XX4	PCS	$350.00	$402.50	107	0
+1760	URBAN LONGSLEEVE	PCS	$350.00	$402.50	107	0
+8809317284743	ASPASIA CLLGEN TONER	PCS	$350.00	$420.00	107	0
+8809317284750	ASPASIA CLLGEN EMULSN	PCS	$350.00	$420.00	107	0
+8404	PLIFE FLAVRD DRINK MIX 400G	PCS	$350.40	$438.00	107	0
+552	COIN PURSE ASSRTD	PCS	$360.00	$450.00	107	0
+1750	WRANGLER LONG SLEEVE	PCS	$360.00	$414.00	107	0
+4800042130125	EVEREADY EC4DW4BAT	PCS	$365.50	$457.00	20	2
+4800361356527	NSTL TEMP ROCKY ROAD 2.6L	PCS	$373.38	$471.00	32	0
+9789712900785	HOLY BIBLE:KJV033 JP	PCS	$375.00	$450.00	35	0
+1889	AUP P.E UNIFORM S,M,L,XL	\N	$375.00	$415.00	174	288
+4800888202796	BREEZE PWDR ROSE GLD PRFM 2800	PCS	$375.80	$470.00	36	3
+1746	SONOMA LONG SLEEVE	PCS	$380.00	$437.00	20	0
+6094	KARIT BICOL BIG	PCS	$380.00	$494.00	20	5
+6095	ITAK MACHETE	PCS	$380.00	$494.00	20	6
+8061	ITAK	PCS	$380.00	$494.00	20	11
+413	SERENE PILLOW XL	PCS	$380.00	$475.00	63	0
+1721	SONOMA SHORTS	PCS	$380.00	$437.00	107	0
+1722	RONTE 66	PCS	$380.00	$437.00	107	0
+1723	DENIM LEVI'S PNTS	PCS	$380.00	$437.00	107	0
+1724	CHAPS SHORT	PCS	$380.00	$437.00	107	0
+1725	LEE SHORTS	PCS	$380.00	$437.00	107	0
+1726	WRANGLER SHORTS	PCS	$380.00	$437.00	107	0
+1730	URBAN DENIM PANTS	PCS	$380.00	$437.00	107	0
+1736	CHEROKEE SPORTS PANTS	PCS	$380.00	$437.00	107	0
+1737	JUMP MAN	PCS	$380.00	$437.00	107	0
+1738	CHAP POLO SHIRTS	PCS	$380.00	$437.00	107	0
+1741	AXCESS LONG SLEEVE POLO	PCS	$380.00	$437.00	107	0
+1742	OLD NAVY LONG SLEEVE POLO	PCS	$380.00	$437.00	107	0
+1743	URBAN LONG SLEEVE POLO	PCS	$380.00	$437.00	107	0
+1745	12OD LONG SLEEVE	PCS	$380.00	$437.00	107	0
+1749	ARROW SHORT SLEEVE	PCS	$380.00	$437.00	107	0
+6022	URBAN LONG SLEEVE WX	PCS	$380.00	$475.00	107	1
+8809430539713	EKEL PEELING GEL RICE BRAN	PCS	$380.00	$456.00	107	0
+8809430539720	EKEL PEELING GEL APRICOT	PCS	$380.00	$456.00	107	0
+8809430539744	EKEL PEELING GEL ACAI BERRY	PCS	$380.00	$456.00	107	0
+8809430539751	EKEL PEELING GEL APPLE	PCS	$380.00	$456.00	107	0
+91037434227	NATURAL MSHRMSEASONG 500G	PCS	$380.00	$475.00	157	-67
+4710850104020	SHINY SELF INK STAMP S-402US	PCS	$385.00	$481.00	100	2
+9789712368189	BUSINESS ORGANIZATION & MANAGE	PCS	$389.00	$389.00	44	0
+9789712900792	HOLY BIBLE:KJV033 TI	PCS	$395.00	$474.00	35	0
+879	FUNDAMENTALS ADVRTSNG	PCS	$395.00	$395.00	107	0
+4800086038623	SLCTA DDUTCH/RROAD 3L	PCS	$400.00	$500.00	9	0
+4710254020216	KNORR MUSHROOM SEASNG 500G	PCS	$400.00	$500.00	11	0
+4710254505959	KNORR MUSHROOM SEASONING 500G	PCS	$400.00	$500.00	11	0
+2090	ENERGY REJUV. BLACK JUICE	PCS	$400.00	$500.00	20	-4
+3468	TORNADO MOP	PCS	$400.00	$520.00	20	5
+9789712909450	CHILDRENS BIBLE WKNG FIL	\N	$400.00	$500.00	35	4
+4584	YIJIA CHINA T-SHIRT	\N	$400.00	$500.00	107	0
+4885	VISCOSE T-SHIRT VNECK	\N	$400.00	$500.00	107	0
+6070	AUP CAPS ASSORTED COLOR	PCS	$400.00	$499.00	107	145
+20104	XIU NAN GIRL PANTS	PCS	$400.00	$500.00	107	0
+30101	VISCOSE T-SHIRT	PCS	$400.00	$500.00	107	0
+30102	MEI GUI PANTS XXXL	PCS	$400.00	$500.00	107	0
+609332811201	EYESHADOW PALETTE HLY SMKES 1G	PCS	$400.00	$500.00	107	0
+609332833227	PRISM EYESHADOW NKD 12G	PCS	$400.00	$500.00	107	0
+609332833258	ELF EYESHADOW PALETTE 14G	PCS	$400.00	$500.00	107	0
+8809242270989	EKEL LIQUID FNDTION #21	PCS	$400.00	$480.00	107	0
+8809242270996	EKEL LIQUID FNDTION #23	PCS	$400.00	$480.00	107	0
+8888021301502	ENERGIZER RCHRGE AAA 2 PCS	PCS	$403.00	$504.00	86	31
+13964141948	MUSHROOM SEASONING 500G	PCS	$410.00	$513.00	107	0
+3634	EM BOOKSTAND MH SM	PCS	$415.00	$415.00	41	-1
+4800361356541	NSTL TEMP DOUBLEDTCH 2.6L	PCS	$418.19	$471.00	8	0
+4800361356565	NSTL TEMP COOKIES&CREAM 2.6L	PCS	$418.19	$471.00	8	0
+4545	F BNDL CANTEEN	PCS	$420.00	$420.00	20	0
+9780564098859	HOLY BIBLE:ESV063 PLC	PCS	$420.00	$504.00	35	0
+4902505072673	PILOT BP-145-F RETRACT. BLCK	PCS	$420.00	$525.00	100	10
+1728	OLD NAVY PANTS	PCS	$420.00	$483.00	107	0
+1731	HAWK PANTS	PCS	$420.00	$483.00	107	0
+9789712905049	HOLY BIBLE:KJV035GE JP	PCS	$425.00	$510.00	35	0
+9789712905063	HOLY BIBLE:KJV035GE JP	PCS	$425.00	$510.00	35	0
+1732	OLD NAVY CORDUROY PANTS	PCS	$430.00	$494.50	107	0
+1748	LEVI'S LONG SLEEVE	PCS	$430.00	$494.50	107	0
+1752	APT NINE	PCS	$430.00	$494.50	107	0
+4549292041880	CANON GI-790 BLACK	PCS	$430.00	$537.00	205	2
+4549292041903	CANON GI-790 CYAN	PCS	$430.00	$537.00	205	1
+4549292041927	CANON GI-790 MAGENTA	PCS	$430.00	$537.00	205	1
+4549292041941	CANON GI-790 YELLOW	PCS	$430.00	$537.00	205	1
+1751	CHAPS LNGSLEEVE	PCS	$440.00	$506.00	107	0
+1753	DOCKERS LONGSLEEVE	PCS	$440.00	$506.00	107	0
+3635	EM BOOKSTAND MH BIG	PCS	$443.00	$443.00	41	0
+9789712905056	HOLY BIBLE: KJV035GE TI	PCS	$445.00	$463.00	35	0
+9789712905070	HOLY BIBLE:KJV035SE TI	PCS	$445.00	$445.00	35	0
+1176	MY LIFE TODAY 2019	PCS	$450.00	$563.00	20	1
+8934566002562	LABODE MUSHROOM SEASONING 500G	PCS	$450.00	$563.00	21	0
+4516	MLT DEVOTIONAL BOOK FOR ADULTS	PCS	$450.00	$518.00	35	-3
+4517	NF DDEVOTIONAL FOR JUNIORS	\N	$450.00	$518.00	35	37
+885631023334	HP INK ADVNCE #704 TRI-CLR	PCS	$450.00	$562.00	81	3
+876	SEAGULL CLRSHEET PRTCTOR JC305	PCS	$450.00	$563.00	100	252
+4971850032137	CASIO FX350MS	PCS	$450.00	$563.00	100	13
+679	VEGGIE COFFEE #144 300G	PCS	$450.00	$563.00	107	1
+1092	THE LIFE & WORKS OF RIZAL	PCS	$450.00	$495.00	107	0
+1120	BASIC FAR 2018	PCS	$450.00	$563.00	107	0
+1727	DOCKERS PANTS	PCS	$450.00	$517.50	107	0
+1875	MAYBEL PANTS	PCS	$450.00	$562.00	107	11
+6072	AUP TSHIRT DRI-FIT	PCS	$450.00	$555.00	107	125
+96619982110	VITAMIN E 500 SOFTGELS	PCS	$450.00	$563.00	107	0
+4806532750200	VEGGIE COFFE 300G	\N	$450.00	$562.00	107	0
+8809512720039	MD SLK WHTNG BB DARK	PCS	$450.00	$540.00	107	0
+5022	MY LIFE TODAY DEV. BOOK EGW	PCS	$450.00	$540.00	119	9
+9717	LAST DAY EVENTS ELLEN G. W.	PCS	$450.00	$562.00	119	10
+885631023310	HP INK ADVNCE #704 BLCK	PCS	$460.00	$575.00	81	-2
+886112447830	HP INK ADVNCE #678 BLCK	PCS	$460.00	$575.00	81	2
+886112447847	HP INK ADVANCE #678 CLRD	PCS	$460.00	$575.00	81	5
+1733	WRANGLER PANTS	PCS	$460.00	$529.00	107	0
+4806504470013	GLOBE 500	PCS	$460.00	$501.00	111	61
+9789719806080	BUSINESS MATH FOR SHS	PCS	$465.00	$512.00	107	0
+9789719806103	GENERAL CHEMESTRY 1	PCS	$465.00	$512.00	107	0
+341	THE DAILY DISCIPLE	PCS	$470.00	$588.00	107	0
+1734	DOCKERS CORDUROY PANTS	PCS	$470.00	$540.50	107	0
+9769712903729	BIBLIA ILOCANO VRS	PCS	$475.00	$594.00	20	0
+5000	EGG BEATER ROSEWOOD	PCS	$480.00	$600.00	20	0
+9789715871105	PRACTICAL AUDITING E2017	PCS	$480.00	$480.00	21	0
+2113131	SPLINA TOOTHPASTE 417G	PCS	$480.00	$600.00	107	-1
+19200286	THB ESV034 LIGHT DARK BROWN	PCS	$486.50	$584.00	35	0
+19200293	THB ESV034GE FUSCHIA	PCS	$486.50	$584.00	35	0
+19200323	THB ESV034GE NAVY BLUE	PCS	$486.50	$584.00	35	0
+9780564090938	HOLY BIBLE:ESV063(PVC)	PCS	$495.00	$594.00	35	0
+9780564098958	HOLY BIBLE:ESV063 PVC	PCS	$495.00	$594.00	35	3
+9789719806288	STATISTICS & PROBABILITY FOR S	PCS	$495.00	$545.00	107	0
+9789719807568	BUSINESS FINANCE PHIL SETTING	PCS	$498.00	$548.00	107	0
+201	LPG MGAS/ROYAL 11KG	PCS	$500.00	$575.00	3	52
+301	DRIED MUSHROOM 1KL	PCS	$500.00	$650.00	20	55.229999999999997
+2002	IMPULSE SEALER (CHINA) 8	PCS	$500.00	$500.00	20	0
+9786219522908	TRANSFER & BUSS. TAXATION	PCS	$500.00	$575.00	44	0
+34	MY SHILOH PIANO CHRDS	PCS	$500.00	$625.00	107	0
+771	YESU MY SONG BOOK	PCS	$500.00	$625.00	107	-1
+6071	AUP POLO SHIRTS W/ LOGO	PCS	$500.00	$615.00	107	48
+20105	KENNY DUKE T-SHIRT L	PCS	$500.00	$625.00	107	0
+20115	JOSHUA LEE 'S HAMMOCK	PCS	$500.00	$625.00	107	-1
+667539986832	VICTORIA SECRET LOTION 200ML	PCS	$500.00	$625.00	107	0
+667544908386	VITORIA'S SECRET MIDSPRK 250ML	PCS	$500.00	$625.00	107	0
+667545573774	VICTORIA SCRTLOVE SPELL 250ML	PCS	$500.00	$625.00	107	0
+8809514480177	FS MILK TONER	PCS	$500.00	$600.00	107	0
+8809514480184	FS MILK EMULSION	PCS	$500.00	$600.00	107	0
+8809514480269	FS SNAIL EMULSION	PCS	$500.00	$600.00	107	0
+8809514480276	FS ALOE TONER	PCS	$500.00	$600.00	107	0
+9789710524143	RESILIENCE IN A CHILD OF WAR	PCS	$500.00	$625.00	107	10
+9789710542143	RESILIENCE IN CHILD OF WAR	\N	$500.00	$625.00	107	0
+4806522100039	SMART 500	PCS	$500.00	$501.00	108	65
+9789715871143	INTRMDIATE ACCNTG VI 2019	PCS	$500.00	$550.00	122	0
+2036	MAGIC NUTS GRANOLA 10S	\N	$500.00	$625.00	555	0
+4800473000059	ROGERS MAYO FOR CANTEEN	PCS	$510.00	$510.00	20	0
+6068	ANG BIBLIA-TAGALOG W/LOGO	PCS	$518.00	$598.00	777	3
+1692	VT DINURADO 10KG SACK	PCS	$530.00	$580.00	98	85
+4951	SPIRULINA TABLET	PCS	$530.00	$663.00	107	0
+1766	STEP TO CHRIST	PCS	$540.00	$540.00	20	0
+200	LPG TOWN GAS 11KG	PCS	$540.00	$621.00	66	8
+3004	AUP ALUMNI SWEATER	PCS	$552.00	$690.00	107	15
+1101	SPLINA LIQ CHLOROPHY 250ML\\	PCS	$565.00	$706.00	107	0
+55560	OUTDOOR TRAVEL BAG	PCS	$576.00	$720.00	107	0
+4800888601872	BF RGLR MAYO 5.5L FOR CANTEEN	PCS	$585.35	$585.35	92	14
+1882	THE DAILY DISCIPLES BOOK	PCS	$588.00	$676.00	119	-1
+1883	NEVER FORGET DEV. BOOK	PCS	$588.00	$676.00	119	0
+4041	DRIED MUSHROOM	PCS	$600.00	$630.00	1	0
+8809512720428	MD BRIGHTNG SERUM	PCS	$600.00	$720.00	107	0
+8809512720442	MD CELL REPAIR SERUM	PCS	$600.00	$720.00	107	0
+3001	RICE RED IMPORTED 10KG	PCS	$620.00	$682.00	517	7
+978919808787	BIOCHEMISTRY	PCS	$625.50	$719.50	107	0
+204	LPG PETRON GASUL 11KG	PCS	$640.00	$736.00	3	10
+4808647001154	REAL MAYO 3.5L FOR CANTEEN	PCS	$640.00	$800.00	20	0
+14285001102	UFC BC TAMIS ANGHANG 1KG	PCS	$645.52	$807.00	20	1
+1402	LCT PAPER TRIMMER METAL A4	PCS	$650.00	$813.00	100	2
+1891	AUP JACKET W/O HOOD	\N	$650.00	$813.00	107	-1
+8406	AUP JACKET W HOOD NEW	PCS	$650.00	$799.00	107	56
+3006	AUP ALUMNI JACKET W/ HOOD	PCS	$652.00	$815.00	107	2
+11001904	ANG BIBLIA DIGLOT KJV055GE	PCS	$660.00	$792.00	35	0
+9780564091034	HOLY BIBLE:ESV034	PCS	$660.00	$739.00	35	0
+100635	PIZZA CHEESE 2KG	PCS	$664.77	$831.00	19	4
+9780564098231	THE HOLY BIBLE WHT LEATHER ESV	PCS	$665.00	$798.00	35	0
+199	LPG PETRONAS 11KG	PCS	$670.00	$770.00	66	99
+1009	APPLIED AUDITING 2018	PCS	$680.00	$850.00	107	0
+9789719808787	BIOCHEMISTRY THRD EDITION	PCS	$695.00	$765.00	44	30
+569	OIL FOR CANTEEN	PCS	$700.00	$700.00	107	9
+2091	MINIJOY PCORN POPPER	PCS	$700.00	$875.00	107	0
+4880	ROUND COMOFLAUGE TENT	\N	$700.00	$875.00	107	0
+20100	CORN POPPER	PCS	$700.00	$875.00	107	1
+20106	KENNY DUKE T-SHIRT XL	PCS	$700.00	$875.00	107	0
+20107	VOGUE GIRLS SKIRT	PCS	$700.00	$875.00	107	0
+20108	DSQ DASHIQI SHORTS	PCS	$700.00	$875.00	107	0
+20111	ICL RED MT310	PCS	$700.00	$875.00	107	0
+3492	RUBBER BAND FOR REPACKER	PCS	$725.00	$725.00	20	0
+9789719811169	CHEMISTRY FOR ENGNRNG STUD	PCS	$736.25	$847.00	107	0
+2022	FLASH OUT 12GX10	PCS	$750.00	$938.00	107	-1
+1885	EDUCATION BOOK EGW	\N	$768.00	$960.00	107	5
+203	LPG SOLANE	PCS	$785.00	$903.00	3	5
+9789712907531	MAGANDANG BALITA/BIBLE DIGLOT	PCS	$785.00	$816.00	35	0
+4583	HAMMOCK W/ MOSQUITO NET	\N	$800.00	$1,000.00	107	0
+20110	ICL GREEN GB19745-2010	PCS	$800.00	$1,000.00	107	0
+8809180016465	BERGAMO SILVER AMPOULE	PCS	$800.00	$960.00	107	0
+8809180016496	BERGAMO GLD AMPOULE	PCS	$800.00	$960.00	107	0
+32101	FRIES 10K FOR CANTEEN	PCS	$820.00	$820.00	20	8
+9789814441124	GENERAL ORGANIC AND BIOCHEM	\N	$826.20	$909.00	44	40
+4800282006563	SHOESTRING 1KG GOLDEN	PCS	$850.00	$850.00	8	5
+4971850090359	CASIO 991ES PLUS	PCS	$850.00	$1,063.00	100	0
+8809307770928	EKEL CLLGEN PRM AMPOULE	PCS	$850.00	$1,020.00	107	0
+8809307770959	EKEL HYALURONIC ACID	PCS	$850.00	$1,020.00	107	0
+9789814763844	CHEMISTRY: MOLECULAR SC	PCS	$892.20	$1,032.00	35	0
+9780564092932	HOLY BIBLE:ESV037SE	PCS	$900.00	$1,170.00	35	0
+8809563060801	3W CLNC CLLAGEN N LXRY GLD	PCS	$900.00	$1,080.00	107	0
+1884	MENSAHE SA MGA KABATAAN	PCS	$900.00	$1,035.00	119	0
+1039	HEALTHY MOVES	PCS	$908.00	$1,136.00	107	3
+9555027600975	SHAKE OFF PTO FBR DRNK 240G	PCS	$929.00	$1,162.00	107	2
+9555027601101	SPLINA LIQ CHLOROPHYLL 500ML	PCS	$929.00	$1,161.00	107	0
+382	SK CYLINDER	PCS	$950.00	$950.00	3	0
+6065	PATHFINDER BIBLE SAFELLZ	PCS	$976.56	$1,123.00	777	6
+9789719801757	ESTEBAN TEXTBOOK HISTOLOGY	PCS	$998.00	$1,148.00	44	0
+1005	SK EMPTYTANK	PCS	$1,000.00	$1,250.00	3	0
+1770	THE GREAT CONTROVERSY	PCS	$1,000.00	$1,200.00	44	2
+1771	DESIRE OF AGES	PCS	$1,000.00	$1,200.00	44	2
+8809280355464	SD 24K GOLD CLLAGEN SERUM	PCS	$1,000.00	$1,200.00	107	0
+8809280356652	SD VTMN C TRMNT SERUM	PCS	$1,000.00	$1,200.00	107	0
+9789814738583	MANAGERIAL ACCTNG CVI	PCS	$1,030.50	$1,185.00	35	0
+6067	ADVENTURER BIBLE SAFELLZ	PCS	$1,064.00	$1,224.00	777	1
+1881	HEALTH & HOME BOOK 2018	PCS	$1,080.00	$1,242.00	119	-1
+6066	YOUTH BIBLE SAFELLZ	PCS	$1,143.83	$1,315.00	777	7
+1040	HEALTHY FOODS	\N	$1,500.00	$1,912.00	44	0
+2005	HEALTHY JUICES	\N	$1,500.00	$1,800.00	107	0
+2006	HEALTHY FOODS HEALTHY LIVES	\N	$1,500.00	$1,800.00	107	0
+9788472084995	WOMAN'S BIBLE NKJV	PCS	$1,500.00	$1,875.00	107	5
+4865	DR.TAM GREEN PWDRDRINK	PCS	$1,564.00	$1,955.00	107	0
+4596	EMPTY TANK MGAS/ROYAL	PCS	$1,600.00	$1,840.00	3	-1
+5063	PAPER BAG #5	\N	$1,600.00	$1,600.00	87	6000
+4015	HEALTHY CHOICES	\N	$1,650.00	$2,063.00	35	0
+364	PAPER BAG #16	PCS	$1,730.00	$1,730.00	85	8000
+365	PAPER BAG #20	PCS	$1,740.00	$1,740.00	85	0
+7780	PAPER BAG #8	PCS	$1,745.00	$1,745.00	85	0
+366	PAPER BAG #25	PCS	$1,760.00	$1,760.00	85	8500
+9077	GLOBE AT HOME	PCS	$1,777.00	$1,999.00	107	0
+32100	BOWL 390C.C CANTEEN	PCS	$1,800.00	$1,800.00	20	0
+3496	PLASTIC CUP 390CC	PCS	$1,850.00	$1,850.00	20	0
+362	PAPER BAG #4	PCS	$1,930.00	$1,930.00	85	6000
+774	PAPER BAG #12	PCS	$1,945.00	$1,945.00	85	0
+361	PAPER BAG #2	PCS	$1,980.00	$1,980.00	85	0
+363	PAPER BAG #6	PCS	$1,980.00	$1,980.00	85	6000
+1234	PLDT HOME WIFI	\N	$1,995.00	$1,995.00	107	0
+1457	PETRON GASUL EMPTY TANK	\N	$2,000.00	$2,000.00	3	1
+1230	NINE WEST BAG	PCS	$2,000.00	$2,500.00	107	0
+4806532750194	VEGGIE COFFE #144 1500G	PCS	$2,000.00	$2,500.00	107	-1
+6931699900347	HU LI TEFLON COOKWARE	\N	$2,000.00	$2,500.00	107	0
+4804880351124	SPRING MARGARINE 45KG	PCS	$2,140.00	$2,140.00	1	1
+1880	HEALTHY HERBS & SPICES BOOK	PCS	$2,190.00	$2,519.00	119	0
+207	LPG PETRONAS 50KG	PCS	$2,250.00	$2,250.00	66	0
+2001	EMPTY TANK PETRONAS	PCS	$2,350.00	$2,703.00	107	0
+2008	DOUBLE LEOPARD SEALER 8	PCS	$2,400.00	$2,400.00	20	0
+705	GASUL 50KG	PCS	$2,625.00	$3,019.00	3	3
+20109	JILYOUNG SOYA MAKER	PCS	$2,800.00	$3,500.00	107	0
+70506	ROYAL 50KG	PCS	$2,820.00	$2,820.00	3	1
+369	PAPER BAG #50	PCS	$3,000.00	$3,000.00	85	0
+5064	PAPER BAG #10	\N	$3,300.00	$3,300.00	87	9000
+1566	TRANSFER & BUSS. TAXATION	PCS	$5,555.00	$575.00	44	0
+20530	MY BIBLE FRNDS 1S	PCS	$5,638.00	$7,048.00	35	0
+14285000914	GOLDEN FIESTA OIL 485ML	\N	$48.68	$61.00	15	14
+74923405198	PIKNIK ORIGINAL 113G	PCS	$70.45	$88.00	20	26
+14285003410	GOLDEN FSTA PALM OIL 1L	PCS	$85.66	$107.00	15	-4
+750515018488	MY SAN SKYFLAKES CRKRS600G 24P	PCS	$113.03	$142.00	1	-32
+\.
+
+
+--
+-- TOC entry 2916 (class 0 OID 16492)
+-- Dependencies: 205
+-- Data for Name: purchase_order; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.purchase_order (supplier_id, product_code, po_quantity, po_by, po_date) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2915 (class 0 OID 16478)
+-- Dependencies: 204
+-- Data for Name: receiving; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.receiving (recieving_id, invoice_number, supplier_id, product_code, qty_received, date_received, received_by) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2907 (class 0 OID 16393)
+-- Dependencies: 196
+-- Data for Name: req_prod_encode; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.req_prod_encode (prod_code, prod_desc, physical_count, request_by) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2921 (class 0 OID 16537)
+-- Dependencies: 210
+-- Data for Name: return; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.return (return_id, product_code, supplier_id, return_qty, returned_by, date_returned) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2922 (class 0 OID 32928)
+-- Dependencies: 211
+-- Data for Name: role; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.role (id, role) FROM stdin;
+1	Encoder
+2	Merchandiser
+3	Inventory Counter
+\.
+
+
+--
+-- TOC entry 2911 (class 0 OID 16421)
+-- Dependencies: 200
+-- Data for Name: supplier; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.supplier (supplier_id, supplier_name, contact, address, email) FROM stdin;
+2	MEAT ADVANTAGE EXC INC	\N	\N	\N
+3	BMG LPG DELIVERY	\N	\N	\N
+4	CVI VEGE FOODS	\N	\N	\N
+5	COCA COLA BOTTLERS PHIL	\N	\N	\N
+6	DAN ERICS ICE CREAM	\N	\N	\N
+7	145A DISTRIBUTION	\N	\N	\N
+8	GOLDEN CHILL MRKTG.,CO.	\N	\N	\N
+9	GO SIGLA DISTRIBUITON INC.	\N	\N	\N
+10	JGJMR ENTERPRIZE	\N	\N	\N
+11	ORIENTAL MANNA STORE	\N	\N	\N
+12	LEMON SQUARE	\N	\N	\N
+122	MILLENIUM BOOKS INC.	\N	\N	\N
+13	MARKYS PRIME BAKE	\N	\N	\N
+14	OPTIMIZED CUSTOMER SOLUTIONS	\N	\N	\N
+15	PUREGOLD	\N	\N	\N
+16	PEPSI COLA BOTTLERS	\N	\N	\N
+17	PUC HEALTHFOODS	\N	\N	\N
+18	VARONA VEGE FOODS	\N	\N	\N
+19	DISTRIBUTION, MARKETING & SALE	\N	\N	\N
+20	DIVISORIA	\N	\N	\N
+21	AUP STORE	\N	\N	\N
+211	FARM&FABLE MARKETING GROUP INC	\N	\N	\N
+22	SIR ULAP	\N	\N	\N
+23	BINAN MARKET	\N	\N	\N
+24	JUNIE 7 MANGO	\N	\N	\N
+25	FUJKAI DISTRIBUTOR	\N	\N	\N
+26	TOBI MARKETING	\N	\N	\N
+27	VM LIWANAG ENTERPRISES	\N	\N	\N
+28	GOOD HEART MRKTNG INC.	\N	\N	\N
+29	FAST ARK DISTRIBUTION,INC.	\N	\N	\N
+30	YAKULT PHILIPPINES, INC.	\N	\N	\N
+31	HP INK	\N	\N	\N
+32	TECHNOFREEZE INC.	\N	\N	\N
+324	PARFAIT DIRECTE ENERGI MARKT.	\N	\N	\N
+33	POLYTRADE	\N	\N	\N
+34	DONNABELLE COCONUT	\N	\N	\N
+35	PBS	\N	\N	\N
+36	VERAZA INC	\N	\N	\N
+37	TIMES TRADING CO.,INC	\N	\N	\N
+38	HACIENDA MACALAYAN	\N	\N	\N
+39	GREAT VALUE INC	\N	\N	\N
+40	IN PHARMA INC.	\N	\N	\N
+41	ICHTHUS WITNESS GEAR	\N	\N	\N
+42	GREATMEN TRADING/ MARTINEZ MRG	\N	\N	\N
+43	GOG MARKETING	\N	\N	\N
+44	BOOKS	\N	\N	\N
+45	MEDTECH BOOKS	\N	\N	\N
+46	SUPER 8	\N	\N	\N
+47	PAMINTUAN	\N	\N	\N
+48	CANON PAPER	\N	\N	\N
+49	FLOURISH CANDLE FACTORY	\N	\N	\N
+50	MINISTRY PRODUCT	\N	\N	\N
+51	ESTRELITA  M. SAMONTINA	\N	\N	\N
+52	GOLD PEAK MARKETING	\N	\N	\N
+53	SOUTHLINE CHANNEL MRKTING	\N	\N	\N
+54	DUSSELAND  DISTRIBITON, INC.	\N	\N	\N
+55	BIG BOSS GROCERY STORE	\N	\N	\N
+56	V.M. LIWANAG INDUSTRIES CORP.	\N	\N	\N
+57	3G COUNTRY FARMS	\N	\N	\N
+58	WABY ENTERPRISES	\N	\N	\N
+59	HSDI INC.	\N	\N	\N
+60	ALLIED BOTANICAL CORP.	\N	\N	\N
+61	CRISTELA MANUFACTURING	\N	\N	\N
+62	BATANGAS ASAHI MRKTNG CORP.	\N	\N	\N
+63	MMG'S TRADING	\N	\N	\N
+64	RAYJEFF BLANCO	\N	\N	\N
+65	CAZEMART, INC	\N	\N	\N
+66	ARG MERCHANDISE	\N	\N	\N
+67	BONHEUR MRKTNG CORP	\N	\N	\N
+68	JNBR ENTERPRISE	\N	\N	\N
+69	SOUTH ALLIANCE	\N	\N	\N
+70	RIGHT GOODS PHIL INC.	\N	\N	\N
+71	LAURA FOOD PROD CORP	\N	\N	\N
+72	STA ROSA AUTO SUPPLY	\N	\N	\N
+73	FERABBY M.I	\N	\N	\N
+74	SALE!!	\N	\N	\N
+75	ABACUS BKSTORE&GFTSHOP	\N	\N	\N
+76	8ACON ENTERPRISE	\N	\N	\N
+77	JCGM	\N	\N	\N
+78	J.V MERCADO TRDING	\N	\N	\N
+79	BIG E FOOD CORP.	\N	\N	\N
+80	JRL ENDAYA INC.	\N	\N	\N
+81	SILICON VALLEY	\N	\N	\N
+82	PHARMACY (JTSR)	\N	\N	\N
+83	DUNSK KUHNER CORPORATION	\N	\N	\N
+84	MANILA GOLDEN ARCHER GROUP INC	\N	\N	\N
+85	FERC GENERAL MERCHANDISE	\N	\N	\N
+86	RITE BEACON MARKETING	\N	\N	\N
+87	CALL TO ORDER	\N	\N	\N
+88	BAYWORLD	\N	\N	\N
+89	MC CODY GOBAL, INC	\N	\N	\N
+90	RDF VEGETARIAN FOOD HOUSE	\N	\N	\N
+91	JOHN&LORHEN TRADING CORP.	\N	\N	\N
+92	SOUTH STAR DISTRIBUTOR INC	\N	\N	\N
+93	SINLIKAS PACKAGING INC.	\N	\N	\N
+94	MANILA GOLDENACHER INC.	\N	\N	\N
+95	SL AGRITECH CORPORATION	\N	\N	\N
+96	DAILA HRBL COMM ENTERPRISE INC	\N	\N	\N
+97	RCJ LPG TRADING & DIS CORP.	\N	\N	\N
+98	V.T. GENERAL MERCHANDISE	\N	\N	\N
+99	CONWIN ENTERPRISES	\N	\N	\N
+992	LOLET, MALIGAYA	\N	\N	\N
+100	ATLANTA	\N	\N	\N
+101	TONIKOK CORP.	\N	\N	\N
+102	VS MARKETING CORP.	\N	\N	\N
+103	PACIFIC JIADI	\N	\N	\N
+104	BRANDIC SALES INC.	\N	\N	\N
+105	GOOD HEART MARKETING INC	\N	\N	\N
+106	CLAA	\N	\N	\N
+107	CONSIGNMENT	\N	\N	\N
+108	SMART CHECK OPERATOR MRKT INC	\N	\N	\N
+109	I-MIX MARKETING	\N	\N	\N
+110	TIP TOP DIST INC	\N	\N	\N
+111	MJ DRAGON HEART	\N	\N	\N
+112	BSTC	\N	\N	\N
+113	CELYNA ANGELICA MINI TRDNG	\N	\N	\N
+114	MAAM PARULAN	\N	\N	\N
+115	MAGNOLIA INC.	\N	\N	\N
+116	MOH FARM	\N	\N	\N
+117	SUY SING	\N	\N	\N
+118	BTL	\N	\N	\N
+119	PHILIPPINE PUBLISHING HOUSE	\N	\N	\N
+120	HEATHEL LOREN LAYAOEN	\N	\N	\N
+1244	PUNDAL DORIE	\N	\N	\N
+135	PDE MARKETING	\N	\N	\N
+157	CAL PJ ENTERPRISES	\N	\N	\N
+200	SYNER-GEX CORP.	\N	\N	\N
+202	SIR SARA	\N	\N	\N
+222	GHIKAR MARKETING INC.	\N	\N	\N
+500	HEALTHFOODS&GIFTS ENTR	\N	\N	\N
+808	JAFJAVE STORE	\N	\N	\N
+900	AVS MARKETING CORPORATION	\N	\N	\N
+1	ABRI COMMERCIAL INC.			\N
+1234	NO SUPPLIER			\N
+578	STORE CANTEEN	\N	\N	\N
+1890	Techno Freeze	\N	\N	\N
+301	TORREA, DANELICA	\N	\N	\N
+1847	TERNURA BAKED PRODUCTS	\N	\N	\N
+555	JSON ACE MARKTNG.	\N	\N	\N
+145	MEDEL ENTERPRISE	\N	\N	\N
+517	AMARIDEL RICE MILL CORP	\N	\N	\N
+300	AMARIDEL RICE MILL CORP	\N	\N	\N
+778	NEW STAR SHOPPING MART	\N	\N	\N
+228	SW PASALUBONG SOUVENIR & GIFT	\N	\N	\N
+123	PHILIPPINE SPRING WATER INC	\N	\N	\N
+1851	JOELYN DELOS SANTOS	\N	\N	\N
+205	TRICOM TRADING	\N	\N	\N
+174	MPH EVENT MANAGEMENT SERVICES	\N	\N	\N
+777	NPUC	\N	\N	\N
+\.
+
+
+--
+-- TOC entry 2909 (class 0 OID 16410)
+-- Dependencies: 198
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (rf_id, username, password, picture, role, deleted, user_id, course, department, required_hours, dormitory, units, is_caf, rate) FROM stdin;
+37	Eupalao, Mike Ashley	testpass2	\N	3	0	2052826	1	2	45	1	9	1	35
+3560001158	Macaraig, Eleazar F.	101091	\N	1	0	20150402	\N	\N	\N	\N	\N	\N	\N
+42	Quinatadcan, Rotchill	louise	\N	3	0	2041984	1	1	45	1	11	\N	33
+36	Espinosa, Mark	louise	\N	3	0	2050329	1	1	45	1	11	1	33
+167398323	Arzola, Jamleck	jam	\N	3	0	2047072	1	1	45	1	11	\N	33
+41	Pillo, Rica	rica18	\N	3	0	2048106	1	1	45	1	11	\N	33
+44	Zabat, Jhonalaine	123	\N	3	0	20140622	\N	\N	\N	\N	\N	\N	\N
+32	Adres, Honey Gay	testpass2	\N	3	0	2050110	1	1	45	1	11	\N	33
+33	Aplacador, Gerald	testpass2	\N	3	0	2051025	1	1	45	1	11	\N	33
+35	Balquin, Estela	testpass2	\N	3	0	2044671	1	1	45	1	11	\N	33
+38	Jalop, Ann Roselyn Mae	testpass2	\N	3	0	2050833	1	1	45	1	11	\N	33
+39	Merciales, Romelyn	testpass2	\N	3	0	2052577	1	1	45	1	11	\N	33
+40	Mesina, Joan	testpass2	\N	3	0	2052890	1	1	45	1	11	\N	33
+43	Zamora, Bernice	testpass2	\N	3	0	2052479	1	1	45	1	11	\N	33
+4127366870	Famorcan, Anthony	testpass2	\N	1	0	2042408	1	2	45	1	11	1	35
+45	Mirandilla, Sabin Mae	mountainbike	\N	3	0	2052923	\N	\N	\N	\N	\N	\N	\N
+\.
+
+
+--
+-- TOC entry 2947 (class 0 OID 0)
+-- Dependencies: 206
+-- Name: consignment_consignment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.consignment_consignment_id_seq', 1, false);
+
+
+--
+-- TOC entry 2948 (class 0 OID 0)
+-- Dependencies: 212
+-- Name: dtr_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dtr_id_seq', 144, true);
+
+
+--
+-- TOC entry 2949 (class 0 OID 0)
+-- Dependencies: 201
+-- Name: inventory_inventory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.inventory_inventory_id_seq', 2226, true);
+
+
+--
+-- TOC entry 2950 (class 0 OID 0)
+-- Dependencies: 214
+-- Name: location_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.location_id_seq', 6, true);
+
+
+--
+-- TOC entry 2951 (class 0 OID 0)
+-- Dependencies: 203
+-- Name: receiving_recieving_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.receiving_recieving_id_seq', 67, true);
+
+
+--
+-- TOC entry 2952 (class 0 OID 0)
+-- Dependencies: 209
+-- Name: return_return_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.return_return_id_seq', 7, true);
+
+
+--
+-- TOC entry 2953 (class 0 OID 0)
+-- Dependencies: 208
+-- Name: supplier_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.supplier_id_seq', 2, true);
+
+
+--
+-- TOC entry 2954 (class 0 OID 0)
+-- Dependencies: 197
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 45, true);
+
+
+--
+-- TOC entry 2764 (class 2606 OID 41229)
+-- Name: course course_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.course
+    ADD CONSTRAINT course_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2766 (class 2606 OID 41234)
+-- Name: department department_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.department
+    ADD CONSTRAINT department_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2768 (class 2606 OID 41254)
+-- Name: dormitory dormitory_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dormitory
+    ADD CONSTRAINT dormitory_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2760 (class 2606 OID 16420)
+-- Name: product product_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.product
+    ADD CONSTRAINT product_pkey PRIMARY KEY (product_code);
+
+
+--
+-- TOC entry 2752 (class 2606 OID 16397)
+-- Name: req_prod_encode req_prod_encode_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.req_prod_encode
+    ADD CONSTRAINT req_prod_encode_pkey PRIMARY KEY (prod_code);
+
+
+--
+-- TOC entry 2762 (class 2606 OID 16558)
+-- Name: supplier supplier_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.supplier
+    ADD CONSTRAINT supplier_pkey PRIMARY KEY (supplier_id);
+
+
+--
+-- TOC entry 2754 (class 2606 OID 41163)
+-- Name: users unique_user_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT unique_user_id UNIQUE (user_id);
+
+
+--
+-- TOC entry 2756 (class 2606 OID 41173)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (rf_id);
+
+
+--
+-- TOC entry 2758 (class 2606 OID 41170)
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
+-- TOC entry 2781 (class 2606 OID 16522)
+-- Name: consignment consignment_product_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.consignment
+    ADD CONSTRAINT consignment_product_code_fkey FOREIGN KEY (product_code) REFERENCES public.product(product_code);
+
+
+--
+-- TOC entry 2785 (class 2606 OID 41202)
+-- Name: dtr dtr_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dtr
+    ADD CONSTRAINT dtr_user_id_fkey FOREIGN KEY (rf_id) REFERENCES public.users(rf_id);
+
+
+--
+-- TOC entry 2774 (class 2606 OID 41164)
+-- Name: inventory inventory_counted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.inventory
+    ADD CONSTRAINT inventory_counted_by_fkey FOREIGN KEY (counted_by) REFERENCES public.users(user_id);
+
+
+--
+-- TOC entry 2773 (class 2606 OID 16466)
+-- Name: inventory inventory_product_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.inventory
+    ADD CONSTRAINT inventory_product_code_fkey FOREIGN KEY (product_code) REFERENCES public.product(product_code);
+
+
+--
+-- TOC entry 2780 (class 2606 OID 41174)
+-- Name: purchase_order product_order_po_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.purchase_order
+    ADD CONSTRAINT product_order_po_by_fkey FOREIGN KEY (po_by) REFERENCES public.users(rf_id);
+
+
+--
+-- TOC entry 2778 (class 2606 OID 16500)
+-- Name: purchase_order product_order_product_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.purchase_order
+    ADD CONSTRAINT product_order_product_code_fkey FOREIGN KEY (product_code) REFERENCES public.product(product_code);
+
+
+--
+-- TOC entry 2779 (class 2606 OID 16569)
+-- Name: purchase_order product_order_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.purchase_order
+    ADD CONSTRAINT product_order_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.supplier(supplier_id);
+
+
+--
+-- TOC entry 2772 (class 2606 OID 16559)
+-- Name: product product_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.product
+    ADD CONSTRAINT product_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.supplier(supplier_id);
+
+
+--
+-- TOC entry 2775 (class 2606 OID 16487)
+-- Name: receiving receiving_product_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.receiving
+    ADD CONSTRAINT receiving_product_code_fkey FOREIGN KEY (product_code) REFERENCES public.product(product_code);
+
+
+--
+-- TOC entry 2777 (class 2606 OID 41179)
+-- Name: receiving receiving_received_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.receiving
+    ADD CONSTRAINT receiving_received_by_fkey FOREIGN KEY (received_by) REFERENCES public.users(rf_id);
+
+
+--
+-- TOC entry 2776 (class 2606 OID 16564)
+-- Name: receiving receiving_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.receiving
+    ADD CONSTRAINT receiving_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.supplier(supplier_id);
+
+
+--
+-- TOC entry 2782 (class 2606 OID 16541)
+-- Name: return return_product_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.return
+    ADD CONSTRAINT return_product_code_fkey FOREIGN KEY (product_code) REFERENCES public.product(product_code);
+
+
+--
+-- TOC entry 2784 (class 2606 OID 41184)
+-- Name: return return_returned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.return
+    ADD CONSTRAINT return_returned_by_fkey FOREIGN KEY (returned_by) REFERENCES public.users(rf_id);
+
+
+--
+-- TOC entry 2783 (class 2606 OID 16574)
+-- Name: return return_supplier_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.return
+    ADD CONSTRAINT return_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.supplier(supplier_id);
+
+
+--
+-- TOC entry 2769 (class 2606 OID 41235)
+-- Name: users users_course_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_course_fkey FOREIGN KEY (course) REFERENCES public.course(id);
+
+
+--
+-- TOC entry 2770 (class 2606 OID 41240)
+-- Name: users users_department_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_department_fkey FOREIGN KEY (department) REFERENCES public.department(id);
+
+
+--
+-- TOC entry 2771 (class 2606 OID 41255)
+-- Name: users users_dormitory_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_dormitory_fkey FOREIGN KEY (dormitory) REFERENCES public.dormitory(id);
+
+
+-- Completed on 2019-07-29 12:52:21
+
+--
+-- PostgreSQL database dump complete
+--
+
