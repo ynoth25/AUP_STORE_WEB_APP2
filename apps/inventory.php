@@ -385,7 +385,7 @@ include('login/session.php');
 
                 $from2 = date('Y-m-d',$from);
                 $to2 = date('Y-m-d',$to);
-                $export = "COPY (select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date) TO 'D:/Store/inventory/$from2-$to2.csv' DELIMITER ',' CSV HEADER";
+                $export = "COPY (select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date) TO 'D:/Store/inventory/Inventory $from2-$to2.csv' DELIMITER ',' CSV HEADER";
 
                      $result2 = pg_query($con,$export);
                         echo '<script>window.location.href="inventory.php"</script>';
