@@ -1,17 +1,13 @@
 <?php
 include('login/session.php');
-
- if(isset($_POST['date_range']))
- {
-     $q = $_POST['date_range'];
- }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Store Inventory</title>
+  <title>AUP Store</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
@@ -43,6 +39,108 @@ include('login/session.php');
 
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+  <script>
+
+window.onload = function(){
+  console.log("load event detected!");
+  fillSupplier();
+  fillMerchandiser();
+}
+
+
+
+
+function fillSupplier()
+{
+  if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("supplier").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET","manage/supplier.php?",true);
+        xmlhttp.send();
+}
+
+function fillMerchandiser()
+{
+  if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("merchandiser").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET","manage/merchandiser.php?",true);
+        xmlhttp.send();
+}
+
+
+function showUser(str) {
+    if (str == "") {
+        document.getElementById("demo").innerHTML = "";
+        return;
+    } else { 
+        if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("demo").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET","manage/load.php?q="+str,true);
+        xmlhttp.send();
+    }
+
+    
+}
+
+
+
+
+function showReceived(str,date_range,merchandiser)
+{
+ console.log("I am at showPurchase function!");
+   if (str == "") {
+        document.getElementById("example1").innerHTML = "";
+        return;
+    } else { 
+        if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("example1").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET","manage/showReceived.php?supplier="+str+"&date="+date_range+"&merchandiser="+merchandiser,true);
+        xmlhttp.send();
+    }
+}
+</script>
+
+
 
 </head>
 <!-- ADD THE CLASS layout-boxed TO GET A BOXED LAYOUT -->
@@ -81,7 +179,7 @@ include('login/session.php');
                   <li><!-- start message -->
                     <a href="#">
                       <div class="pull-left">
-                      <img src=uploads/Anthony.jpg class='img-circle'>
+                       <?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
                       </div>
                       <h4>
                         Support Team
@@ -150,16 +248,15 @@ include('login/session.php');
             </ul>
           </li>
           <!-- User Account: style can be found in dropdown.less -->
-          
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <img src=../dist/img/aup.png class='user-image' alt='User Image'>
+              
               <span class="hidden-xs"><?php  echo $login_session; ?></span>
             </a>
             <ul class="dropdown-menu">
               <!-- User image -->
               <li class="user-header">
-               <img src=../dist/img/aup.png class='user-image' alt='User Image'>
+               <?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
 
                 <p>
                   <?php  echo $login_session; ?> - Technician
@@ -191,9 +288,9 @@ include('login/session.php');
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
       <!-- Sidebar user panel -->
-      <div class="user-panel">
+      <div class="user-panel"> 
         <div class="pull-left image">
-          <img src=../dist/img/aup.png class='user-image' alt='User Image'>
+          <?php echo "<img src=uploads/$login_session.jpg class='img-circle' alt='User Image'>"?>
         </div>
         <div class="pull-left info">
           <p><?php  echo $login_session; ?></p>
@@ -222,8 +319,7 @@ include('login/session.php');
             </span>
           </a>
           <ul class="treeview-menu">
-           <li><a href="inventory.php"><i class="fa fa-circle-o"></i> Inventory Items</a></li>
-           <li><a href="inventory_edit.php"><i class="fa fa-circle-o"></i>Edit Inventory Tag Data</a></li>
+           <li><a href="inventory.php"><i class="fa fa-circle-o"></i> Inventory</a></li>
             <li><a href="encoding.php"><i class="fa fa-circle-o"></i>Items for Encoding</a></li>
             <li><a href="prodOrder.php"><i class="fa fa-circle-o"></i>Product Orders</a></li>
             <li><a href="receiving.php"><i class="fa fa-circle-o"></i>Receiving</a></li>
@@ -232,7 +328,7 @@ include('login/session.php');
         </li>
          <li class="treeview">
           <a href="#">
-            <i class="fa fa-users"></i>   
+            <i class="fa fa-users"></i>
             <span>Manage Account</span>
             <span class="pull-right-container">
               <span class="label label-primary pull-right">1</span>
@@ -255,8 +351,8 @@ include('login/session.php');
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-         Inventory
-        <small></small>
+         Edit Inventory Tag Data
+        <small></small>   
       </h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -269,32 +365,76 @@ include('login/session.php');
     <section class="content">
       
        <!-- right column -->
-        <div class="col-md-6"> 
+        <div class="col-md-8">  
           <div class="box box-primary">
             <div class="box-header with-border">
-             <form action="inventory.php" method="POST">
-              <div class="form-group">
-                <label>Date and time range:</label>
+             
+             <div class="form-group">
+                <label>Inventory Tag Number:</label>
 
-                <div class="input-group">
-                  <div class="input-group-addon">
-                    <i class="fa fa-clock-o"></i>
+                 <div class="form-group">
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user_id" name="user_id" placeholder="45501" required/>
                   </div>
+                </div>
+                <!-- /.input group -->
+              </div>
+              
+              <div class="form-group">
+                <label>Product Barcode:</label>
 
-                  <input type="text" class="form-control pull-right" name="date_range" id="reservation" value="<?php echo $q; ?>">
+                 <div class="form-group">
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user_id" name="user_id" placeholder="4902870766290" required/>
+                  </div>
                 </div>
                 <!-- /.input group -->
               </div>
 
-            <button type="submit" id="search" name="search" class="btn btn-info pull-left" value="Submit">Search</button>
-            <button type="submit" id="export" name="export" class="btn btn-success pull-right" value="Submit">Export to CSV/Excel</button>
+              <div class="form-group">
+                <label>Product Description:</label>
+
+                 <div class="form-group">
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user_id" name="user_id" placeholder="MAX Staples #35" required/>
+                  </div>
+                </div>
+                <!-- /.input group -->
+              </div>
+              <br>
+              <div class="form-group">
+                <label>Unit Cost:</label>
+
+                 <div class="form-group">
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user_id" name="user_id" placeholder="12.34" required/>
+                  </div>
+                </div>
+                <!-- /.input group -->
+              </div>
+
+              <br>
+              <div class="form-group">
+                <label>Physical Count:</label>
+
+                 <div class="form-group">
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user_id" name="user_id" placeholder="26" required/>
+                  </div>
+                </div>
+                <!-- /.input group -->
+              </div>
+              <br>
+               <div class="form-group">
+                <label>Counted By:</label>
+                <select class="form-control select2" style="width: 100%;" name="supplier" id="supplier" onchange="showReceived(this.value,datepicker.value,merchandiser.value)">
+                  
+                  
+                </select>
+              </div>
             </div>
-            </form>
+            
             <!-- /.box-header -->
-            <div class="box-body" id="demo">
-             
-              
-            </div>
             <!-- /.box-body -->
           </div>
         </div>
@@ -302,106 +442,7 @@ include('login/session.php');
       <!-- /.box -->
      
     </section>
-       <div class="box">
-            <div class="box-header">
-              <h3 class="box-title">List of Items counted.</h3>
-            </div>
-
-            <!-- /.box-header -->
-            <div class="box-body">
-
-              <?php
-                $gtotal = 0;
-                if(isset($_POST['search'])){
-
-                    list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
-                    $from= strtotime($from);
-                    $to= strtotime($to);
-                    $from2 = date('Y-m-d',$from);
-                    $to2 = date('Y-m-d',$to);
-                    $total_items = 0;
-
-                    $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                    $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
-                    $result1 = pg_query($con,$query5);
-                    
-                    ?>
-                    <table id="example1" class="table table-striped table-bordered" cellspacing="0" width="80%">
-                        <thead>
-                            <tr>   
-                                <th>Inventory Tag</th>
-                                <th>Barcode</th> 
-                                <th>Description</th>
-                                <th>Unit Cost</th>
-                                <th>On Hand</th>
-                                <th>Physical Count</th>
-                                <th>Variance</th>
-                                <th>Total Cost</th>
-                                <th>Counted By</th>
-                                <th>Location</th>
-                            </tr>
-                        </thead>
-                        
-                        <tbody>
-                        <?php  
-                            while($row = pg_fetch_assoc($result1)){
-                                    $inventory_tag = $row['inventory_tag'];
-                                    $barcode =  $row['product_code'];
-                                    $prod_desc = $row['description'];
-                                    $unit_cost = $row["unit_cost"];
-                                    $on_hand= $row['on_hand'];
-                                    $physical_count = $row['physical_count'];
-                                    $variance= $row['variance'];
-                                    $total_cost= $row['total_cost'];
-                                    $counted_by = $row['counted_by'];
-                                    $location = $row['location'];
-                                    $gtotal +=$total_cost;
-                                    $total_items++;
-                        ?> 
-                            <tr>
-                                <td><?php echo $total_items; ?></td>
-                                <td><?php echo $barcode; ?></td>
-                                <td><?php echo $prod_desc; ?></td>
-                                <td><?php echo  number_format($unit_cost, 2); ?></td>
-                                <td><?php echo $on_hand; ?></td>
-                                <td><?php echo $physical_count; ?></td>
-                                <td><?php echo $variance; ?></td>
-                                <td><?php echo  number_format($total_cost, 2); ?></td>
-                                <td><?php echo $counted_by; ?></td>
-                                <td><?php echo $location; ?></td>
-                            </tr>
-                    <?php   }  //End of while loop
-
-                             echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Grand Total</td><td style=color:red>".number_format($gtotal, 2)."</td></tr>";
-                             echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td style=color:blue>Total Items</td><td style=color:red>".$total_items."</td></tr>";
-                }
-
-                if(isset($_POST['export'])){
-                $q = $_POST['date_range'];
-                list($from, $to) = preg_split('/(:|-|\*|=)/', $q,-1, PREG_SPLIT_NO_EMPTY);
-
-
-                $from= strtotime($from);
-                $to= strtotime($to);
-
-                $from2 = date('Y-m-d',$from);
-                $to2 = date('Y-m-d',$to);
-                $export = "COPY (select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date) TO 'D:/Store/inventory/Inventory $from2-$to2.csv' DELIMITER ',' CSV HEADER";
-
-                     $result2 = pg_query($con,$export);
-                        echo '<script>window.location.href="inventory.php"</script>';
-                     
-              }              
-                        ?>     
-                    
-                    
-                      </tbody>   
-     
-                </table>
-
-            </div>
-            <!-- /.box-body -->
-          </div>
+      
     <!-- /.content -->
   </div>
    
@@ -646,8 +687,7 @@ include('login/session.php');
 <script src="../dist/js/demo.js"></script>
 <script src="../bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="../bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>  
-<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
 
 <script>
 
@@ -724,49 +764,18 @@ include('login/session.php');
   $(function () {
     $('#example1').DataTable()
     $('#example2').DataTable({
+      dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ]
       'paging'      : true,
       'lengthChange': true,
       'searching'   : true,
       'ordering'    : true,
       'info'        : true,
-      'autoWidth'   : true 
+      'autoWidth'   : true
     })
   })
-</script>
-
-<script type="text/javascript">
-  function exportTableToExcel(tableID, filename){
-    var downloadLink;
-    var dataType = 'application/vnd.ms-excel';
-    var tableSelect = document.getElementById(tableID);
-    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
-    var date_range = document.getElementById(reservation);
-    // Specify file name
-    filename = filename?filename+'.xls':'Labor.xls';
-    
-    // Create download link element
-    downloadLink = document.createElement("a");
-    
-    document.body.appendChild(downloadLink);
-    
-    if(navigator.msSaveOrOpenBlob){
-        var blob = new Blob(['\ufeff', tableHTML], {
-            type: dataType
-        });
-        navigator.msSaveOrOpenBlob( blob, filename);
-    }else{
-        // Create a link to the file
-        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-    
-        // Setting the file name
-        downloadLink.download = filename;
-        
-        //triggering the function
-        downloadLink.click();
-    }
-}
-
-
 </script>
 </body>
 </html>
