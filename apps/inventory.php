@@ -322,7 +322,7 @@ include('login/session.php');
                     $total_items = 0;
 
                     $con = pg_connect("host=localhost port=5432 dbname=postgres user=postgres password=789456321");
-                    $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date;");
+                    $query5 = ("select inventory.inventory_tag, inventory.product_code, product.description description,product.unit_cost::numeric::float8 unit_cost, product.on_hand on_hand,inventory.physical_count,(product.on_hand - inventory.physical_count) as variance, (inventory.physical_count*product.unit_cost::numeric::float8) as total_cost, users.username counted_by, inventory.location,inventory.date_counted from inventory inner join product on product.product_code = inventory.product_code inner join users on users.user_id = inventory.counted_by where date_counted between '$from2'::timestamp::date and '$to2'::timestamp::date order by inventory_tag,location;");
                     $result1 = pg_query($con,$query5);
                     
                     ?>
@@ -359,7 +359,7 @@ include('login/session.php');
                                     $total_items++;
                         ?> 
                             <tr>
-                                <td><?php echo $total_items; ?></td>
+                                <td><?php echo $inventory_tag; ?></td>
                                 <td><?php echo $barcode; ?></td>
                                 <td><?php echo $prod_desc; ?></td>
                                 <td><?php echo  number_format($unit_cost, 2); ?></td>
